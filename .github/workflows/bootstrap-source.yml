@@ -1,0 +1,52 @@
+name: Bootstrap Droide Source
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download verified release source
+        env:
+          SOURCE_URL: "https://uc6661daef2411e2b4893a2d6a99.dl.dropboxusercontent.com/cd/0/get/DI8TIdItjqPeIM57XR32awk_9oW7TM48uMTS1csLCIvF-7M8bMfcoRf2C0zEdEw00tbF8Dq20hrOEo3pLYt01NQ7YMuYG1bSuiptf8w5EWGTDeP5x64B6WjJuMPNF4AVnxWm6aZnq10xjSnRMdbL14cnenX2KzZ3lS7AeWofZqz08A/file?c_luid=15866ebd"
+        run: |
+          set -euo pipefail
+          curl -fL "$SOURCE_URL" -o /tmp/droide-source.zip
+          echo "95c6cc504104d9b3730f1e2caba14e86fea6af188be0741c16fb9c647742c7e6  /tmp/droide-source.zip" | sha256sum -c -
+
+      - name: Replace bootstrap with release tree
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/droide-unpack
+          unzip -q /tmp/droide-source.zip -d /tmp/droide-unpack
+          test -d /tmp/droide-unpack/Droide-v1.00-source
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a /tmp/droide-unpack/Droide-v1.00-source/. .
+
+      - name: Verify release source
+        run: |
+          set -euo pipefail
+          bash tools/verify_release_source.sh
+          python3 tools/verify_dependency_policy.py
+          python3 tools/verify_third_party_integrity.py
+          python3 tools/verify_runtime_licenses.py
+          python3 tools/verify_termux_provenance.py
+
+      - name: Publish source tree
+        run: |
+          set -euo pipefail
+          git config user.name "BayZov Release Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Release Droide v1.00 source" || true
+          git push origin HEAD:main
