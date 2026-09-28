@@ -16,9 +16,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Preserve bootstrap workflow
+        run: cp .github/workflows/bootstrap-source.yml /tmp/bootstrap-source.yml
+
       - name: Download verified release source
         env:
-          SOURCE_URL: "https://uc6661daef2411e2b4893a2d6a99.dl.dropboxusercontent.com/cd/0/get/DI8TIdItjqPeIM57XR32awk_9oW7TM48uMTS1csLCIvF-7M8bMfcoRf2C0zEdEw00tbF8Dq20hrOEo3pLYt01NQ7YMuYG1bSuiptf8w5EWGTDeP5x64B6WjJuMPNF4AVnxWm6aZnq10xjSnRMdbL14cnenX2KzZ3lS7AeWofZqz08A/file?c_luid=15866ebd"
+          SOURCE_URL: "https://uc2b3d577c78153d89ff4c3f7b72.dl.dropboxusercontent.com/cd/0/get/DI9n1d68m9NrDPmelcqPw43HP2Mvq131EJNlLDaLxJDlOkS6hMfeZeZc92sMsIohD1UYanZkz4OPj6iXXXQuMvZhzAORaALSa3JZ9FaPEDGF91LJqMeze6YJlF8X33lVlvww0XkcsZalGE2q2r7Jwycy19gOkXFO8qV_sFTdXFqWYw/file?c_luid=15866ebd"
         run: |
           set -euo pipefail
           curl -fL "$SOURCE_URL" -o /tmp/droide-source.zip
@@ -27,6 +30,7 @@ jobs:
       - name: Replace bootstrap with release tree
         run: |
           set -euo pipefail
+          rm -rf /tmp/droide-unpack
           mkdir -p /tmp/droide-unpack
           unzip -q /tmp/droide-source.zip -d /tmp/droide-unpack
           test -d /tmp/droide-unpack/Droide-v1.00-source
@@ -45,6 +49,9 @@ jobs:
       - name: Publish source tree
         run: |
           set -euo pipefail
+          rm -rf .github/workflows
+          mkdir -p .github/workflows
+          cp /tmp/bootstrap-source.yml .github/workflows/bootstrap-source.yml
           git config user.name "BayZov Release Bot"
           git config user.email "actions@users.noreply.github.com"
           git add -A
