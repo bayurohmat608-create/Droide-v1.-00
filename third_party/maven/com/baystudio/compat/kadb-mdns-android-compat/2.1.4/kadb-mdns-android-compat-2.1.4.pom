@@ -1,0 +1,4 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion><groupId>com.baystudio.compat</groupId><artifactId>kadb-mdns-android-compat</artifactId><version>2.1.4</version><packaging>jar</packaging><dependencies>
+<dependency><groupId>org.jetbrains.kotlin</groupId><artifactId>kotlin-stdlib</artifactId><version>2.4.0</version></dependency>
+<dependency><groupId>org.jetbrains.kotlinx</groupId><artifactId>kotlinx-coroutines-core-jvm</artifactId><version>1.11.0</version></dependency>
+</dependencies></project>

@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "release-v1.00-foundry-all-installable",
+  "targetEnvironment": "linux/arm64",
+  "promotionPolicy": "REVIEW_REQUIRED_NEVER_AUTO_CERTIFY",
+  "proposals": [
+    {
+      "familyId": "cli.adb",
+      "provider": "ANDROID_SDK",
+      "packageName": "platform-tools",
+      "command": "adb",
+      "certificationBeforeHarvest": "PENDING",
+      "status": "TARGET_INCOMPATIBLE",
+      "reason": "official Android SDK host package is not a native Droide linux/arm64 guest artifact; provider certification must stay fail-closed",
+      "compatibilityBlocker": {
+        "kind": "HOST_ARCH_MISMATCH",
+        "reviewedUpstreamVersion": "37.0.1",
+        "reviewedAsOf": "2026-09-23",
+        "reviewedArtifactName": "platform-tools_r37.0.1-linux.zip",
+        "upstreamHostEnvironment": "linux/x86_64",
+        "droideTargetEnvironment": "linux/arm64",
+        "officialPackagePath": "platform-tools",
+        "evidenceUrls": [
+          "https://developer.android.com/tools/releases/platform-tools",
+          "https://developer.android.com/tools/sdkmanager"
+        ]
+      },
+      "bundle": {
+        "id": "android.platform-tools",
+        "primaryFamilyId": "cli.adb"
+      }
+    },
+    {
+      "familyId": "cli.docker",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "docker-cli",
+      "command": "docker",
+      "certificationBeforeHarvest": "PENDING",
+      "status": "ADAPTER_REQUIRED",
+      "reason": "harvester adapter for VENDOR_OFFICIAL is not implemented yet"
+    },
+    {
+      "familyId": "cli.fastboot",
+      "provider": "ANDROID_SDK",
+      "packageName": "platform-tools",
+      "command": "fastboot",
+      "certificationBeforeHarvest": "PENDING",
+      "status": "TARGET_INCOMPATIBLE",
+      "reason": "official Android SDK host package is not a native Droide linux/arm64 guest artifact; provider certification must stay fail-closed",
+      "compatibilityBlocker": {
+        "kind": "HOST_ARCH_MISMATCH",
+        "reviewedUpstreamVersion": "37.0.1",
+        "reviewedAsOf": "2026-09-23",
+        "reviewedArtifactName": "platform-tools_r37.0.1-linux.zip",
+        "upstreamHostEnvironment": "linux/x86_64",
+        "droideTargetEnvironment": "linux/arm64",
+        "officialPackagePath": "platform-tools",
+        "evidenceUrls": [
+          "https://developer.android.com/tools/releases/platform-tools",
+          "https://developer.android.com/tools/sdkmanager"
+        ]
+      },
+      "bundle": {
+        "id": "android.platform-tools",
+        "primaryFamilyId": "cli.adb"
+      }
+    },
+    {
+      "familyId": "package.leiningen",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "leiningen",
+      "command": "lein",
+      "certificationBeforeHarvest": "PENDING",
+      "status": "ADAPTER_REQUIRED",
+      "reason": "harvester adapter for VENDOR_OFFICIAL is not implemented yet"
+    },
+    {
+      "familyId": "package.nuget",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "nuget.exe",
+      "command": "nuget",
+      "certificationBeforeHarvest": "PENDING",
+      "status": "ADAPTER_REQUIRED",
+      "reason": "harvester adapter for VENDOR_OFFICIAL is not implemented yet"
+    },
+    {
+      "familyId": "package.pub",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "dart-sdk",
+      "command": "dart",
+      "certificationBeforeHarvest": "PENDING",
+      "status": "ADAPTER_REQUIRED",
+      "reason": "harvester adapter for VENDOR_OFFICIAL is not implemented yet"
+    },
+    {
+      "familyId": "package.rubygems",
+      "provider": "RUBYGEMS",
+      "packageName": "rubygems-update",
+      "command": "gem",
+      "certificationBeforeHarvest": "PENDING",
+      "status": "VERSION_DISCOVERED",
+      "metadataUrl": "https://rubygems.org/api/v1/gems/rubygems-update.json",
+      "resolvedVersion": "3.7.2",
+      "reason": "registry version discovered; this package row remains review-required despite the certified generic RubyGems engine",
+      "suggestedRecipe": {
+        "familyId": "package.rubygems",
+        "provider": "RUBYGEMS",
+        "packageName": "rubygems-update",
+        "version": "3.7.2",
+        "command": "gem",
+        "targetEnvironment": "linux/arm64",
+        "promotionState": "REVIEW_REQUIRED"
+      }
+    },
+    {
+      "familyId": "quality.clippy",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "rustup-component:clippy",
+      "command": "cargo-clippy",
+      "certificationBeforeHarvest": "PENDING",
+      "status": "ADAPTER_REQUIRED",
+      "reason": "harvester adapter for VENDOR_OFFICIAL is not implemented yet"
+    },
+    {
+      "familyId": "test.dart",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "dart-sdk",
+      "command": "dart",
+      "certificationBeforeHarvest": "PENDING",
+      "status": "ADAPTER_REQUIRED",
+      "reason": "harvester adapter for VENDOR_OFFICIAL is not implemented yet"
+    }
+  ],
+  "proposalsSha256": "a557a98c2a72d82b456c2a8ff148d7cd99936461a099b9c2164fd5e0bc9595c4"
+}

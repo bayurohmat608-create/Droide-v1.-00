@@ -1,0 +1,98 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.lsposed.hiddenapibypass",
+    "module": "hiddenapibypass",
+    "version": "6.1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.12"
+    }
+  },
+  "variants": [
+    {
+      "name": "releaseVariantReleaseApiPublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "hiddenapibypass-6.1.aar",
+          "url": "hiddenapibypass-6.1.aar",
+          "size": 15041,
+          "sha512": "51269b8165e8b5125b1216c13d767f9c497e957994d61b1f0feb12483037ff00d164d80e4640e2ad02b62be9d17b0c8e13cf0b73e02cb930f2bcc86b8c8bb555",
+          "sha256": "e3161dd21c97a4540b1698a33f7062aeaa1450008e1e2176070e5380f7a6324c",
+          "sha1": "18d7213e2447fe9734b2a78f232bca1e02d782e5",
+          "md5": "a01996959f02022c5bfd865941b529b8"
+        }
+      ]
+    },
+    {
+      "name": "releaseVariantReleaseRuntimePublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "hiddenapibypass-6.1.aar",
+          "url": "hiddenapibypass-6.1.aar",
+          "size": 15041,
+          "sha512": "51269b8165e8b5125b1216c13d767f9c497e957994d61b1f0feb12483037ff00d164d80e4640e2ad02b62be9d17b0c8e13cf0b73e02cb930f2bcc86b8c8bb555",
+          "sha256": "e3161dd21c97a4540b1698a33f7062aeaa1450008e1e2176070e5380f7a6324c",
+          "sha1": "18d7213e2447fe9734b2a78f232bca1e02d782e5",
+          "md5": "a01996959f02022c5bfd865941b529b8"
+        }
+      ]
+    },
+    {
+      "name": "releaseVariantReleaseSourcePublication",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "hiddenapibypass-6.1-sources.jar",
+          "url": "hiddenapibypass-6.1-sources.jar",
+          "size": 9361,
+          "sha512": "366d15817a0f4b60b2f858b253be18414577db0a9eb137f1857b419bfd729c5cd6fe4a659e725ce7117ec680a983a8e1c7c49abfec3bc439acca5a9e1d86a123",
+          "sha256": "3da76de7a8a84f2b078461770e9804681c2e25e3a2c482ed84f819530340a801",
+          "sha1": "214ff5b5b75d35adda9ee577043d8254f1130ad7",
+          "md5": "ac169dce8c0b6e2f83ae2a02b5fba180"
+        }
+      ]
+    },
+    {
+      "name": "releaseVariantReleaseJavaDocPublication",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "hiddenapibypass-6.1-javadoc.jar",
+          "url": "hiddenapibypass-6.1-javadoc.jar",
+          "size": 299312,
+          "sha512": "514f48def8a794a584a4994a573a6f823b2ec6fe7cd49069a22e94e5c24c572b9ccbf8eb66d3179fb4bbfb4939d768f2dbc01a403d46e291fe5a4fa9778a7ea6",
+          "sha256": "90260a5949aa12a75f0f2ea0081d4e209832fd36f8f1b7126a443509eee820a1",
+          "sha1": "ce267a8609bdf8a71a8d51318b9414ea7daa1f6b",
+          "md5": "ac39bd79b3b9649ed5a4ff5c7e9fa1f0"
+        }
+      ]
+    }
+  ]
+}

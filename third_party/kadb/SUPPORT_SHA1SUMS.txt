@@ -1,0 +1,8 @@
+1e42b594a950a6200d9270737e1a3b9f71e655f6  third_party/maven/com/baystudio/compat/spake2-boringssl-compat/1.0.0/spake2-boringssl-compat-1.0.0.jar
+a12d684ec0df9541b3869ae60a4a5257fd3613df  third_party/maven/com/squareup/okio/okio-jvm/3.17.0/okio-jvm-3.17.0.jar
+f958dfdc338d8063088c096c187512ac2a8813a4  third_party/maven/androidx/documentfile/documentfile/1.1.0/documentfile-1.1.0.aar
+18d7213e2447fe9734b2a78f232bca1e02d782e5  third_party/maven/org/lsposed/hiddenapibypass/hiddenapibypass/6.1/hiddenapibypass-6.1.aar
+3d57dc678bd8d72a60e7adf0eca5c54e3f4f4b79  third_party/maven/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.11.0/kotlinx-coroutines-core-jvm-1.11.0.jar
+2d5651789941d2f8ae9b8771f23356de6b61e96b  third_party/maven/org/bouncycastle/bcprov-jdk18on/1.84/bcprov-jdk18on-1.84.jar
+dab889a3259e27caec6e6c2f3bde94af036b2fcc  third_party/maven/org/bouncycastle/bcpkix-jdk18on/1.84/bcpkix-jdk18on-1.84.jar
+79bfd1f9c6bd7431ff22e29935ec20f12f0af0d3  third_party/maven/org/bouncycastle/bcutil-jdk18on/1.84/bcutil-jdk18on-1.84.jar

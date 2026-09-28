@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "fullSourceRegistrySha256": "16538c975ba68685ed15705df781198263d71b76c67f614aea418fed7af4b272",
+  "packages": [
+    {
+      "familyId": "cli.adb",
+      "certification": "PENDING"
+    },
+    {
+      "familyId": "cli.fastboot",
+      "certification": "PENDING"
+    },
+    {
+      "familyId": "cli.docker",
+      "certification": "PENDING"
+    },
+    {
+      "familyId": "package.leiningen",
+      "certification": "PENDING"
+    },
+    {
+      "familyId": "package.nuget",
+      "certification": "PENDING"
+    },
+    {
+      "familyId": "package.pub",
+      "certification": "PENDING"
+    },
+    {
+      "familyId": "package.rubygems",
+      "certification": "PENDING"
+    },
+    {
+      "familyId": "quality.clippy",
+      "certification": "PENDING"
+    },
+    {
+      "familyId": "test.dart",
+      "certification": "PENDING"
+    }
+  ]
+}

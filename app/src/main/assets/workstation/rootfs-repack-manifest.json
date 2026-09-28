@@ -1,0 +1,20 @@
+[
+  {
+    "file": "ubuntu-base-24.04.5-base-arm64.tar.xz",
+    "bytes": 17880788,
+    "sha256": "33f099c82ff503ddae6ff669bb274165d70a7602de84cfd34cb0e30ce4b766ce",
+    "tarBytes": 106741760,
+    "tarSha256": "d0cebb41bb205a8e4e2afc60987dca30619a4fb2c6ec4a1a23a42839254a2ba6",
+    "upstreamFile": "ubuntu-base-24.04.5-base-arm64.tar.gz",
+    "upstreamSha256": "a91d5a93010193712d346d761372b7c9db6dfcf093893161c64ca107f05914f2"
+  },
+  {
+    "file": "alpine-minirootfs-3.24.2-aarch64.tar.xz",
+    "bytes": 3203364,
+    "sha256": "66c582602205a7f90657c5cb01c8d7d1bfd0a2fc8eb03bd9de288f2c9ef2b935",
+    "tarBytes": 8949760,
+    "tarSha256": "1886356f5ecb94414310225351b1ea4917218dc323d689c2921f28737bd09a28",
+    "upstreamFile": "alpine-minirootfs-3.24.2-aarch64.tar.gz",
+    "upstreamSha256": "9bf70a7f18ea44094cbb5f70c58f9af129c8214745743db0e68e5502cc2ce773"
+  }
+]

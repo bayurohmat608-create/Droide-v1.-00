@@ -1,0 +1,1793 @@
+{
+  "aggregates": {
+    "alpineMinirootfs": {
+      "distribution": "Alpine Linux v3.24",
+      "id": "alpine-minirootfs-3.24.2-aarch64",
+      "packages": [
+        {
+          "aportsCommit": "60a7585bbab2fa0f762504eb617dbca90216e31f",
+          "homepage": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/alpine-baselayout",
+          "license": "GPL-2.0-only",
+          "name": "alpine-baselayout",
+          "origin": "alpine-baselayout",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/60a7585bbab2fa0f762504eb617dbca90216e31f/main/alpine-baselayout",
+          "version": "3.7.2-r1"
+        },
+        {
+          "aportsCommit": "60a7585bbab2fa0f762504eb617dbca90216e31f",
+          "homepage": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/master/main/alpine-baselayout",
+          "license": "GPL-2.0-only",
+          "name": "alpine-baselayout-data",
+          "origin": "alpine-baselayout",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/60a7585bbab2fa0f762504eb617dbca90216e31f/main/alpine-baselayout",
+          "version": "3.7.2-r1"
+        },
+        {
+          "aportsCommit": "b9f23becced4d7b3ccc0fa0f28530243ccd314a0",
+          "homepage": "https://alpinelinux.org",
+          "license": "MIT",
+          "name": "alpine-keys",
+          "origin": "alpine-keys",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/b9f23becced4d7b3ccc0fa0f28530243ccd314a0/main/alpine-keys",
+          "version": "2.6-r0"
+        },
+        {
+          "aportsCommit": "d9d560d5de74ff9a7a73f3c903d6f126a0bf3142",
+          "homepage": "https://alpinelinux.org",
+          "license": "MIT",
+          "name": "alpine-release",
+          "origin": "alpine-base",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/d9d560d5de74ff9a7a73f3c903d6f126a0bf3142/main/alpine-base",
+          "version": "3.24.2-r0"
+        },
+        {
+          "aportsCommit": "4588b452722bd4800efdc6cce4f6e980e02a997f",
+          "homepage": "https://gitlab.alpinelinux.org/alpine/apk-tools",
+          "license": "GPL-2.0-only",
+          "name": "apk-tools",
+          "origin": "apk-tools",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/4588b452722bd4800efdc6cce4f6e980e02a997f/main/apk-tools",
+          "version": "3.0.8-r0"
+        },
+        {
+          "aportsCommit": "c3ef5d10e6ef6528852c51f0564963e2f8c1be19",
+          "homepage": "https://busybox.net/",
+          "license": "GPL-2.0-only",
+          "name": "busybox",
+          "origin": "busybox",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/c3ef5d10e6ef6528852c51f0564963e2f8c1be19/main/busybox",
+          "version": "1.37.0-r31"
+        },
+        {
+          "aportsCommit": "c3ef5d10e6ef6528852c51f0564963e2f8c1be19",
+          "homepage": "https://busybox.net/",
+          "license": "GPL-2.0-only",
+          "name": "busybox-binsh",
+          "origin": "busybox",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/c3ef5d10e6ef6528852c51f0564963e2f8c1be19/main/busybox",
+          "version": "1.37.0-r31"
+        },
+        {
+          "aportsCommit": "eb7078df3a16d666e8f7723f94bb92e00d4b9236",
+          "homepage": "https://www.mozilla.org/en-US/about/governance/policies/security-group/certs/",
+          "license": "MPL-2.0 AND MIT",
+          "name": "ca-certificates-bundle",
+          "origin": "ca-certificates",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/eb7078df3a16d666e8f7723f94bb92e00d4b9236/main/ca-certificates",
+          "version": "20260909-r0"
+        },
+        {
+          "aportsCommit": "4588b452722bd4800efdc6cce4f6e980e02a997f",
+          "homepage": "https://gitlab.alpinelinux.org/alpine/apk-tools",
+          "license": "GPL-2.0-only",
+          "name": "libapk",
+          "origin": "apk-tools",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/4588b452722bd4800efdc6cce4f6e980e02a997f/main/apk-tools",
+          "version": "3.0.8-r0"
+        },
+        {
+          "aportsCommit": "013edf8b29199933e8ea34dde460b5584b979042",
+          "homepage": "https://www.openssl.org/",
+          "license": "Apache-2.0",
+          "name": "libcrypto3",
+          "origin": "openssl",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/013edf8b29199933e8ea34dde460b5584b979042/main/openssl",
+          "version": "3.5.8-r0"
+        },
+        {
+          "aportsCommit": "013edf8b29199933e8ea34dde460b5584b979042",
+          "homepage": "https://www.openssl.org/",
+          "license": "Apache-2.0",
+          "name": "libssl3",
+          "origin": "openssl",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/013edf8b29199933e8ea34dde460b5584b979042/main/openssl",
+          "version": "3.5.8-r0"
+        },
+        {
+          "aportsCommit": "f5640d3a10f664c9119720c60515265d3d6f6d01",
+          "homepage": "https://musl.libc.org/",
+          "license": "MIT",
+          "name": "musl",
+          "origin": "musl",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/f5640d3a10f664c9119720c60515265d3d6f6d01/main/musl",
+          "version": "1.2.6-r2"
+        },
+        {
+          "aportsCommit": "f5640d3a10f664c9119720c60515265d3d6f6d01",
+          "homepage": "https://musl.libc.org/",
+          "license": "MIT AND BSD-2-Clause AND GPL-2.0-or-later",
+          "name": "musl-utils",
+          "origin": "musl",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/f5640d3a10f664c9119720c60515265d3d6f6d01/main/musl",
+          "version": "1.2.6-r2"
+        },
+        {
+          "aportsCommit": "c61801eeacb3ffcd9c2025b09e402153bb93fb39",
+          "homepage": "https://wiki.gentoo.org/wiki/Hardened/PaX_Utilities",
+          "license": "GPL-2.0-only",
+          "name": "scanelf",
+          "origin": "pax-utils",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/c61801eeacb3ffcd9c2025b09e402153bb93fb39/main/pax-utils",
+          "version": "1.3.9-r1"
+        },
+        {
+          "aportsCommit": "c3ef5d10e6ef6528852c51f0564963e2f8c1be19",
+          "homepage": "https://busybox.net/",
+          "license": "GPL-2.0-only",
+          "name": "ssl_client",
+          "origin": "busybox",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/c3ef5d10e6ef6528852c51f0564963e2f8c1be19/main/busybox",
+          "version": "1.37.0-r31"
+        },
+        {
+          "aportsCommit": "f248b33b5943c7dc69bf691031d7612ab2e8ed93",
+          "homepage": "https://zlib.net/",
+          "license": "Zlib",
+          "name": "zlib",
+          "origin": "zlib",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/f248b33b5943c7dc69bf691031d7612ab2e8ed93/main/zlib",
+          "version": "1.3.2-r0"
+        }
+      ],
+      "sourcePolicy": "Exact aports commit links are recorded per installed package; copyleft source is available under the written source offer."
+    },
+    "qemuOfflinePack": {
+      "distribution": "Alpine v3.24 aarch64",
+      "id": "qemu-offline-alpine-v3.24-arm64",
+      "packages": [
+        {
+          "aportsCommit": "1ee249c9da168084b1c6c9f7488bdffa2ac33c84",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/brotli-libs-1.2.0-r1.apk",
+          "bytes": 424924,
+          "file": "brotli-libs-1.2.0-r1.apk",
+          "homepage": "https://github.com/google/brotli",
+          "license": "MIT",
+          "name": "brotli-libs",
+          "origin": "brotli",
+          "repository": "main",
+          "sha256": "e0e7a7892f28326a9f18e09607b1aea72baedda470bc4e3d2b11262b9ae5dda3",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/1ee249c9da168084b1c6c9f7488bdffa2ac33c84/main/brotli",
+          "version": "1.2.0-r1"
+        },
+        {
+          "aportsCommit": "c9594a68fc477caf63d30d99855239233d7dcbbe",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/community/aarch64/capstone-5.0.9-r0.apk",
+          "bytes": 972418,
+          "file": "capstone-5.0.9-r0.apk",
+          "homepage": "https://www.capstone-engine.org",
+          "license": "BSD-3-Clause-Clear",
+          "name": "capstone",
+          "origin": "capstone",
+          "repository": "community",
+          "sha256": "d9304823c7396cfee33fa1e9250995296141c63480c921f2996b76e77089f38b",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/c9594a68fc477caf63d30d99855239233d7dcbbe/community/capstone",
+          "version": "5.0.9-r0"
+        },
+        {
+          "aportsCommit": "8683a6972cb245fbbdb535dad6435a9930bb9374",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/e2fsprogs-libs-1.47.4-r0.apk",
+          "bytes": 216701,
+          "file": "e2fsprogs-libs-1.47.4-r0.apk",
+          "homepage": "https://e2fsprogs.sourceforge.net/",
+          "license": "GPL-2.0-or-later AND LGPL-2.0-or-later AND BSD-3-Clause AND MIT",
+          "name": "e2fsprogs-libs",
+          "origin": "e2fsprogs",
+          "repository": "main",
+          "sha256": "52124971ae397d599aadd79263fcd68fc9e271922ccf8185b124f35fe24c60c8",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/8683a6972cb245fbbdb535dad6435a9930bb9374/main/e2fsprogs",
+          "version": "1.47.4-r0"
+        },
+        {
+          "aportsCommit": "1ea03990396db618edfcc8a9a0bc6b72662bac8f",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/gdbm-1.26-r0.apk",
+          "bytes": 33830,
+          "file": "gdbm-1.26-r0.apk",
+          "homepage": "https://www.gnu.org/software/gdbm/",
+          "license": "GPL-3.0-or-later",
+          "name": "gdbm",
+          "origin": "gdbm",
+          "repository": "main",
+          "sha256": "bad50eb26533e2f58e014fbcd3c1744f2fdb79954af6e3c188ccd059251c7790",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/1ea03990396db618edfcc8a9a0bc6b72662bac8f/main/gdbm",
+          "version": "1.26-r0"
+        },
+        {
+          "aportsCommit": "bd96e2db11c9ba7d7795454d16af620d577614c7",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/glib-2.88.1-r1.apk",
+          "bytes": 1995383,
+          "file": "glib-2.88.1-r1.apk",
+          "homepage": "https://developer.gnome.org/glib/",
+          "license": "LGPL-2.1-or-later",
+          "name": "glib",
+          "origin": "glib",
+          "repository": "main",
+          "sha256": "0ae89191a79ea5d5a02515e41f29b62e5e0a0a80fb059804bbbacac2d77cce4e",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/bd96e2db11c9ba7d7795454d16af620d577614c7/main/glib",
+          "version": "2.88.1-r1"
+        },
+        {
+          "aportsCommit": "206e7b39f7884d62a174aba4d33a42454518c1c2",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/gmp-6.3.0-r4.apk",
+          "bytes": 221014,
+          "file": "gmp-6.3.0-r4.apk",
+          "homepage": "https://gmplib.org/",
+          "license": "LGPL-3.0-or-later OR GPL-2.0-or-later",
+          "name": "gmp",
+          "origin": "gmp",
+          "repository": "main",
+          "sha256": "4dab6e86b850fe1b5bc0cf2fac17efa4d7f648bea44f3d9019694cc1e1cb12b7",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/206e7b39f7884d62a174aba4d33a42454518c1c2/main/gmp",
+          "version": "6.3.0-r4"
+        },
+        {
+          "aportsCommit": "c09f2e94a4b0b4077da49683cf0faa09ed63fb5b",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/gnutls-3.8.13-r0.apk",
+          "bytes": 901801,
+          "file": "gnutls-3.8.13-r0.apk",
+          "homepage": "https://www.gnutls.org/",
+          "license": "LGPL-2.1-or-later",
+          "name": "gnutls",
+          "origin": "gnutls",
+          "repository": "main",
+          "sha256": "8678c104d4c08e7e41b5fcacdfdbffa208066bcb1c3f7f8b620e0a6bd22b3e40",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/c09f2e94a4b0b4077da49683cf0faa09ed63fb5b/main/gnutls",
+          "version": "3.8.13-r0"
+        },
+        {
+          "aportsCommit": "4efcc59469af67dcd537e43b9a410a019803d643",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libaio-0.3.113-r2.apk",
+          "bytes": 4670,
+          "file": "libaio-0.3.113-r2.apk",
+          "homepage": "https://pagure.io/libaio",
+          "license": "LGPL-2.1-or-later",
+          "name": "libaio",
+          "origin": "libaio",
+          "repository": "main",
+          "sha256": "ff918b2179f6c779630923cfd5bd140a668b7231c05414eb68d69aff8fdb5845",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/4efcc59469af67dcd537e43b9a410a019803d643/main/libaio",
+          "version": "0.3.113-r2"
+        },
+        {
+          "aportsCommit": "d98c55af59055e6ca60fbe36e171546918709965",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libblkid-2.42.3-r1.apk",
+          "bytes": 97097,
+          "file": "libblkid-2.42.3-r1.apk",
+          "homepage": "https://git.kernel.org/cgit/utils/util-linux/util-linux.git",
+          "license": "LGPL-2.1-or-later",
+          "name": "libblkid",
+          "origin": "util-linux",
+          "repository": "main",
+          "sha256": "9d0f24976c575c53c12526b6e078edf34c980c153bc8e5f1c1053cbece5b8cfa",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/d98c55af59055e6ca60fbe36e171546918709965/main/util-linux",
+          "version": "2.42.3-r1"
+        },
+        {
+          "aportsCommit": "4e52d88ee66dfb8d4fa39818b4dc9c3325bbfe06",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libbpf-1.7.0-r1.apk",
+          "bytes": 169439,
+          "file": "libbpf-1.7.0-r1.apk",
+          "homepage": "https://github.com/libbpf/libbpf",
+          "license": "LGPL-2.1-only OR BSD-2-Clause",
+          "name": "libbpf",
+          "origin": "libbpf",
+          "repository": "main",
+          "sha256": "69d6435f48a738bff36c2bedd5e132799918e794e9affb9c341efce95be9d97d",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/4e52d88ee66dfb8d4fa39818b4dc9c3325bbfe06/main/libbpf",
+          "version": "1.7.0-r1"
+        },
+        {
+          "aportsCommit": "33283848034c9885d984c8e8697c645c57324938",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libbz2-1.0.8-r6.apk",
+          "bytes": 34259,
+          "file": "libbz2-1.0.8-r6.apk",
+          "homepage": "https://sourceware.org/bzip2/",
+          "license": "bzip2-1.0.6",
+          "name": "libbz2",
+          "origin": "bzip2",
+          "repository": "main",
+          "sha256": "28cb76bb6d11d2a55c3061b5fcb2ab84996412a248b2c9fe52bb710d0a2a84e7",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/33283848034c9885d984c8e8697c645c57324938/main/bzip2",
+          "version": "1.0.8-r6"
+        },
+        {
+          "aportsCommit": "8683a6972cb245fbbdb535dad6435a9930bb9374",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libcom_err-1.47.4-r0.apk",
+          "bytes": 6577,
+          "file": "libcom_err-1.47.4-r0.apk",
+          "homepage": "https://e2fsprogs.sourceforge.net/",
+          "license": "GPL-2.0-or-later AND LGPL-2.0-or-later AND BSD-3-Clause AND MIT",
+          "name": "libcom_err",
+          "origin": "e2fsprogs",
+          "repository": "main",
+          "sha256": "a75b5955ff57046e33fc2842cfe466dc77d8e68305d5c86c6646b38a069490a2",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/8683a6972cb245fbbdb535dad6435a9930bb9374/main/e2fsprogs",
+          "version": "1.47.4-r0"
+        },
+        {
+          "aportsCommit": "8f13294206888f3dd44ed74a8eb3dd9934499e81",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libdw-0.195-r0.apk",
+          "bytes": 235354,
+          "file": "libdw-0.195-r0.apk",
+          "homepage": "https://sourceware.org/elfutils/",
+          "license": "GPL-3.0-or-later AND ( GPL-2.0-or-later OR LGPL-3.0-or-later )",
+          "name": "libdw",
+          "origin": "elfutils",
+          "repository": "main",
+          "sha256": "ccfe821138496ebc2e78dc8ace441522583eb06844df6ea24715e7f026b7bbe0",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/8f13294206888f3dd44ed74a8eb3dd9934499e81/main/elfutils",
+          "version": "0.195-r0"
+        },
+        {
+          "aportsCommit": "62db33049768522f381410614d59c7d732f72c3a",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libeconf-0.8.3-r0.apk",
+          "bytes": 27259,
+          "file": "libeconf-0.8.3-r0.apk",
+          "homepage": "https://github.com/openSUSE/libeconf",
+          "license": "MIT",
+          "name": "libeconf",
+          "origin": "libeconf",
+          "repository": "main",
+          "sha256": "cf0899d49ded0a6891e3cdf1b37887f2ecd77293afe1d8f3cb8937763c83f183",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/62db33049768522f381410614d59c7d732f72c3a/main/libeconf",
+          "version": "0.8.3-r0"
+        },
+        {
+          "aportsCommit": "8f13294206888f3dd44ed74a8eb3dd9934499e81",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libelf-0.195-r0.apk",
+          "bytes": 44727,
+          "file": "libelf-0.195-r0.apk",
+          "homepage": "https://sourceware.org/elfutils/",
+          "license": "GPL-3.0-or-later AND ( GPL-2.0-or-later OR LGPL-3.0-or-later )",
+          "name": "libelf",
+          "origin": "elfutils",
+          "repository": "main",
+          "sha256": "1c108314af454a885ac0b053201db57027470c4f2309412c016897e2a2bf5d0e",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/8f13294206888f3dd44ed74a8eb3dd9934499e81/main/elfutils",
+          "version": "0.195-r0"
+        },
+        {
+          "aportsCommit": "d7c24c471a34de95ae5f74bc3c16077a37b6ca59",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libfdt-1.7.2-r1.apk",
+          "bytes": 19375,
+          "file": "libfdt-1.7.2-r1.apk",
+          "homepage": "https://git.kernel.org/pub/scm/utils/dtc/dtc.git/",
+          "license": "GPL-2.0-or-later OR BSD-2-Clause",
+          "name": "libfdt",
+          "origin": "dtc",
+          "repository": "main",
+          "sha256": "3fc04330eb4ac6f449ca4409f25a262a015066533af2aa12a1d7997d9d8f50c3",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/d7c24c471a34de95ae5f74bc3c16077a37b6ca59/main/dtc",
+          "version": "1.7.2-r1"
+        },
+        {
+          "aportsCommit": "2c2a7bb4a8b16066834e90402567b2c19403a790",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libffi-3.5.2-r1.apk",
+          "bytes": 17799,
+          "file": "libffi-3.5.2-r1.apk",
+          "homepage": "https://sourceware.org/libffi/",
+          "license": "MIT",
+          "name": "libffi",
+          "origin": "libffi",
+          "repository": "main",
+          "sha256": "9a67280b0c7c62db658c2d4d32ed1199903bef859c32dd4245e1a7e35c89ab4b",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/2c2a7bb4a8b16066834e90402567b2c19403a790/main/libffi",
+          "version": "3.5.2-r1"
+        },
+        {
+          "aportsCommit": "423a8ad043d07f2c7546c8ec3e2b0384cda360ae",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libgcc-15.2.0-r5.apk",
+          "bytes": 66323,
+          "file": "libgcc-15.2.0-r5.apk",
+          "homepage": "https://gcc.gnu.org",
+          "license": "GPL-2.0-or-later AND LGPL-2.1-or-later",
+          "name": "libgcc",
+          "origin": "gcc",
+          "repository": "main",
+          "sha256": "369aaa6e9d099a737bad6dd3e6c2fe7bb1547ca26d22b94ee0411228f709b403",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/423a8ad043d07f2c7546c8ec3e2b0384cda360ae/main/gcc",
+          "version": "15.2.0-r5"
+        },
+        {
+          "aportsCommit": "8240e09aa2fdd8f9979b2016be082273965aff0c",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libidn2-2.3.8-r0.apk",
+          "bytes": 105430,
+          "file": "libidn2-2.3.8-r0.apk",
+          "homepage": "https://www.gnu.org/software/libidn#libidn2",
+          "license": "GPL-2.0-or-later OR LGPL-3.0-or-later",
+          "name": "libidn2",
+          "origin": "libidn2",
+          "repository": "main",
+          "sha256": "d02ffda4510652f89c5fb89cd2e7ff721afb0c74e7d75476ad60bebe7ac0ae20",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/8240e09aa2fdd8f9979b2016be082273965aff0c/main/libidn2",
+          "version": "2.3.8-r0"
+        },
+        {
+          "aportsCommit": "a0b12dbf67fb047e79a1b76c6dfe6f2904d0d391",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libintl-1.0-r0.apk",
+          "bytes": 41483,
+          "file": "libintl-1.0-r0.apk",
+          "homepage": "https://www.gnu.org/software/gettext/gettext.html",
+          "license": "LGPL-2.1-or-later",
+          "name": "libintl",
+          "origin": "gettext",
+          "repository": "main",
+          "sha256": "d106a13e3e68103d3a8217406aae6186289baf352d0f3d10fc21938d2dd8adb1",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/a0b12dbf67fb047e79a1b76c6dfe6f2904d0d391/main/gettext",
+          "version": "1.0-r0"
+        },
+        {
+          "aportsCommit": "5fe6bebf850fc964a8525c81548397c39cb6f7cd",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libjpeg-turbo-3.1.3-r0.apk",
+          "bytes": 225383,
+          "file": "libjpeg-turbo-3.1.3-r0.apk",
+          "homepage": "https://libjpeg-turbo.org/",
+          "license": "BSD-3-Clause AND IJG AND Zlib",
+          "name": "libjpeg-turbo",
+          "origin": "libjpeg-turbo",
+          "repository": "main",
+          "sha256": "0e82bb8d0abad143d9a84ee32152707e5a71176bd803b070b6179e85e11bf2be",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/5fe6bebf850fc964a8525c81548397c39cb6f7cd/main/libjpeg-turbo",
+          "version": "3.1.3-r0"
+        },
+        {
+          "aportsCommit": "d98c55af59055e6ca60fbe36e171546918709965",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libmount-2.42.3-r1.apk",
+          "bytes": 128579,
+          "file": "libmount-2.42.3-r1.apk",
+          "homepage": "https://git.kernel.org/cgit/utils/util-linux/util-linux.git",
+          "license": "LGPL-2.1-or-later",
+          "name": "libmount",
+          "origin": "util-linux",
+          "repository": "main",
+          "sha256": "a2a6fc6aab7a59c70ec060f5fb8c950be42d1a017934bf32e5dd6984eaab15cc",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/d98c55af59055e6ca60fbe36e171546918709965/main/util-linux",
+          "version": "2.42.3-r1"
+        },
+        {
+          "aportsCommit": "4084996615c2a6601e26eedde99e3ae66e7d6ab7",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libnl3-3.11.0-r0.apk",
+          "bytes": 333316,
+          "file": "libnl3-3.11.0-r0.apk",
+          "homepage": "http://www.infradead.org/~tgr/libnl/",
+          "license": "LGPL-2.1-or-later",
+          "name": "libnl3",
+          "origin": "libnl3",
+          "repository": "main",
+          "sha256": "b32d23e45bde6d77989362ce4ca2989ea0f85e319eca10b9d5d73cf5b65a5460",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/4084996615c2a6601e26eedde99e3ae66e7d6ab7/main/libnl3",
+          "version": "3.11.0-r0"
+        },
+        {
+          "aportsCommit": "47f0ce2db0f841ad73afd91ff4d71bca0f46ad05",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libpng-1.6.58-r1.apk",
+          "bytes": 97450,
+          "file": "libpng-1.6.58-r1.apk",
+          "homepage": "http://www.libpng.org",
+          "license": "Libpng",
+          "name": "libpng",
+          "origin": "libpng",
+          "repository": "main",
+          "sha256": "98d3a69a159ea506a5587bff07de5fa3e91d0cc10501c17e3905e4314d1d30b8",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/47f0ce2db0f841ad73afd91ff4d71bca0f46ad05/main/libpng",
+          "version": "1.6.58-r1"
+        },
+        {
+          "aportsCommit": "fac808c0fddf93e8980ec1f55972e6f69b78ba6f",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libsasl-2.1.28-r9.apk",
+          "bytes": 77509,
+          "file": "libsasl-2.1.28-r9.apk",
+          "homepage": "https://www.cyrusimap.org/sasl/",
+          "license": "BSD-3-Clause-Attribution AND BSD-4-Clause",
+          "name": "libsasl",
+          "origin": "cyrus-sasl",
+          "repository": "main",
+          "sha256": "0be9020fdb51705c6f393bad6e533bbcd70f68c148ab0b88d35ef39a4ce8959f",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/fac808c0fddf93e8980ec1f55972e6f69b78ba6f/main/cyrus-sasl",
+          "version": "2.1.28-r9"
+        },
+        {
+          "aportsCommit": "5c5f3eb6cfaaa7596d548e4de2ec8dbe95d5b206",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libseccomp-2.6.0-r2.apk",
+          "bytes": 51476,
+          "file": "libseccomp-2.6.0-r2.apk",
+          "homepage": "https://github.com/seccomp/libseccomp",
+          "license": "LGPL-2.1-or-later",
+          "name": "libseccomp",
+          "origin": "libseccomp",
+          "repository": "main",
+          "sha256": "8d57be8b00171a0647ce70be272d3ddb067ce086223dff0662e7f39b1e13ec63",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/5c5f3eb6cfaaa7596d548e4de2ec8dbe95d5b206/main/libseccomp",
+          "version": "2.6.0-r2"
+        },
+        {
+          "aportsCommit": "59be9c10e52e1654c6a27e7bbe2d523cebbbb904",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/community/aarch64/libslirp-4.9.1-r0.apk",
+          "bytes": 60728,
+          "file": "libslirp-4.9.1-r0.apk",
+          "homepage": "https://gitlab.freedesktop.org/slirp/libslirp",
+          "license": "BSD-3-Clause",
+          "name": "libslirp",
+          "origin": "libslirp",
+          "repository": "community",
+          "sha256": "680c0bc3c04d9c1c127b4f960f30fd2f61bd79f0a7a599361c2f3be34e09874b",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/59be9c10e52e1654c6a27e7bbe2d523cebbbb904/community/libslirp",
+          "version": "4.9.1-r0"
+        },
+        {
+          "aportsCommit": "423a8ad043d07f2c7546c8ec3e2b0384cda360ae",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libstdc++-15.2.0-r5.apk",
+          "bytes": 908984,
+          "file": "libstdc++-15.2.0-r5.apk",
+          "homepage": "https://gcc.gnu.org",
+          "license": "GPL-2.0-or-later AND LGPL-2.1-or-later",
+          "name": "libstdc++",
+          "origin": "gcc",
+          "repository": "main",
+          "sha256": "2302e766d4e4926038ec166ecb85837ee884576115236ddb565e3a5fca4a11d7",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/423a8ad043d07f2c7546c8ec3e2b0384cda360ae/main/gcc",
+          "version": "15.2.0-r5"
+        },
+        {
+          "aportsCommit": "771f180774aa0d9d3783d7f4eb9e3788c615658b",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libtasn1-4.21.0-r0.apk",
+          "bytes": 34161,
+          "file": "libtasn1-4.21.0-r0.apk",
+          "homepage": "https://www.gnu.org/software/gnutls/",
+          "license": "LGPL-2.1-or-later",
+          "name": "libtasn1",
+          "origin": "libtasn1",
+          "repository": "main",
+          "sha256": "c9fcd102c576a05675ebf4d61f147e5209fd4518e8627f229032240afaf7624b",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/771f180774aa0d9d3783d7f4eb9e3788c615658b/main/libtasn1",
+          "version": "4.21.0-r0"
+        },
+        {
+          "aportsCommit": "30d9f19340385b2cd16eaf1cc6a9a8b30c4afe1c",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libunistring-1.4.2-r0.apk",
+          "bytes": 746169,
+          "file": "libunistring-1.4.2-r0.apk",
+          "homepage": "https://www.gnu.org/software/libunistring/",
+          "license": "GPL-2.0-or-later OR LGPL-3.0-or-later",
+          "name": "libunistring",
+          "origin": "libunistring",
+          "repository": "main",
+          "sha256": "58abfcbce2459071c505771a572a79953d6043d72b643ed0d5285ca39cdaf85c",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/30d9f19340385b2cd16eaf1cc6a9a8b30c4afe1c/main/libunistring",
+          "version": "1.4.2-r0"
+        },
+        {
+          "aportsCommit": "b2acc93a60ed96de5b6e3043c505744957cc7d00",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/liburing-2.14-r0.apk",
+          "bytes": 12493,
+          "file": "liburing-2.14-r0.apk",
+          "homepage": "https://git.kernel.dk/cgit/liburing/",
+          "license": "LGPL-2.1-or-later OR MIT",
+          "name": "liburing",
+          "origin": "liburing",
+          "repository": "main",
+          "sha256": "388e70b040b6ec26bd8d171e514ac68626b00a1871a0134c53de22ed059c2627",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/b2acc93a60ed96de5b6e3043c505744957cc7d00/main/liburing",
+          "version": "2.14-r0"
+        },
+        {
+          "aportsCommit": "d98c55af59055e6ca60fbe36e171546918709965",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/libuuid-2.42.3-r1.apk",
+          "bytes": 15385,
+          "file": "libuuid-2.42.3-r1.apk",
+          "homepage": "https://git.kernel.org/cgit/utils/util-linux/util-linux.git",
+          "license": "BSD-3-Clause",
+          "name": "libuuid",
+          "origin": "util-linux",
+          "repository": "main",
+          "sha256": "9ce20c7ffe2ccaa7c321893c10564abbca13c3f2edb82f60a35f1f68e004f86c",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/d98c55af59055e6ca60fbe36e171546918709965/main/util-linux",
+          "version": "2.42.3-r1"
+        },
+        {
+          "aportsCommit": "03fe9a0a61940d07592e897e7a5983e2c7d91fff",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/lzo-2.10-r5.apk",
+          "bytes": 90160,
+          "file": "lzo-2.10-r5.apk",
+          "homepage": "https://www.oberhumer.com/opensource/lzo",
+          "license": "GPL-2.0-or-later",
+          "name": "lzo",
+          "origin": "lzo",
+          "repository": "main",
+          "sha256": "a4d2dc5c6174527784244aff061c330f5c66f28d45fa8588c8076d83f0d2822c",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/03fe9a0a61940d07592e897e7a5983e2c7d91fff/main/lzo",
+          "version": "2.10-r5"
+        },
+        {
+          "aportsCommit": "4e8cdf57b4b8e4d2ce691447ea0dc2fcf7c4e281",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/musl-fts-1.2.7-r7.apk",
+          "bytes": 7638,
+          "file": "musl-fts-1.2.7-r7.apk",
+          "homepage": "https://github.com/void-linux/musl-fts/",
+          "license": "BSD-3-Clause",
+          "name": "musl-fts",
+          "origin": "musl-fts",
+          "repository": "main",
+          "sha256": "49e242db9339136148f1399d2126af277a5723a23d0be5a47fa0c94f96732e73",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/4e8cdf57b4b8e4d2ce691447ea0dc2fcf7c4e281/main/musl-fts",
+          "version": "1.2.7-r7"
+        },
+        {
+          "aportsCommit": "bf898e6d067c1c0ecc0f5ff39c79fc893399acd8",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/nettle-3.10.2-r0.apk",
+          "bytes": 356329,
+          "file": "nettle-3.10.2-r0.apk",
+          "homepage": "https://www.lysator.liu.se/~nisse/nettle/",
+          "license": "GPL-2.0-or-later OR LGPL-3.0-or-later",
+          "name": "nettle",
+          "origin": "nettle",
+          "repository": "main",
+          "sha256": "573c54ecb55b157d9cd5323eb3a9bb9d87b375ee20392a6a9d16c0ba098af9e5",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/bf898e6d067c1c0ecc0f5ff39c79fc893399acd8/main/nettle",
+          "version": "3.10.2-r0"
+        },
+        {
+          "aportsCommit": "ac972e48bfad3673dd72e92890f04ffd879215be",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/numactl-2.0.19-r0.apk",
+          "bytes": 21285,
+          "file": "numactl-2.0.19-r0.apk",
+          "homepage": "https://github.com/numactl/numactl",
+          "license": "LGPL-2.1-only",
+          "name": "numactl",
+          "origin": "numactl",
+          "repository": "main",
+          "sha256": "911046ec22d596820cc37427b470f80bb095bf415c0debcc2774b7c0c43be9d8",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/ac972e48bfad3673dd72e92890f04ffd879215be/main/numactl",
+          "version": "2.0.19-r0"
+        },
+        {
+          "aportsCommit": "922ca1ffc9cc326f7d95b093b365e31da5cba1a9",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/p11-kit-0.26.2-r0.apk",
+          "bytes": 361410,
+          "file": "p11-kit-0.26.2-r0.apk",
+          "homepage": "https://p11-glue.freedesktop.org/",
+          "license": "BSD-3-Clause",
+          "name": "p11-kit",
+          "origin": "p11-kit",
+          "repository": "main",
+          "sha256": "0ad7cbbc011491b604b4d8fb8aafb6ce2a271c19eb8b785dd51f1704c61c58a5",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/922ca1ffc9cc326f7d95b093b365e31da5cba1a9/main/p11-kit",
+          "version": "0.26.2-r0"
+        },
+        {
+          "aportsCommit": "abc383a51f67922cd61e338b1461cddaa1814b28",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/pcre2-10.48-r0.apk",
+          "bytes": 320066,
+          "file": "pcre2-10.48-r0.apk",
+          "homepage": "https://pcre.org/",
+          "license": "BSD-3-Clause",
+          "name": "pcre2",
+          "origin": "pcre2",
+          "repository": "main",
+          "sha256": "0e8a425ec23fca1b549e83758b385e7186a070597e8dc014163462f960079167",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/abc383a51f67922cd61e338b1461cddaa1814b28/main/pcre2",
+          "version": "10.48-r0"
+        },
+        {
+          "aportsCommit": "9337ac809a431f004386ea3e279e3d55f770e7d3",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/pixman-0.46.4-r0.apk",
+          "bytes": 180838,
+          "file": "pixman-0.46.4-r0.apk",
+          "homepage": "https://gitlab.freedesktop.org/pixman",
+          "license": "MIT",
+          "name": "pixman",
+          "origin": "pixman",
+          "repository": "main",
+          "sha256": "022ab7d2b766f3893e6c457a03c723fe3e79e9f009d8a62d06f1692d9f2fc77f",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/9337ac809a431f004386ea3e279e3d55f770e7d3/main/pixman",
+          "version": "0.46.4-r0"
+        },
+        {
+          "aportsCommit": "51049924607603c9d9b7132c187a7f31085d7a12",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/community/aarch64/qemu-11.0.3-r0.apk",
+          "bytes": 6326613,
+          "file": "qemu-11.0.3-r0.apk",
+          "homepage": "https://qemu.org/",
+          "license": "GPL-2.0-only AND LGPL-2.1-only",
+          "name": "qemu",
+          "origin": "qemu",
+          "repository": "community",
+          "sha256": "3f87d65b2c350dfeaec860bce485860537d3b0e59cbe92ecad09552bb77d02ee",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/51049924607603c9d9b7132c187a7f31085d7a12/community/qemu",
+          "version": "11.0.3-r0"
+        },
+        {
+          "aportsCommit": "51049924607603c9d9b7132c187a7f31085d7a12",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/community/aarch64/qemu-edk2-arm-vars-11.0.3-r0.apk",
+          "bytes": 74974,
+          "file": "qemu-edk2-arm-vars-11.0.3-r0.apk",
+          "homepage": "https://qemu.org/",
+          "license": "GPL-2.0-only AND LGPL-2.1-only",
+          "name": "qemu-edk2-arm-vars",
+          "origin": "qemu",
+          "repository": "community",
+          "sha256": "f5e7907cba1f02c2261d15b1ec819b0b0729d979201d7f94bd3353653775a4b9",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/51049924607603c9d9b7132c187a7f31085d7a12/community/qemu",
+          "version": "11.0.3-r0"
+        },
+        {
+          "aportsCommit": "51049924607603c9d9b7132c187a7f31085d7a12",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/community/aarch64/qemu-edk2-i386-vars-11.0.3-r0.apk",
+          "bytes": 2346,
+          "file": "qemu-edk2-i386-vars-11.0.3-r0.apk",
+          "homepage": "https://qemu.org/",
+          "license": "GPL-2.0-only AND LGPL-2.1-only",
+          "name": "qemu-edk2-i386-vars",
+          "origin": "qemu",
+          "repository": "community",
+          "sha256": "4d42437b9f22d8216cd6427dad45d6a4c648d16b11d1b9782fa581d2e0c20bc2",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/51049924607603c9d9b7132c187a7f31085d7a12/community/qemu",
+          "version": "11.0.3-r0"
+        },
+        {
+          "aportsCommit": "51049924607603c9d9b7132c187a7f31085d7a12",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/community/aarch64/qemu-img-11.0.3-r0.apk",
+          "bytes": 3794337,
+          "file": "qemu-img-11.0.3-r0.apk",
+          "homepage": "https://qemu.org/",
+          "license": "GPL-2.0-only AND LGPL-2.1-only",
+          "name": "qemu-img",
+          "origin": "qemu",
+          "repository": "community",
+          "sha256": "3a49e18b0d83493b34eb709beac4b0787125353d8f1b9dba928b8fbdb8ab0416",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/51049924607603c9d9b7132c187a7f31085d7a12/community/qemu",
+          "version": "11.0.3-r0"
+        },
+        {
+          "aportsCommit": "51049924607603c9d9b7132c187a7f31085d7a12",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/community/aarch64/qemu-system-aarch64-11.0.3-r0.apk",
+          "bytes": 7935990,
+          "file": "qemu-system-aarch64-11.0.3-r0.apk",
+          "homepage": "https://qemu.org/",
+          "license": "GPL-2.0-only AND LGPL-2.1-only",
+          "name": "qemu-system-aarch64",
+          "origin": "qemu",
+          "repository": "community",
+          "sha256": "c72f2c4d9d38a04c40b128080d8f5eda25fc2ecfd88c352f6baef5797c614639",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/51049924607603c9d9b7132c187a7f31085d7a12/community/qemu",
+          "version": "11.0.3-r0"
+        },
+        {
+          "aportsCommit": "51049924607603c9d9b7132c187a7f31085d7a12",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/community/aarch64/qemu-system-x86_64-11.0.3-r0.apk",
+          "bytes": 8463470,
+          "file": "qemu-system-x86_64-11.0.3-r0.apk",
+          "homepage": "https://qemu.org/",
+          "license": "GPL-2.0-only AND LGPL-2.1-only",
+          "name": "qemu-system-x86_64",
+          "origin": "qemu",
+          "repository": "community",
+          "sha256": "c415f10da231382ac8f2015b03d461ae4e652aec19cf547b058aa3019eacb3e7",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/51049924607603c9d9b7132c187a7f31085d7a12/community/qemu",
+          "version": "11.0.3-r0"
+        },
+        {
+          "aportsCommit": "51049924607603c9d9b7132c187a7f31085d7a12",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/community/aarch64/qemu-x86_64-11.0.3-r0.apk",
+          "bytes": 1408155,
+          "file": "qemu-x86_64-11.0.3-r0.apk",
+          "homepage": "https://qemu.org/",
+          "license": "GPL-2.0-only AND LGPL-2.1-only",
+          "name": "qemu-x86_64",
+          "origin": "qemu",
+          "repository": "community",
+          "sha256": "3ccc698b81da078425115d531c23d328e9dd1c094fb1ac4dc9417d1687f4363f",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/51049924607603c9d9b7132c187a7f31085d7a12/community/qemu",
+          "version": "11.0.3-r0"
+        },
+        {
+          "aportsCommit": "80871bcad6fe1a49274344d6c8ab140ce1bab014",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/snappy-1.2.2-r0.apk",
+          "bytes": 24122,
+          "file": "snappy-1.2.2-r0.apk",
+          "homepage": "https://github.com/google/snappy",
+          "license": "BSD-3-Clause",
+          "name": "snappy",
+          "origin": "snappy",
+          "repository": "main",
+          "sha256": "3562c65dd72f5ef604b9dad8c8fad32b422b5384f36957ff1e8f4d982882f52b",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/80871bcad6fe1a49274344d6c8ab140ce1bab014/main/snappy",
+          "version": "1.2.2-r0"
+        },
+        {
+          "aportsCommit": "cf63098dcbda160518ff5faa62db495dbca7f139",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/community/aarch64/vde2-libs-2.3.3-r6.apk",
+          "bytes": 38498,
+          "file": "vde2-libs-2.3.3-r6.apk",
+          "homepage": "https://github.com/virtualsquare/vde-2",
+          "license": "GPL",
+          "name": "vde2-libs",
+          "origin": "vde2",
+          "repository": "community",
+          "sha256": "89a996668d33310a1098bdccf94a18cf8467675f48fdfd6b285cf09ff4faa1c0",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/cf63098dcbda160518ff5faa62db495dbca7f139/community/vde2",
+          "version": "2.3.3-r6"
+        },
+        {
+          "aportsCommit": "c6d3302f2880a3ff3786eb293560e9f22d198971",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/xen-libs-4.21.2-r1.apk",
+          "bytes": 614137,
+          "file": "xen-libs-4.21.2-r1.apk",
+          "homepage": "https://www.xenproject.org/",
+          "license": "GPL-2.0-only",
+          "name": "xen-libs",
+          "origin": "xen",
+          "repository": "main",
+          "sha256": "3cbfbe1413f61d30e934e49d163339d74dbb5f5c5daf721a9857cb07e4634cf7",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/c6d3302f2880a3ff3786eb293560e9f22d198971/main/xen",
+          "version": "4.21.2-r1"
+        },
+        {
+          "aportsCommit": "0c088d609f9fe69eedd6b4c7f4b99cdad847c20a",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/xz-libs-5.8.4-r0.apk",
+          "bytes": 119423,
+          "file": "xz-libs-5.8.4-r0.apk",
+          "homepage": "https://tukaani.org/xz/",
+          "license": "GPL-2.0-or-later AND 0BSD AND Public-Domain AND LGPL-2.1-or-later",
+          "name": "xz-libs",
+          "origin": "xz",
+          "repository": "main",
+          "sha256": "9be375832e747afe14f98e400e8b55d8f6fde25e41663090c81600628daab093",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/0c088d609f9fe69eedd6b4c7f4b99cdad847c20a/main/xz",
+          "version": "5.8.4-r0"
+        },
+        {
+          "aportsCommit": "1c89c94632dd77d4ceaa967e685350a2fcc3d301",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/yajl-2.1.0-r9.apk",
+          "bytes": 15204,
+          "file": "yajl-2.1.0-r9.apk",
+          "homepage": "https://lloyd.github.io/yajl/",
+          "license": "MIT",
+          "name": "yajl",
+          "origin": "yajl",
+          "repository": "main",
+          "sha256": "897030fa9e1724da03bf7259b756a36406cf26d60b1bb870284745052e622c97",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/1c89c94632dd77d4ceaa967e685350a2fcc3d301/main/yajl",
+          "version": "2.1.0-r9"
+        },
+        {
+          "aportsCommit": "3c6e2ee2b16f403d53eab39c4426eb61f003c322",
+          "binaryUrl": "https://dl-cdn.alpinelinux.org/alpine/v3.24/main/aarch64/zstd-libs-1.5.7-r2.apk",
+          "bytes": 365383,
+          "file": "zstd-libs-1.5.7-r2.apk",
+          "homepage": "https://facebook.github.io/zstd/",
+          "license": "BSD-3-Clause OR GPL-2.0-or-later",
+          "name": "zstd-libs",
+          "origin": "zstd",
+          "repository": "main",
+          "sha256": "2bb5136c89f5b0bbe1554c8915a3b520d5aa63ae2a51d4d821eb81698db5a818",
+          "sourceRecipe": "https://gitlab.alpinelinux.org/alpine/aports/-/tree/3c6e2ee2b16f403d53eab39c4426eb61f003c322/main/zstd",
+          "version": "1.5.7-r2"
+        }
+      ],
+      "sourcePolicy": "Exact aports commit links are recorded per package; QEMU upstream source is vendored and other copyleft package source is covered by the written source offer."
+    },
+    "ubuntuBase": {
+      "distribution": "Ubuntu Base 24.04.5 arm64",
+      "id": "ubuntu-base-24.04.5-arm64",
+      "packages": [
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "apt",
+          "sourcePackage": "apt",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/apt/2.8.3",
+          "sourceVersion": "2.8.3",
+          "version": "2.8.3"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "base-files",
+          "sourcePackage": "base-files",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/base-files/13ubuntu10.5",
+          "sourceVersion": "13ubuntu10.5",
+          "version": "13ubuntu10.5"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "base-passwd",
+          "sourcePackage": "base-passwd",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/base-passwd/3.6.3build1",
+          "sourceVersion": "3.6.3build1",
+          "version": "3.6.3build1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "bash",
+          "sourcePackage": "bash",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/bash/5.2.21-2ubuntu4",
+          "sourceVersion": "5.2.21-2ubuntu4",
+          "version": "5.2.21-2ubuntu4"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "bsdutils",
+          "sourcePackage": "util-linux",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/util-linux/2.39.3-9ubuntu6.6",
+          "sourceVersion": "2.39.3-9ubuntu6.6",
+          "version": "1:2.39.3-9ubuntu6.6"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "coreutils",
+          "sourcePackage": "coreutils",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/coreutils/9.4-3ubuntu6.3",
+          "sourceVersion": "9.4-3ubuntu6.3",
+          "version": "9.4-3ubuntu6.3"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "dash",
+          "sourcePackage": "dash",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/dash/0.5.12-6ubuntu5",
+          "sourceVersion": "0.5.12-6ubuntu5",
+          "version": "0.5.12-6ubuntu5"
+        },
+        {
+          "architecture": "all",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "debconf",
+          "sourcePackage": "debconf",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/debconf/1.5.86ubuntu1",
+          "sourceVersion": "1.5.86ubuntu1",
+          "version": "1.5.86ubuntu1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "debianutils",
+          "sourcePackage": "debianutils",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/debianutils/5.17build1",
+          "sourceVersion": "5.17build1",
+          "version": "5.17build1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "diffutils",
+          "sourcePackage": "diffutils",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/diffutils/1:3.10-1ubuntu0.1",
+          "sourceVersion": "1:3.10-1ubuntu0.1",
+          "version": "1:3.10-1ubuntu0.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "dpkg",
+          "sourcePackage": "dpkg",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/dpkg/1.22.6ubuntu6.6",
+          "sourceVersion": "1.22.6ubuntu6.6",
+          "version": "1.22.6ubuntu6.6"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "e2fsprogs",
+          "sourcePackage": "e2fsprogs",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/e2fsprogs/1.47.0-2.4~exp1ubuntu4.1",
+          "sourceVersion": "1.47.0-2.4~exp1ubuntu4.1",
+          "version": "1.47.0-2.4~exp1ubuntu4.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "findutils",
+          "sourcePackage": "findutils",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/findutils/4.9.0-5build1",
+          "sourceVersion": "4.9.0-5build1",
+          "version": "4.9.0-5build1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "gcc-14-base",
+          "sourcePackage": "gcc-14",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/gcc-14/14.2.0-4ubuntu2~24.04.1",
+          "sourceVersion": "14.2.0-4ubuntu2~24.04.1",
+          "version": "14.2.0-4ubuntu2~24.04.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "gpgv",
+          "sourcePackage": "gnupg2",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/gnupg2/2.4.4-2ubuntu17.6",
+          "sourceVersion": "2.4.4-2ubuntu17.6",
+          "version": "2.4.4-2ubuntu17.6"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "grep",
+          "sourcePackage": "grep",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/grep/3.11-4build1",
+          "sourceVersion": "3.11-4build1",
+          "version": "3.11-4build1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "gzip",
+          "sourcePackage": "gzip",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/gzip/1.12-1ubuntu3.2",
+          "sourceVersion": "1.12-1ubuntu3.2",
+          "version": "1.12-1ubuntu3.2"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "hostname",
+          "sourcePackage": "hostname",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/hostname/3.23+nmu2ubuntu2",
+          "sourceVersion": "3.23+nmu2ubuntu2",
+          "version": "3.23+nmu2ubuntu2"
+        },
+        {
+          "architecture": "all",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "init-system-helpers",
+          "sourcePackage": "init-system-helpers",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/init-system-helpers/1.66ubuntu1",
+          "sourceVersion": "1.66ubuntu1",
+          "version": "1.66ubuntu1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libacl1",
+          "sourcePackage": "acl",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/acl/2.3.2-1build1.1",
+          "sourceVersion": "2.3.2-1build1.1",
+          "version": "2.3.2-1build1.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libapt-pkg6.0t64",
+          "sourcePackage": "apt",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/apt/2.8.3",
+          "sourceVersion": "2.8.3",
+          "version": "2.8.3"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libassuan0",
+          "sourcePackage": "libassuan",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libassuan/2.5.6-1build1",
+          "sourceVersion": "2.5.6-1build1",
+          "version": "2.5.6-1build1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libattr1",
+          "sourcePackage": "attr",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/attr/1:2.5.2-1ubuntu0.1",
+          "sourceVersion": "1:2.5.2-1ubuntu0.1",
+          "version": "1:2.5.2-1ubuntu0.1"
+        },
+        {
+          "architecture": "all",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libaudit-common",
+          "sourcePackage": "audit",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/audit/1:3.1.2-2.1build1.1",
+          "sourceVersion": "1:3.1.2-2.1build1.1",
+          "version": "1:3.1.2-2.1build1.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libaudit1",
+          "sourcePackage": "audit",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/audit/1:3.1.2-2.1build1.1",
+          "sourceVersion": "1:3.1.2-2.1build1.1",
+          "version": "1:3.1.2-2.1build1.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libblkid1",
+          "sourcePackage": "util-linux",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/util-linux/2.39.3-9ubuntu6.6",
+          "sourceVersion": "2.39.3-9ubuntu6.6",
+          "version": "2.39.3-9ubuntu6.6"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libbz2-1.0",
+          "sourcePackage": "bzip2",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/bzip2/1.0.8-5.1ubuntu0.1",
+          "sourceVersion": "1.0.8-5.1ubuntu0.1",
+          "version": "1.0.8-5.1ubuntu0.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libc-bin",
+          "sourcePackage": "glibc",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/glibc/2.39-0ubuntu8.8",
+          "sourceVersion": "2.39-0ubuntu8.8",
+          "version": "2.39-0ubuntu8.8"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libc6",
+          "sourcePackage": "glibc",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/glibc/2.39-0ubuntu8.8",
+          "sourceVersion": "2.39-0ubuntu8.8",
+          "version": "2.39-0ubuntu8.8"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libcap-ng0",
+          "sourcePackage": "libcap-ng",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libcap-ng/0.8.4-2build2",
+          "sourceVersion": "0.8.4-2build2",
+          "version": "0.8.4-2build2"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libcap2",
+          "sourcePackage": "libcap2",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libcap2/1:2.66-5ubuntu2.4",
+          "sourceVersion": "1:2.66-5ubuntu2.4",
+          "version": "1:2.66-5ubuntu2.4"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libcom-err2",
+          "sourcePackage": "e2fsprogs",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/e2fsprogs/1.47.0-2.4~exp1ubuntu4.1",
+          "sourceVersion": "1.47.0-2.4~exp1ubuntu4.1",
+          "version": "1.47.0-2.4~exp1ubuntu4.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libcrypt1",
+          "sourcePackage": "libxcrypt",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libxcrypt/1:4.4.36-4build1",
+          "sourceVersion": "1:4.4.36-4build1",
+          "version": "1:4.4.36-4build1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libdb5.3t64",
+          "sourcePackage": "db5.3",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/db5.3/5.3.28+dfsg2-7",
+          "sourceVersion": "5.3.28+dfsg2-7",
+          "version": "5.3.28+dfsg2-7"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libdebconfclient0",
+          "sourcePackage": "cdebconf",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/cdebconf/0.271ubuntu3",
+          "sourceVersion": "0.271ubuntu3",
+          "version": "0.271ubuntu3"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libext2fs2t64",
+          "sourcePackage": "e2fsprogs",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/e2fsprogs/1.47.0-2.4~exp1ubuntu4.1",
+          "sourceVersion": "1.47.0-2.4~exp1ubuntu4.1",
+          "version": "1.47.0-2.4~exp1ubuntu4.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libffi8",
+          "sourcePackage": "libffi",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libffi/3.4.6-1build1",
+          "sourceVersion": "3.4.6-1build1",
+          "version": "3.4.6-1build1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libgcc-s1",
+          "sourcePackage": "gcc-14",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/gcc-14/14.2.0-4ubuntu2~24.04.1",
+          "sourceVersion": "14.2.0-4ubuntu2~24.04.1",
+          "version": "14.2.0-4ubuntu2~24.04.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libgcrypt20",
+          "sourcePackage": "libgcrypt20",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libgcrypt20/1.10.3-2ubuntu0.2",
+          "sourceVersion": "1.10.3-2ubuntu0.2",
+          "version": "1.10.3-2ubuntu0.2"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libgmp10",
+          "sourcePackage": "gmp",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/gmp/2:6.3.0+dfsg-2ubuntu6.1",
+          "sourceVersion": "2:6.3.0+dfsg-2ubuntu6.1",
+          "version": "2:6.3.0+dfsg-2ubuntu6.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libgnutls30t64",
+          "sourcePackage": "gnutls28",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/gnutls28/3.8.3-1.1ubuntu3.6",
+          "sourceVersion": "3.8.3-1.1ubuntu3.6",
+          "version": "3.8.3-1.1ubuntu3.6"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libgpg-error0",
+          "sourcePackage": "libgpg-error",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libgpg-error/1.47-3build2.1",
+          "sourceVersion": "1.47-3build2.1",
+          "version": "1.47-3build2.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libhogweed6t64",
+          "sourcePackage": "nettle",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/nettle/3.9.1-2.2build1.1",
+          "sourceVersion": "3.9.1-2.2build1.1",
+          "version": "3.9.1-2.2build1.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libidn2-0",
+          "sourcePackage": "libidn2",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libidn2/2.3.7-2build1.1",
+          "sourceVersion": "2.3.7-2build1.1",
+          "version": "2.3.7-2build1.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "liblz4-1",
+          "sourcePackage": "lz4",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/lz4/1.9.4-1build1.1",
+          "sourceVersion": "1.9.4-1build1.1",
+          "version": "1.9.4-1build1.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "liblzma5",
+          "sourcePackage": "xz-utils",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/xz-utils/5.6.1+really5.4.5-1ubuntu0.3",
+          "sourceVersion": "5.6.1+really5.4.5-1ubuntu0.3",
+          "version": "5.6.1+really5.4.5-1ubuntu0.3"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libmd0",
+          "sourcePackage": "libmd",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libmd/1.1.0-2build1.1",
+          "sourceVersion": "1.1.0-2build1.1",
+          "version": "1.1.0-2build1.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libmount1",
+          "sourcePackage": "util-linux",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/util-linux/2.39.3-9ubuntu6.6",
+          "sourceVersion": "2.39.3-9ubuntu6.6",
+          "version": "2.39.3-9ubuntu6.6"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libncursesw6",
+          "sourcePackage": "ncurses",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/ncurses/6.4+20240113-1ubuntu2.2",
+          "sourceVersion": "6.4+20240113-1ubuntu2.2",
+          "version": "6.4+20240113-1ubuntu2.2"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libnettle8t64",
+          "sourcePackage": "nettle",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/nettle/3.9.1-2.2build1.1",
+          "sourceVersion": "3.9.1-2.2build1.1",
+          "version": "3.9.1-2.2build1.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libnpth0t64",
+          "sourcePackage": "npth",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/npth/1.6-3.1build1",
+          "sourceVersion": "1.6-3.1build1",
+          "version": "1.6-3.1build1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libp11-kit0",
+          "sourcePackage": "p11-kit",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/p11-kit/0.25.3-4ubuntu2.2",
+          "sourceVersion": "0.25.3-4ubuntu2.2",
+          "version": "0.25.3-4ubuntu2.2"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libpam-modules",
+          "sourcePackage": "pam",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/pam/1.5.3-5ubuntu5.7",
+          "sourceVersion": "1.5.3-5ubuntu5.7",
+          "version": "1.5.3-5ubuntu5.7"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libpam-modules-bin",
+          "sourcePackage": "pam",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/pam/1.5.3-5ubuntu5.7",
+          "sourceVersion": "1.5.3-5ubuntu5.7",
+          "version": "1.5.3-5ubuntu5.7"
+        },
+        {
+          "architecture": "all",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libpam-runtime",
+          "sourcePackage": "pam",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/pam/1.5.3-5ubuntu5.7",
+          "sourceVersion": "1.5.3-5ubuntu5.7",
+          "version": "1.5.3-5ubuntu5.7"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libpam0g",
+          "sourcePackage": "pam",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/pam/1.5.3-5ubuntu5.7",
+          "sourceVersion": "1.5.3-5ubuntu5.7",
+          "version": "1.5.3-5ubuntu5.7"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libpcre2-8-0",
+          "sourcePackage": "pcre2",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/pcre2/10.42-4ubuntu2.1",
+          "sourceVersion": "10.42-4ubuntu2.1",
+          "version": "10.42-4ubuntu2.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libproc2-0",
+          "sourcePackage": "procps",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/procps/2:4.0.4-4ubuntu3.3",
+          "sourceVersion": "2:4.0.4-4ubuntu3.3",
+          "version": "2:4.0.4-4ubuntu3.3"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libseccomp2",
+          "sourcePackage": "libseccomp",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libseccomp/2.5.5-1ubuntu3.1",
+          "sourceVersion": "2.5.5-1ubuntu3.1",
+          "version": "2.5.5-1ubuntu3.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libselinux1",
+          "sourcePackage": "libselinux",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libselinux/3.5-2ubuntu2.1",
+          "sourceVersion": "3.5-2ubuntu2.1",
+          "version": "3.5-2ubuntu2.1"
+        },
+        {
+          "architecture": "all",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libsemanage-common",
+          "sourcePackage": "libsemanage",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libsemanage/3.5-1build5",
+          "sourceVersion": "3.5-1build5",
+          "version": "3.5-1build5"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libsemanage2",
+          "sourcePackage": "libsemanage",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libsemanage/3.5-1build5",
+          "sourceVersion": "3.5-1build5",
+          "version": "3.5-1build5"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libsepol2",
+          "sourcePackage": "libsepol",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libsepol/3.5-2build1",
+          "sourceVersion": "3.5-2build1",
+          "version": "3.5-2build1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libsmartcols1",
+          "sourcePackage": "util-linux",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/util-linux/2.39.3-9ubuntu6.6",
+          "sourceVersion": "2.39.3-9ubuntu6.6",
+          "version": "2.39.3-9ubuntu6.6"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libss2",
+          "sourcePackage": "e2fsprogs",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/e2fsprogs/1.47.0-2.4~exp1ubuntu4.1",
+          "sourceVersion": "1.47.0-2.4~exp1ubuntu4.1",
+          "version": "1.47.0-2.4~exp1ubuntu4.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libssl3t64",
+          "sourcePackage": "openssl",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/openssl/3.0.13-0ubuntu3.15",
+          "sourceVersion": "3.0.13-0ubuntu3.15",
+          "version": "3.0.13-0ubuntu3.15"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libstdc++6",
+          "sourcePackage": "gcc-14",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/gcc-14/14.2.0-4ubuntu2~24.04.1",
+          "sourceVersion": "14.2.0-4ubuntu2~24.04.1",
+          "version": "14.2.0-4ubuntu2~24.04.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libsystemd0",
+          "sourcePackage": "systemd",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/systemd/255.4-1ubuntu8.17",
+          "sourceVersion": "255.4-1ubuntu8.17",
+          "version": "255.4-1ubuntu8.17"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libtasn1-6",
+          "sourcePackage": "libtasn1-6",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libtasn1-6/4.19.0-3ubuntu0.24.04.2",
+          "sourceVersion": "4.19.0-3ubuntu0.24.04.2",
+          "version": "4.19.0-3ubuntu0.24.04.2"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libtinfo6",
+          "sourcePackage": "ncurses",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/ncurses/6.4+20240113-1ubuntu2.2",
+          "sourceVersion": "6.4+20240113-1ubuntu2.2",
+          "version": "6.4+20240113-1ubuntu2.2"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libudev1",
+          "sourcePackage": "systemd",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/systemd/255.4-1ubuntu8.17",
+          "sourceVersion": "255.4-1ubuntu8.17",
+          "version": "255.4-1ubuntu8.17"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libunistring5",
+          "sourcePackage": "libunistring",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libunistring/1.1-2build1.1",
+          "sourceVersion": "1.1-2build1.1",
+          "version": "1.1-2build1.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libuuid1",
+          "sourcePackage": "util-linux",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/util-linux/2.39.3-9ubuntu6.6",
+          "sourceVersion": "2.39.3-9ubuntu6.6",
+          "version": "2.39.3-9ubuntu6.6"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libxxhash0",
+          "sourcePackage": "xxhash",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/xxhash/0.8.2-2build1",
+          "sourceVersion": "0.8.2-2build1",
+          "version": "0.8.2-2build1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "libzstd1",
+          "sourcePackage": "libzstd",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/libzstd/1.5.5+dfsg2-2build1.1",
+          "sourceVersion": "1.5.5+dfsg2-2build1.1",
+          "version": "1.5.5+dfsg2-2build1.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "login",
+          "sourcePackage": "shadow",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/shadow/1:4.13+dfsg1-4ubuntu3.2",
+          "sourceVersion": "1:4.13+dfsg1-4ubuntu3.2",
+          "version": "1:4.13+dfsg1-4ubuntu3.2"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "logsave",
+          "sourcePackage": "e2fsprogs",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/e2fsprogs/1.47.0-2.4~exp1ubuntu4.1",
+          "sourceVersion": "1.47.0-2.4~exp1ubuntu4.1",
+          "version": "1.47.0-2.4~exp1ubuntu4.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "mawk",
+          "sourcePackage": "mawk",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/mawk/1.3.4.20240123-1build1",
+          "sourceVersion": "1.3.4.20240123-1build1",
+          "version": "1.3.4.20240123-1build1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "mount",
+          "sourcePackage": "util-linux",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/util-linux/2.39.3-9ubuntu6.6",
+          "sourceVersion": "2.39.3-9ubuntu6.6",
+          "version": "2.39.3-9ubuntu6.6"
+        },
+        {
+          "architecture": "all",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "ncurses-base",
+          "sourcePackage": "ncurses",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/ncurses/6.4+20240113-1ubuntu2.2",
+          "sourceVersion": "6.4+20240113-1ubuntu2.2",
+          "version": "6.4+20240113-1ubuntu2.2"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "ncurses-bin",
+          "sourcePackage": "ncurses",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/ncurses/6.4+20240113-1ubuntu2.2",
+          "sourceVersion": "6.4+20240113-1ubuntu2.2",
+          "version": "6.4+20240113-1ubuntu2.2"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "passwd",
+          "sourcePackage": "shadow",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/shadow/1:4.13+dfsg1-4ubuntu3.2",
+          "sourceVersion": "1:4.13+dfsg1-4ubuntu3.2",
+          "version": "1:4.13+dfsg1-4ubuntu3.2"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "perl-base",
+          "sourcePackage": "perl",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/perl/5.38.2-3.2ubuntu0.4",
+          "sourceVersion": "5.38.2-3.2ubuntu0.4",
+          "version": "5.38.2-3.2ubuntu0.4"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "procps",
+          "sourcePackage": "procps",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/procps/2:4.0.4-4ubuntu3.3",
+          "sourceVersion": "2:4.0.4-4ubuntu3.3",
+          "version": "2:4.0.4-4ubuntu3.3"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "sed",
+          "sourcePackage": "sed",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/sed/4.9-2ubuntu0.24.04.1",
+          "sourceVersion": "4.9-2ubuntu0.24.04.1",
+          "version": "4.9-2ubuntu0.24.04.1"
+        },
+        {
+          "architecture": "all",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "sensible-utils",
+          "sourcePackage": "sensible-utils",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/sensible-utils/0.0.22",
+          "sourceVersion": "0.0.22",
+          "version": "0.0.22"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "sysvinit-utils",
+          "sourcePackage": "sysvinit",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/sysvinit/3.08-6ubuntu3",
+          "sourceVersion": "3.08-6ubuntu3",
+          "version": "3.08-6ubuntu3"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "tar",
+          "sourcePackage": "tar",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/tar/1.35+dfsg-3ubuntu0.4",
+          "sourceVersion": "1.35+dfsg-3ubuntu0.4",
+          "version": "1.35+dfsg-3ubuntu0.4"
+        },
+        {
+          "architecture": "all",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "ubuntu-keyring",
+          "sourcePackage": "ubuntu-keyring",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/ubuntu-keyring/2023.11.28.1",
+          "sourceVersion": "2023.11.28.1",
+          "version": "2023.11.28.1"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "util-linux",
+          "sourcePackage": "util-linux",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/util-linux/2.39.3-9ubuntu6.6",
+          "sourceVersion": "2.39.3-9ubuntu6.6",
+          "version": "2.39.3-9ubuntu6.6"
+        },
+        {
+          "architecture": "arm64",
+          "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
+          "name": "zlib1g",
+          "sourcePackage": "zlib",
+          "sourcePage": "https://launchpad.net/ubuntu/+source/zlib/1:1.3.dfsg-3.1ubuntu2.2",
+          "sourceVersion": "1:1.3.dfsg-3.1ubuntu2.2",
+          "version": "1:1.3.dfsg-3.1ubuntu2.2"
+        }
+      ],
+      "sourcePolicy": "Exact binary/source package versions are recorded. Package license texts and corresponding source are identified by each Ubuntu source package and covered by the written source offer.",
+      "upstream": "https://cdimage.ubuntu.com/ubuntu-base/releases/noble/release/ubuntu-base-24.04.5-base-arm64.tar.gz"
+    }
+  },
+  "policy": "Every bundled runtime binary and aggregate is hash-bound; copyleft source obligations are tracked by component/package source locators and the packaged source offer.",
+  "runtimeFiles": [
+    {
+      "bytes": 266152,
+      "component": "PRoot/OpenMinis",
+      "license": "GPL-2.0-or-later",
+      "path": "app/src/main/jniLibs/arm64-v8a/libdroide_proot.so",
+      "sha256": "f6b0381ab9a066fa620fef0001737fd3cfaf9d22474f013ac48d7861411374ac"
+    },
+    {
+      "bytes": 18136,
+      "component": "PRoot loader",
+      "license": "GPL-2.0-or-later",
+      "path": "app/src/main/jniLibs/arm64-v8a/libproot-loader.so",
+      "sha256": "44ef39c1e1a18c09f6e4c4b5d6f8bba82d30596598bd155ec162d05c5122ff04"
+    },
+    {
+      "bytes": 6244,
+      "component": "PRoot loader32",
+      "license": "GPL-2.0-or-later",
+      "path": "app/src/main/jniLibs/arm64-v8a/libproot-loader32.so",
+      "sha256": "25f6bd90bc5a3d3088026289a0d3eaf3e502bd2b00e5cb74fadd9791132efa34"
+    },
+    {
+      "bytes": 168792,
+      "component": "XZ for Java",
+      "license": "0BSD",
+      "path": "app/libs/xz-1.12.jar",
+      "sha256": "3e158a87bd73d8afb4b6e8239c013b7d049c48563f45860ce99cd2e448cf4a6b"
+    },
+    {
+      "bytes": 3203364,
+      "component": "Alpine minirootfs aggregate",
+      "license": "NOASSERTION",
+      "path": "app/src/main/assets/workstation/alpine-minirootfs-3.24.2-aarch64.tar.xz",
+      "sha256": "66c582602205a7f90657c5cb01c8d7d1bfd0a2fc8eb03bd9de288f2c9ef2b935"
+    },
+    {
+      "bytes": 17880788,
+      "component": "Ubuntu Base aggregate",
+      "license": "NOASSERTION",
+      "path": "app/src/main/assets/workstation/ubuntu-base-24.04.5-base-arm64.tar.xz",
+      "sha256": "33f099c82ff503ddae6ff669bb274165d70a7602de84cfd34cb0e30ce4b766ce"
+    },
+    {
+      "bytes": 38912000,
+      "component": "Alpine QEMU package aggregate",
+      "license": "NOASSERTION",
+      "path": "app/src/main/assets/workstation/qemu-offline-alpine-v3.24-arm64.tar",
+      "sha256": "406fbb16607902b7e39bc8b8c90bca3dda1c36772166b4f0d0777bb9b5d5b0f6"
+    }
+  ],
+  "schemaVersion": 1,
+  "sourceArchives": [
+    {
+      "bytes": 277497,
+      "component": "PRoot/OpenMinis corresponding source",
+      "license": "GPL-2.0-or-later",
+      "path": "third_party/native-engines/proot/proot-openminis-8cf13e99-source.tar.gz",
+      "sha256": "6c77863bbdddbaa2d8043a901fee61f0e40492bb3bebdc6cb31390ac71ffca47"
+    },
+    {
+      "bytes": 679750,
+      "component": "talloc corresponding source",
+      "license": "LGPL-3.0-or-later",
+      "path": "third_party/native-engines/proot/talloc-2.4.2-source.tar.gz",
+      "sha256": "85ecf9e465e20f98f9950a52e9a411e14320bc555fa257d87697b7e7a9b1d8a6"
+    },
+    {
+      "bytes": 33530620,
+      "component": "QEMU corresponding source",
+      "license": "GPL-2.0-only",
+      "path": "third_party/native-engines/qemu/qemu-v11.0.3-source.tar.xz",
+      "sha256": "41b07ba80f7bdb0dcd46dd4e30eeb914588c7148a7fd3b2dd3ea562084289119"
+    }
+  ]
+}

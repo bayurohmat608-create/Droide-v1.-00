@@ -1,0 +1,19 @@
+Termux terminal-emulator / terminal-view AAR licensing: SOURCE AND AAR SCOPE VERIFIED
+
+Reviewed scope
+--------------
+Droide packages only the Termux 0.118.0 `terminal-emulator` and `terminal-view` AARs. It does not package `termux-shared` classes.
+
+Upstream basis
+--------------
+The upstream `termux/termux-app` repository is GPLv3-only by default. Its root LICENSE.md explicitly identifies Terminal Emulator for Android code in `terminal-view` and `terminal-emulator` as an Apache License 2.0 exception. Droide pins upstream tag `v0.118.0` at commit `6e2689f55295fa444be8ac8592c527c2c5ef3253`.
+
+Technical provenance evidence
+-----------------------------
+`third_party/termux/UPSTREAM_PROVENANCE.json` records the exact AAR SHA-256 values, source-JAR SHA-256 values, 20 upstream Java Git-blob identities, two JNI source Git-blob identities, and the four packaged `libtermux.so` ABI hashes. `tools/verify_termux_provenance.py` verifies the mapping offline and rejects unexpected classes or `termux-shared` content.
+
+Packaged license material
+-------------------------
+The exact upstream root license statement is packaged as `legal/licenses/Termux-upstream-LICENSE.md`; the applicable Apache License 2.0 text is packaged as `legal/licenses/APACHE-2.0.txt` and is the catalog license text for this reviewed module scope.
+
+This file records a technical provenance/license-scope audit for the packaged artifacts. It is not a substitute for legal advice and does not make claims about unrelated Termux modules or trademarks.

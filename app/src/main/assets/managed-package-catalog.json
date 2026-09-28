@@ -1,0 +1,22 @@
+{
+  "schema": 2,
+  "revision": "2026-09-18-native-lsp-bootstrap",
+  "entries": [
+    {
+      "id": "rust-analyzer-termux-20260914-arm64",
+      "familyId": "lsp.rust-analyzer",
+      "version": "20260914",
+      "abi": "arm64-v8a",
+      "downloadUrl": "https://packages.termux.dev/apt/termux-main/pool/main/r/rust-analyzer/rust-analyzer_20260914_aarch64.deb",
+      "fileName": "rust-analyzer_20260914_aarch64.deb",
+      "sizeBytes": 7935136,
+      "sha256": "1066bdebfbf55f37cab06b70f4e9ddd93e7b47751cb2f68e547a58db6edd85ea",
+      "dependencies": [],
+      "provenance": "Termux aarch64 rust-analyzer 20260914 built from upstream rust-analyzer 2026-09-14; Droide extracts only the reviewed executable and never executes Debian maintainer scripts.",
+      "provenanceUrl": "https://github.com/termux/termux-packages/blob/c8e46fb1b043553b044acb1dd3fe302edb906b75/packages/rust-analyzer/build.sh",
+      "distribution": "TERMUX_DEB_SINGLE_EXECUTABLE",
+      "sourcePath": "data/data/com.termux/files/usr/bin/rust-analyzer",
+      "executableName": "rust-analyzer"
+    }
+  ]
+}

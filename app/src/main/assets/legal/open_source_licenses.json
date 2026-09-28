@@ -1,0 +1,379 @@
+{
+  "schemaVersion": 1,
+  "closureStatus": "DIRECT_RUNTIME_COMPLETE_TRANSITIVE_BUILD_GRAPH_PENDING",
+  "closureNote": "Every directly declared app runtime dependency and every bundled native/rootfs runtime aggregate is mapped. The resolved Gradle transitive graph still requires dependency locking and verification metadata from the trusted online release build.",
+  "entries": [
+    {
+      "id": "androidx-compose",
+      "name": "AndroidX & Jetpack Compose",
+      "version": "BOM 2024.09.00 / direct pins",
+      "licenseName": "Apache License 2.0",
+      "spdx": "Apache-2.0",
+      "copyright": "Copyright The Android Open Source Project contributors",
+      "licenseTextAsset": "legal/licenses/APACHE-2.0.txt",
+      "source": "https://developer.android.com/jetpack/androidx",
+      "notice": "Covers the directly declared AndroidX Core, Activity Compose, DataStore, Compose UI, Material 3, Material Icons and DocumentFile modules. Exact transitive versions must come from the resolved lock graph.",
+      "dependencyKeys": [
+        "androidx.core:core-ktx:1.13.1",
+        "androidx.activity:activity-compose:1.9.2",
+        "androidx.datastore:datastore-preferences:1.1.1",
+        "androidx.compose:compose-bom:2024.09.00",
+        "androidx.compose.ui:ui",
+        "androidx.compose.material3:material3",
+        "androidx.compose.material:material-icons-extended",
+        "androidx.documentfile:documentfile:1.1.0"
+      ]
+    },
+    {
+      "id": "kotlinx-coroutines",
+      "name": "Kotlinx Coroutines",
+      "version": "1.11.0",
+      "licenseName": "Apache License 2.0",
+      "spdx": "Apache-2.0",
+      "copyright": "Copyright JetBrains s.r.o. and Kotlin contributors",
+      "licenseTextAsset": "legal/licenses/APACHE-2.0.txt",
+      "source": "https://github.com/Kotlin/kotlinx.coroutines",
+      "notice": "Direct Android coroutine runtime plus the pinned core JVM artifact used by locally repackaged dependencies.",
+      "dependencyKeys": [
+        "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0"
+      ]
+    },
+    {
+      "id": "kotlinx-serialization",
+      "name": "Kotlinx Serialization",
+      "version": "1.7.2",
+      "licenseName": "Apache License 2.0",
+      "spdx": "Apache-2.0",
+      "copyright": "Copyright JetBrains s.r.o. and Kotlin contributors",
+      "licenseTextAsset": "legal/licenses/APACHE-2.0.txt",
+      "source": "https://github.com/Kotlin/kotlinx.serialization",
+      "notice": "JSON serialization runtime used by Droide.",
+      "dependencyKeys": [
+        "org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.2"
+      ]
+    },
+    {
+      "id": "sora-editor",
+      "name": "Sora Editor",
+      "version": "0.24.6",
+      "licenseName": "GNU Lesser General Public License v2.1 or later",
+      "spdx": "LGPL-2.1-or-later",
+      "copyright": "Copyright Rosemoe and contributors",
+      "licenseTextAsset": "legal/licenses/LGPL-2.1.txt",
+      "source": "https://github.com/Rosemoe/sora-editor",
+      "notice": "Droide directly uses the editor and language-textmate AARs. Upstream grants LGPL version 2.1 or, at the recipient\u2019s option, any later version. Binary redistribution must preserve LGPL notices/source/relinkability obligations.",
+      "dependencyKeys": [
+        "io.github.rosemoe:editor:0.24.6",
+        "io.github.rosemoe:language-textmate:0.24.6"
+      ]
+    },
+    {
+      "id": "okhttp",
+      "name": "OkHttp",
+      "version": "4.12.0",
+      "licenseName": "Apache License 2.0",
+      "spdx": "Apache-2.0",
+      "copyright": "Copyright Square, Inc. and contributors",
+      "licenseTextAsset": "legal/licenses/APACHE-2.0.txt",
+      "source": "https://square.github.io/okhttp/",
+      "notice": "HTTP client used by agent/provider networking.",
+      "dependencyKeys": [
+        "com.squareup.okhttp3:okhttp:4.12.0"
+      ]
+    },
+    {
+      "id": "okio",
+      "name": "Okio JVM",
+      "version": "3.17.0",
+      "licenseName": "Apache License 2.0",
+      "spdx": "Apache-2.0",
+      "copyright": "Copyright Square, Inc. and contributors",
+      "licenseTextAsset": "legal/licenses/APACHE-2.0.txt",
+      "source": "https://square.github.io/okio/",
+      "notice": "Directly declared and also used by compatibility artifacts.",
+      "dependencyKeys": [
+        "com.squareup.okio:okio-jvm:3.17.0"
+      ]
+    },
+    {
+      "id": "kadb-compat",
+      "name": "Kadb compatibility artifacts",
+      "version": "2.1.4",
+      "licenseName": "Apache License 2.0",
+      "spdx": "Apache-2.0",
+      "copyright": "Preserve upstream Kadb attribution and locally repackaged provenance",
+      "licenseTextAsset": "legal/licenses/APACHE-2.0.txt",
+      "source": "third_party/kadb/README.md",
+      "notice": "Locally repackaged compatibility coordinates. Upstream notices and source references must remain preserved.",
+      "dependencyKeys": [
+        "com.baystudio.compat:kadb-android-compat:2.1.4",
+        "com.baystudio.compat:kadb-mdns-android-compat:2.1.4"
+      ]
+    },
+    {
+      "id": "spake2-boringssl-compat",
+      "name": "Droide SPAKE2 BoringSSL compatibility",
+      "version": "1.0.0",
+      "licenseName": "BSD 3-Clause License",
+      "spdx": "BSD-3-Clause",
+      "copyright": "See bundled NOTICE and provenance under third_party/kadb/spake2-boringssl-compat",
+      "licenseTextAsset": "legal/licenses/BSD-3-Clause.txt",
+      "source": "third_party/kadb/spake2-boringssl-compat/",
+      "notice": "Independently implemented compatibility layer. Physical-device interoperability and independent cryptographic review remain release blockers.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "hidden-api-bypass",
+      "name": "HiddenApiBypass",
+      "version": "6.1",
+      "licenseName": "Apache License 2.0",
+      "spdx": "Apache-2.0",
+      "copyright": "Copyright LSPosed contributors",
+      "licenseTextAsset": "legal/licenses/APACHE-2.0.txt",
+      "source": "https://github.com/LSPosed/AndroidHiddenApiBypass",
+      "notice": "Direct Android 16/QPR1 compatibility dependency for the embedded Termux terminal; also used transitively by the locally pinned Kadb compatibility artifact.",
+      "dependencyKeys": [
+        "org.lsposed.hiddenapibypass:hiddenapibypass:6.1"
+      ]
+    },
+    {
+      "id": "bouncycastle",
+      "name": "Bouncy Castle provider / PKIX / util",
+      "version": "1.84",
+      "licenseName": "Bouncy Castle Licence (MIT-style)",
+      "spdx": "MIT",
+      "copyright": "Copyright The Legion of the Bouncy Castle Inc. and contributors",
+      "licenseTextAsset": "legal/licenses/Bouncy-Castle-LICENSE.txt",
+      "source": "https://www.bouncycastle.org/about/license/",
+      "notice": "Curated transitive dependency declared by the locally pinned Kadb compatibility artifact. Preserve the upstream Bouncy Castle copyright notice.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "termux-terminal",
+      "name": "Termux terminal emulator / view",
+      "version": "0.118.0",
+      "licenseName": "Apache License 2.0 (termux-app terminal-view / terminal-emulator exception)",
+      "spdx": "Apache-2.0",
+      "copyright": "Terminal Emulator for Android / Termux contributors",
+      "licenseTextAsset": "legal/licenses/APACHE-2.0.txt",
+      "source": "third_party/termux/UPSTREAM_PROVENANCE.json",
+      "notice": "Upstream termux-app v0.118.0 explicitly scopes terminal-view and terminal-emulator to its Apache-2.0 Terminal Emulator exception. Droide pins upstream source/classes/native hashes and verifies that the Java-only emulator AAR used by the app is byte-identical to the reviewed upstream AAR after removing JNI entries.",
+      "dependencyKeys": [
+        "local:terminal-emulator-v0.118.0-java.aar",
+        "local:terminal-view-v0.118.0.aar"
+      ]
+    },
+    {
+      "id": "xz-java",
+      "name": "XZ for Java",
+      "version": "1.12",
+      "licenseName": "Zero-Clause BSD",
+      "spdx": "0BSD",
+      "copyright": "Copyright Lasse Collin and XZ for Java contributors",
+      "licenseTextAsset": "legal/licenses/0BSD.txt",
+      "source": "third_party/xz/PROVENANCE.json",
+      "notice": "Local JAR is hash-pinned and its matching source JAR/provenance are included under third_party/xz/.",
+      "dependencyKeys": [
+        "local:xz-1.12.jar"
+      ]
+    },
+    {
+      "id": "jgit",
+      "name": "Eclipse JGit",
+      "version": "6.10.1.202505221210-r",
+      "licenseName": "Eclipse Distribution License 1.0 (BSD-3-Clause)",
+      "spdx": "BSD-3-Clause",
+      "copyright": "Copyright Eclipse JGit contributors",
+      "licenseTextAsset": "legal/licenses/JGit-EDL-1.0.txt",
+      "source": "https://github.com/eclipse-jgit/jgit",
+      "notice": "JGit upstream identifies EDL-1.0 as BSD-3-Clause. Its complete transitive graph must still be confirmed by the resolved dependency lock.",
+      "dependencyKeys": [
+        "org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r"
+      ]
+    },
+    {
+      "id": "jsoup",
+      "name": "jsoup",
+      "version": "1.18.1",
+      "licenseName": "MIT License",
+      "spdx": "MIT",
+      "copyright": "Copyright Jonathan Hedley and jsoup contributors",
+      "licenseTextAsset": "legal/licenses/jsoup-MIT.txt",
+      "source": "https://jsoup.org/",
+      "notice": "HTML parser used by webfetch.",
+      "dependencyKeys": [
+        "org.jsoup:jsoup:1.18.1"
+      ]
+    },
+    {
+      "id": "coil",
+      "name": "Coil Compose",
+      "version": "2.7.0",
+      "licenseName": "Apache License 2.0",
+      "spdx": "Apache-2.0",
+      "copyright": "Copyright Coil contributors",
+      "licenseTextAsset": "legal/licenses/APACHE-2.0.txt",
+      "source": "https://github.com/coil-kt/coil",
+      "notice": "Local image preview library.",
+      "dependencyKeys": [
+        "io.coil-kt:coil-compose:2.7.0"
+      ]
+    },
+    {
+      "id": "lobe-icons",
+      "name": "LobeHub lobe-icons",
+      "version": "asset attribution",
+      "licenseName": "MIT License",
+      "spdx": "MIT",
+      "copyright": "Copyright (c) 2023 LobeHub",
+      "licenseTextAsset": "legal/licenses/LobeHub-lobe-icons-MIT.txt",
+      "source": "https://github.com/lobehub/lobe-icons",
+      "notice": "Reference source for compact provider/model identification marks. Trademark rights remain separate.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "simple-icons",
+      "name": "Simple Icons",
+      "version": "asset attribution",
+      "licenseName": "CC0 1.0 Universal",
+      "spdx": "CC0-1.0",
+      "copyright": "Simple Icons contributors; trademarks remain with their owners",
+      "licenseTextAsset": "legal/licenses/CC0-1.0.txt",
+      "source": "https://simpleicons.org/",
+      "notice": "Reference source for selected offline identity marks. Trademark rights are not granted by CC0.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "font-awesome-icons",
+      "name": "Font Awesome Free icons",
+      "version": "asset attribution",
+      "licenseName": "Creative Commons Attribution 4.0",
+      "spdx": "CC-BY-4.0",
+      "copyright": "Copyright Fonticons, Inc.",
+      "licenseTextAsset": "legal/licenses/CC-BY-4.0.txt",
+      "source": "https://fontawesome.com/license/free",
+      "notice": "Selected brand glyphs were normalized for offline identification. Attribution is preserved in Third-Party Notices.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "opencode-mark",
+      "name": "OpenCode identity mark",
+      "version": "identity/reference asset",
+      "licenseName": "MIT License",
+      "spdx": "MIT",
+      "copyright": "Copyright (c) 2025 opencode",
+      "licenseTextAsset": "legal/licenses/OpenCode-MIT.txt",
+      "source": "https://github.com/anomalyco/opencode",
+      "notice": "Project mark adapted for offline identity. Trademark/brand rights remain separate; also see Brand Asset Terms.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "ollama-mark",
+      "name": "Ollama identity mark",
+      "version": "identity/reference asset",
+      "licenseName": "MIT License (project repository)",
+      "spdx": "MIT",
+      "copyright": "Copyright (c) Ollama",
+      "licenseTextAsset": "legal/licenses/Ollama-MIT.txt",
+      "source": "https://github.com/ollama/ollama/blob/main/docs/ollama-logo.svg",
+      "notice": "Project source license and attribution. Trademark rights remain separate; also see Brand Asset Terms.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "codex-mark",
+      "name": "Codex identity mark",
+      "version": "identity/reference asset",
+      "licenseName": "Apache License 2.0 (project repository)",
+      "spdx": "Apache-2.0",
+      "copyright": "Copyright OpenAI and contributors",
+      "licenseTextAsset": "legal/licenses/APACHE-2.0.txt",
+      "source": "https://github.com/openai/codex",
+      "notice": "Official project asset used to identify Codex; source license does not convey rights to OpenAI branding.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "spake2-reference",
+      "name": "SPAKE2 BSD reference attribution",
+      "version": "identity/reference asset",
+      "licenseName": "BSD 3-Clause License",
+      "spdx": "BSD-3-Clause",
+      "copyright": "Copyright (c) 2026 Pepe Tiebosch (byme.dev)",
+      "licenseTextAsset": "legal/licenses/Pepe-Tiebosch-BSD-3-Clause.txt",
+      "source": "third_party/kadb/spake2-boringssl-compat/UPSTREAM_LICENSES/Jellepepe-flutter_adb-BSD-3-Clause.txt",
+      "notice": "Reference reviewed during independent compatibility work, not a bundled runtime dependency.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "proot-runtime",
+      "name": "PRoot runtime and loaders",
+      "version": "OpenMinis fork 8cf13e99",
+      "licenseName": "GNU General Public License v2",
+      "spdx": "GPL-2.0-only",
+      "copyright": "Copyright STMicroelectronics and PRoot/OpenMinis contributors",
+      "licenseTextAsset": "legal/licenses/GPL-2.0.txt",
+      "source": "third_party/native-engines/proot/proot-openminis-8cf13e99-source.tar.gz",
+      "notice": "Bundled native runtime and loaders are hash-bound in the runtime legal inventory; matching source and build script are preserved in the public source tree.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "talloc-runtime",
+      "name": "talloc",
+      "version": "2.4.2",
+      "licenseName": "GNU Lesser General Public License v3 or later",
+      "spdx": "LGPL-3.0-or-later",
+      "copyright": "Copyright Samba Team and contributors",
+      "licenseTextAsset": "legal/licenses/LGPL-3.0.txt",
+      "source": "third_party/native-engines/proot/talloc-2.4.2-source.tar.gz",
+      "notice": "talloc is compiled into the PRoot runtime; matching source is preserved with the native-engine provenance.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "qemu-runtime",
+      "name": "QEMU",
+      "version": "11.0.3",
+      "licenseName": "GNU General Public License v2",
+      "spdx": "GPL-2.0-only",
+      "copyright": "Copyright QEMU Project contributors",
+      "licenseTextAsset": "legal/licenses/GPL-2.0.txt",
+      "source": "third_party/native-engines/qemu/qemu-v11.0.3-source.tar.xz",
+      "notice": "QEMU binaries are installed from a pinned Alpine package set. Exact package licenses, hashes and source recipe commits are recorded in runtime_legal_inventory.json.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "alpine-runtime-aggregate",
+      "name": "Alpine Linux minirootfs runtime",
+      "version": "3.24.2 aarch64",
+      "licenseName": "Aggregate of independently licensed packages",
+      "spdx": "NOASSERTION",
+      "copyright": "Copyright respective Alpine package authors and contributors",
+      "licenseTextAsset": "legal/licenses/Runtime-Aggregates-NOTICE.md",
+      "source": "legal/runtime_legal_inventory.json",
+      "notice": "The bundled rootfs contains 16 installed packages; exact versions, package-declared licenses, aports commits and source recipe locators are recorded in the runtime inventory.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "qemu-alpine-runtime-aggregate",
+      "name": "Alpine QEMU offline package set",
+      "version": "Alpine v3.24 aarch64 / QEMU 11.0.3-r0",
+      "licenseName": "Aggregate of independently licensed packages",
+      "spdx": "NOASSERTION",
+      "copyright": "Copyright respective QEMU, Alpine and dependency authors",
+      "licenseTextAsset": "legal/licenses/Runtime-Aggregates-NOTICE.md",
+      "source": "legal/runtime_legal_inventory.json",
+      "notice": "The offline pack contains 52 exact Alpine APK packages; package-declared licenses, hashes, repositories and aports source commits are recorded in the runtime inventory.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "ubuntu-base-runtime-aggregate",
+      "name": "Ubuntu Base runtime",
+      "version": "24.04.5 arm64",
+      "licenseName": "Aggregate of independently licensed packages",
+      "spdx": "NOASSERTION",
+      "copyright": "Copyright respective Ubuntu/Debian package authors and Canonical contributors",
+      "licenseTextAsset": "legal/licenses/Runtime-Aggregates-NOTICE.md",
+      "source": "legal/runtime_legal_inventory.json",
+      "notice": "The bundled Ubuntu Base archive contains 91 installed packages; exact binary/source package versions and source locators are recorded in the runtime inventory. Ubuntu trademark rights remain separate.",
+      "dependencyKeys": []
+    }
+  ]
+}

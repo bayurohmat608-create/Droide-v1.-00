@@ -1,0 +1,284 @@
+{
+  "schemaVersion": 1,
+  "revision": "release-v1.00-all-visible-families-installable",
+  "targetEnvironment": "linux/arm64",
+  "sourceRegistrySha256": "5e93fc0d15557ed4468a03296ebd0d20dea5cbacae46b136a96f40ccd056ff11",
+  "foundryPolicySha256": "7e63413fe66bbcae838f4140f7c9bacb63bee19e333637049d34df37692a89c7",
+  "pendingFamilies": 9,
+  "stateCounts": {
+    "INSTALLABLE_ALT_ROUTE": 9
+  },
+  "routeClassCounts": {
+    "ALPINE_APK": 7,
+    "BUNDLE_PROJECTION": 2
+  },
+  "bulkProbeMatrix": [
+    {
+      "familyId": "cli.adb",
+      "packages": [
+        "android-tools-adb"
+      ],
+      "healthCommand": "adb",
+      "healthTarget": "/usr/bin/adb",
+      "healthPrefixArgs": [],
+      "healthArgs": [
+        "version"
+      ]
+    },
+    {
+      "familyId": "cli.docker",
+      "packages": [
+        "docker-cli"
+      ],
+      "healthCommand": "docker",
+      "healthTarget": "/usr/bin/docker",
+      "healthPrefixArgs": [],
+      "healthArgs": [
+        "--version"
+      ]
+    },
+    {
+      "familyId": "cli.fastboot",
+      "packages": [
+        "android-tools-fastboot"
+      ],
+      "healthCommand": "fastboot",
+      "healthTarget": "/usr/bin/fastboot",
+      "healthPrefixArgs": [],
+      "healthArgs": [
+        "--version"
+      ]
+    },
+    {
+      "familyId": "package.leiningen",
+      "packages": [
+        "bash",
+        "openjdk21-jdk",
+        "leiningen"
+      ],
+      "healthCommand": "lein",
+      "healthTarget": "/usr/bin/lein",
+      "healthPrefixArgs": [],
+      "healthArgs": [
+        "version"
+      ]
+    },
+    {
+      "familyId": "package.nuget",
+      "packages": [
+        "dotnet10-sdk"
+      ],
+      "healthCommand": "nuget",
+      "healthTarget": "/usr/bin/dotnet",
+      "healthPrefixArgs": [
+        "nuget"
+      ],
+      "healthArgs": [
+        "--help"
+      ]
+    },
+    {
+      "familyId": "package.rubygems",
+      "packages": [
+        "ruby"
+      ],
+      "healthCommand": "gem",
+      "healthTarget": "/usr/bin/gem",
+      "healthPrefixArgs": [],
+      "healthArgs": [
+        "--version"
+      ]
+    },
+    {
+      "familyId": "quality.clippy",
+      "packages": [
+        "rust",
+        "cargo",
+        "rust-clippy"
+      ],
+      "healthCommand": "cargo-clippy",
+      "healthTarget": "/usr/bin/cargo-clippy",
+      "healthPrefixArgs": [],
+      "healthArgs": [
+        "--version"
+      ]
+    }
+  ],
+  "families": [
+    {
+      "familyId": "cli.adb",
+      "routeClass": "ALPINE_APK",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "alpine": {
+        "packages": [
+          "android-tools-adb"
+        ],
+        "commands": {
+          "adb": {
+            "target": "/usr/bin/adb",
+            "args": []
+          }
+        },
+        "healthCommand": "adb",
+        "healthArgs": [
+          "version"
+        ],
+        "provenanceUrl": "https://pkgs.alpinelinux.org/package/v3.24/community/aarch64/android-tools-adb"
+      }
+    },
+    {
+      "familyId": "cli.docker",
+      "routeClass": "ALPINE_APK",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "alpine": {
+        "packages": [
+          "docker-cli"
+        ],
+        "commands": {
+          "docker": {
+            "target": "/usr/bin/docker",
+            "args": []
+          }
+        },
+        "healthCommand": "docker",
+        "healthArgs": [
+          "--version"
+        ],
+        "provenanceUrl": "https://pkgs.alpinelinux.org/package/v3.24/community/aarch64/docker-cli"
+      }
+    },
+    {
+      "familyId": "cli.fastboot",
+      "routeClass": "ALPINE_APK",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "alpine": {
+        "packages": [
+          "android-tools-fastboot"
+        ],
+        "commands": {
+          "fastboot": {
+            "target": "/usr/bin/fastboot",
+            "args": []
+          }
+        },
+        "healthCommand": "fastboot",
+        "healthArgs": [
+          "--version"
+        ],
+        "provenanceUrl": "https://pkgs.alpinelinux.org/package/v3.24/community/aarch64/android-tools-fastboot"
+      }
+    },
+    {
+      "familyId": "package.leiningen",
+      "routeClass": "ALPINE_APK",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "alpine": {
+        "packages": [
+          "bash",
+          "openjdk21-jdk",
+          "leiningen"
+        ],
+        "commands": {
+          "lein": {
+            "target": "/usr/bin/lein",
+            "args": []
+          }
+        },
+        "healthCommand": "lein",
+        "healthArgs": [
+          "version"
+        ],
+        "provenanceUrl": "https://pkgs.alpinelinux.org/package/v3.24/community/aarch64/leiningen"
+      }
+    },
+    {
+      "familyId": "package.nuget",
+      "routeClass": "ALPINE_APK",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "alpine": {
+        "packages": [
+          "dotnet10-sdk"
+        ],
+        "commands": {
+          "nuget": {
+            "target": "/usr/bin/dotnet",
+            "args": [
+              "nuget"
+            ]
+          },
+          "dotnet": {
+            "target": "/usr/bin/dotnet",
+            "args": []
+          }
+        },
+        "healthCommand": "nuget",
+        "healthArgs": [
+          "--help"
+        ],
+        "provenanceUrl": "https://pkgs.alpinelinux.org/packages?branch=v3.24&repo=community&arch=aarch64&name=dotnet10-sdk"
+      }
+    },
+    {
+      "familyId": "package.pub",
+      "routeClass": "BUNDLE_PROJECTION",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "bundleId": "dart-sdk",
+      "reason": "Certified shared-bundle projection reuses runtime.dart exact bytes and installs only a dependency-owned health record."
+    },
+    {
+      "familyId": "package.rubygems",
+      "routeClass": "ALPINE_APK",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "alpine": {
+        "packages": [
+          "ruby"
+        ],
+        "commands": {
+          "gem": {
+            "target": "/usr/bin/gem",
+            "args": []
+          }
+        },
+        "healthCommand": "gem",
+        "healthArgs": [
+          "--version"
+        ],
+        "provenanceUrl": "https://pkgs.alpinelinux.org/package/v3.24/main/aarch64/ruby"
+      }
+    },
+    {
+      "familyId": "quality.clippy",
+      "routeClass": "ALPINE_APK",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "alpine": {
+        "packages": [
+          "rust",
+          "cargo",
+          "rust-clippy"
+        ],
+        "commands": {
+          "cargo-clippy": {
+            "target": "/usr/bin/cargo-clippy",
+            "args": []
+          },
+          "clippy-driver": {
+            "target": "/usr/bin/clippy-driver",
+            "args": []
+          }
+        },
+        "healthCommand": "cargo-clippy",
+        "healthArgs": [
+          "--version"
+        ],
+        "provenanceUrl": "https://pkgs.alpinelinux.org/packages?branch=v3.24&arch=aarch64&name=rust-clippy"
+      }
+    },
+    {
+      "familyId": "test.dart",
+      "routeClass": "BUNDLE_PROJECTION",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "bundleId": "dart-sdk",
+      "reason": "Certified shared-bundle projection reuses runtime.dart exact bytes and installs only a dependency-owned health record."
+    }
+  ]
+}

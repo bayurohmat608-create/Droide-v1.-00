@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "kind": "droide-build-bootstrap-contract",
+  "projectVersion": "1.00",
+  "javaMajor": 17,
+  "android": {
+    "compileSdk": 36,
+    "buildTools": "36.0.0",
+    "targetSdk": 36,
+    "minSdk": 29
+  },
+  "gradleWrapper": {
+    "distributionUrl": "https://services.gradle.org/distributions/gradle-8.13-bin.zip",
+    "distributionSha256": "20f1b1176237254a6fc204d8434196fa11a4cfb387567519c61556e8710aed78",
+    "wrapperJarSha256": "81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f"
+  },
+  "buildPlugins": {
+    "androidGradlePlugin": "8.13.2",
+    "kotlin": "2.4.0",
+    "r8": "9.1.29"
+  },
+  "bootstrap": {
+    "dependencyTrustTool": "tools/generate_dependency_trust.sh",
+    "releaseSourceGate": "tools/verify_release_source.sh",
+    "thirdPartyIntegrityTool": "tools/verify_third_party_integrity.py"
+  }
+}

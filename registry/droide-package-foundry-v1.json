@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 1,
+  "revision": "release-v1.00-all-visible-families-installable",
+  "targetEnvironment": "linux/arm64",
+  "policy": {
+    "autoPromoteSourceCertification": false,
+    "requireIntegrityEvidence": true,
+    "requireTransactionalInstall": true,
+    "requireRollback": true,
+    "requireVersionScopedUninstall": true,
+    "visibleExtensionsMustHaveRoutePlan": true
+  },
+  "routeClasses": {
+    "ALPINE_APK": {
+      "engine": "guest-apk-transaction",
+      "targetProfile": "ALPINE_3_24_MUSL_ARM64",
+      "autoProbe": true
+    },
+    "UBUNTU_GLIBC_ARTIFACT": {
+      "engine": "ubuntu-glibc-guest-artifact",
+      "targetProfile": "UBUNTU_24_04_GLIBC_ARM64",
+      "autoProbe": true
+    },
+    "STATIC_VENDOR": {
+      "engine": "vendor-static-artifact",
+      "targetProfile": "ALPINE_3_24_MUSL_ARM64",
+      "autoProbe": true
+    },
+    "BOOTSTRAP_BUNDLE": {
+      "engine": "bootstrap-closure-transaction",
+      "targetProfile": "ALPINE_3_24_MUSL_ARM64",
+      "autoProbe": true
+    },
+    "UBUNTU_GLIBC_PTRACE": {
+      "engine": "ubuntu-glibc-debug-adapter",
+      "targetProfile": "UBUNTU_24_04_GLIBC_ARM64",
+      "autoProbe": true
+    },
+    "BUNDLE_PROJECTION": {
+      "engine": "shared-bundle-projection",
+      "targetProfile": "INHERIT_PRIMARY",
+      "autoProbe": true
+    }
+  },
+  "families": [
+    {
+      "familyId": "cli.adb",
+      "routeClass": "ALPINE_APK",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "alpine": {
+        "packages": [
+          "android-tools-adb"
+        ],
+        "commands": {
+          "adb": {
+            "target": "/usr/bin/adb",
+            "args": []
+          }
+        },
+        "healthCommand": "adb",
+        "healthArgs": [
+          "version"
+        ],
+        "provenanceUrl": "https://pkgs.alpinelinux.org/package/v3.24/community/aarch64/android-tools-adb"
+      }
+    },
+    {
+      "familyId": "cli.fastboot",
+      "routeClass": "ALPINE_APK",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "alpine": {
+        "packages": [
+          "android-tools-fastboot"
+        ],
+        "commands": {
+          "fastboot": {
+            "target": "/usr/bin/fastboot",
+            "args": []
+          }
+        },
+        "healthCommand": "fastboot",
+        "healthArgs": [
+          "--version"
+        ],
+        "provenanceUrl": "https://pkgs.alpinelinux.org/package/v3.24/community/aarch64/android-tools-fastboot"
+      }
+    },
+    {
+      "familyId": "cli.docker",
+      "routeClass": "ALPINE_APK",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "alpine": {
+        "packages": [
+          "docker-cli"
+        ],
+        "commands": {
+          "docker": {
+            "target": "/usr/bin/docker",
+            "args": []
+          }
+        },
+        "healthCommand": "docker",
+        "healthArgs": [
+          "--version"
+        ],
+        "provenanceUrl": "https://pkgs.alpinelinux.org/package/v3.24/community/aarch64/docker-cli"
+      }
+    },
+    {
+      "familyId": "package.leiningen",
+      "routeClass": "ALPINE_APK",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "alpine": {
+        "packages": [
+          "bash",
+          "openjdk21-jdk",
+          "leiningen"
+        ],
+        "commands": {
+          "lein": {
+            "target": "/usr/bin/lein",
+            "args": []
+          }
+        },
+        "healthCommand": "lein",
+        "healthArgs": [
+          "version"
+        ],
+        "provenanceUrl": "https://pkgs.alpinelinux.org/package/v3.24/community/aarch64/leiningen"
+      }
+    },
+    {
+      "familyId": "package.nuget",
+      "routeClass": "ALPINE_APK",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "alpine": {
+        "packages": [
+          "dotnet10-sdk"
+        ],
+        "commands": {
+          "nuget": {
+            "target": "/usr/bin/dotnet",
+            "args": [
+              "nuget"
+            ]
+          },
+          "dotnet": {
+            "target": "/usr/bin/dotnet",
+            "args": []
+          }
+        },
+        "healthCommand": "nuget",
+        "healthArgs": [
+          "--help"
+        ],
+        "provenanceUrl": "https://pkgs.alpinelinux.org/packages?branch=v3.24&repo=community&arch=aarch64&name=dotnet10-sdk"
+      }
+    },
+    {
+      "familyId": "package.pub",
+      "routeClass": "BUNDLE_PROJECTION",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "bundleId": "dart-sdk",
+      "reason": "Certified shared-bundle projection reuses runtime.dart exact bytes and installs only a dependency-owned health record."
+    },
+    {
+      "familyId": "package.rubygems",
+      "routeClass": "ALPINE_APK",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "alpine": {
+        "packages": [
+          "ruby"
+        ],
+        "commands": {
+          "gem": {
+            "target": "/usr/bin/gem",
+            "args": []
+          }
+        },
+        "healthCommand": "gem",
+        "healthArgs": [
+          "--version"
+        ],
+        "provenanceUrl": "https://pkgs.alpinelinux.org/package/v3.24/main/aarch64/ruby"
+      }
+    },
+    {
+      "familyId": "quality.clippy",
+      "routeClass": "ALPINE_APK",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "alpine": {
+        "packages": [
+          "rust",
+          "cargo",
+          "rust-clippy"
+        ],
+        "commands": {
+          "cargo-clippy": {
+            "target": "/usr/bin/cargo-clippy",
+            "args": []
+          },
+          "clippy-driver": {
+            "target": "/usr/bin/clippy-driver",
+            "args": []
+          }
+        },
+        "healthCommand": "cargo-clippy",
+        "healthArgs": [
+          "--version"
+        ],
+        "provenanceUrl": "https://pkgs.alpinelinux.org/packages?branch=v3.24&arch=aarch64&name=rust-clippy"
+      }
+    },
+    {
+      "familyId": "test.dart",
+      "routeClass": "BUNDLE_PROJECTION",
+      "state": "INSTALLABLE_ALT_ROUTE",
+      "bundleId": "dart-sdk",
+      "reason": "Certified shared-bundle projection reuses runtime.dart exact bytes and installs only a dependency-owned health record."
+    }
+  ]
+}

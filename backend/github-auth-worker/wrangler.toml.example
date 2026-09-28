@@ -1,0 +1,15 @@
+name = "droide-github-auth"
+main = "src/index.js"
+compatibility_date = "2026-09-25"
+
+# Public value. Keep it identical to DROIDE_GITHUB_ACCOUNT_CLIENT_ID in the Android build.
+[vars]
+GITHUB_CLIENT_ID = "Iv1.REPLACE_WITH_DROIDE_GITHUB_APP_CLIENT_ID"
+# Must exactly match DROIDE_GITHUB_ACCOUNT_REDIRECT_URI in the Android build.
+# For production use a verified HTTPS Android App Link under BayStudio-owned HTTPS origin.
+GITHUB_REDIRECT_URI = "com.baystudio.droide.oauth://github/callback"
+
+# Declare the secret contract so modern Wrangler fails deployment when it is missing.
+# Provision the value with `wrangler secret put GITHUB_CLIENT_SECRET`; never place it here.
+[secrets]
+required = ["GITHUB_CLIENT_SECRET"]

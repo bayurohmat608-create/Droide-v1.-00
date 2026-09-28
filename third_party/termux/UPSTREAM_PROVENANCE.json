@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "upstream": {
+    "repository": "https://github.com/termux/termux-app",
+    "tag": "v0.118.0",
+    "commit": "6e2689f55295fa444be8ac8592c527c2c5ef3253",
+    "rootLicenseGitBlobSha1": "36cd48f8710cc1e2552b5bfacff730d064415b92",
+    "licenseScope": "terminal-view and terminal-emulator are the modules named by the upstream Apache-2.0 Terminal Emulator exception"
+  },
+  "artifacts": {
+    "terminalEmulatorAar": {
+      "path": "app/libs/terminal-emulator-v0.118.0.aar",
+      "sha256": "41a86008edfa5e6a10cf3bae9d1cc704f96cdee63dd95ea5f6a642977a56c663"
+    },
+    "terminalViewAar": {
+      "path": "app/libs/terminal-view-v0.118.0.aar",
+      "sha256": "06b3e83cf34c40e82ba5348a88fc72657ebf35177e28f567e86b2389c34cd2d0"
+    },
+    "terminalEmulatorSources": {
+      "path": "third_party/termux/terminal-emulator-v0.118.0-sources.jar",
+      "sha256": "7c5f8af31d4d0404962bd1568a997068a42b1c764896547b5b7c508d7b85fa5e",
+      "gitBlobSha1ByPath": {
+        "com/termux/terminal/ByteQueue.java": "adfdfa86419e1852813c01fefdfc05f7b722e9a9",
+        "com/termux/terminal/JNI.java": "99229a6528b11e736d0202b5e460705618357785",
+        "com/termux/terminal/KeyHandler.java": "254f5e3a7c98a4dc06a0ff7c54ec69a9fad30e3f",
+        "com/termux/terminal/TerminalBuffer.java": "8b898434ff93e158689561f87b025393be558832",
+        "com/termux/terminal/TerminalColorScheme.java": "e4fd4e9c778e53ae45c07341c11d73d9fcd7cd67",
+        "com/termux/terminal/TerminalColors.java": "6d8cfdb9ec0308caa786e7d8e4a1a28c18fdc8fc",
+        "com/termux/terminal/TerminalEmulator.java": "bf95aafd6fea6c07fb6bcf5613849ed78ce3e202",
+        "com/termux/terminal/TerminalOutput.java": "305082a52dbe1957379774074018f49607a70e43",
+        "com/termux/terminal/TerminalRow.java": "cefdd4f73fcce033a3ee0a0af261b1e2c52d932f",
+        "com/termux/terminal/TerminalSession.java": "47ea8533095017b5aeeeb332c7d5911717a11ac5",
+        "com/termux/terminal/TerminalSessionClient.java": "0ffe8e431ed7840aadfb6dd3b32598a48edb9af8",
+        "com/termux/terminal/TextStyle.java": "173d6ae94e68777e8fc83bb4492785a45c418a25",
+        "com/termux/terminal/WcWidth.java": "25660b30e8e0142bd2065901fba59cf9cf01fcf8"
+      }
+    },
+    "terminalViewSources": {
+      "path": "third_party/termux/terminal-view-v0.118.0-sources.jar",
+      "sha256": "93449d6faf0fa0c0e1b89595959d35f4f84bb2f04f7a3d06dc78226677c7f09d",
+      "gitBlobSha1ByPath": {
+        "com/termux/view/GestureAndScaleRecognizer.java": "f7fc9d23700905f7e0cdffc13d9b55b63113e23c",
+        "com/termux/view/TerminalRenderer.java": "307e4226946862eebab505c0d7946cf953a10bcb",
+        "com/termux/view/TerminalView.java": "2b56d66ea6312cc814afea11c800512b8ee79a2f",
+        "com/termux/view/TerminalViewClient.java": "d6b49b892ca1ab179d20df44a2fdfc2864dc0f09",
+        "com/termux/view/textselection/CursorController.java": "f0e1cc5e451cf80e6c30cbcfd784828fcfb9c86f",
+        "com/termux/view/textselection/TextSelectionCursorController.java": "253e8deae686f6691b6a8b425ea84fe67b7c8654",
+        "com/termux/view/textselection/TextSelectionHandleView.java": "4f39e723bae28fccafa0d6134b3f24f02e694861"
+      }
+    },
+    "terminalEmulatorJavaAar": {
+      "path": "app/libs/terminal-emulator-v0.118.0-java.aar",
+      "sha256": "4852749bb1de1d64630ee82000ce728a842521e391c55c2392d4a1b84ae74b61",
+      "derivedFrom": "terminalEmulatorAar",
+      "transformation": "JNI entries removed; all remaining ZIP entries must be byte-identical to the reviewed upstream AAR"
+    }
+  },
+  "native": {
+    "sourceGitBlobs": {
+      "terminal-emulator/src/main/jni/termux.c": "22f1d507d1d18db1b6c5295a1ab81128ea5000d2",
+      "terminal-emulator/src/main/jni/Android.mk": "6c6f8b22991ab15df5cd4fbeaef3c96c1904ba1e"
+    },
+    "libtermuxSha256ByAarPath": {
+      "jni/arm64-v8a/libtermux.so": "8ed70880d8fd4d708d564c0d1dea61379668ac899a88cee0f54ad17a5344e917",
+      "jni/armeabi-v7a/libtermux.so": "5ebd97e4159f23d242e6b7bbf7e512862e23554622a441172c3512a7a0448a41",
+      "jni/x86/libtermux.so": "b469010e881740dd320f7976ed669dfc3be732258026e1d3336793fbfc2a5458",
+      "jni/x86_64/libtermux.so": "9136bd13527be5fc707d4ea238a1fd80e281e2a4ba8c1d2a3d22ae593c7b533a"
+    }
+  },
+  "constraints": {
+    "expectedJavaSourceFiles": 20,
+    "expectedAarClassFiles": 38,
+    "forbiddenClassPrefixes": [
+      "com/termux/shared/"
+    ],
+    "allowedGeneratedTopLevelClasses": [
+      "com/termux/terminal/BuildConfig.class",
+      "com/termux/view/BuildConfig.class"
+    ]
+  }
+}

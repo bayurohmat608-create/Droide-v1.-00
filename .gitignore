@@ -1,0 +1,15 @@
+.gradle/
+.idea/
+local.properties
+**/build/
+*.iml
+*.jks
+*.keystore
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Python helper caches
+__pycache__/
+*.pyc

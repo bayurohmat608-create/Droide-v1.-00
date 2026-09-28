@@ -1,0 +1,8 @@
+{
+  "upstream_commit": "6e2689f55295fa444be8ac8592c527c2c5ef3253",
+  "termux_c_sha256": "729112f2e66cdddb7e7311ddf8a89ad54037a54bddbf4d5291f2e1fff5b97373",
+  "java_aar_sha256": "4852749bb1de1d64630ee82000ce728a842521e391c55c2392d4a1b84ae74b61",
+  "original_aar_sha256": "41a86008edfa5e6a10cf3bae9d1cc704f96cdee63dd95ea5f6a642977a56c663",
+  "ndk": "28.2.13676358",
+  "page_alignment": 16384
+}

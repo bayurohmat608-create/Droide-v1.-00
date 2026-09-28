@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://droide.dev/schema/package-harvest-v1.json",
+  "title": "Droide Package Harvest Proposal Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sourceRevision", "targetEnvironment", "promotionPolicy", "proposals", "proposalsSha256"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "sourceRevision": {"type": "string"},
+    "targetEnvironment": {"const": "linux/arm64"},
+    "promotionPolicy": {"const": "REVIEW_REQUIRED_NEVER_AUTO_CERTIFY"},
+    "proposals": {"type": "array", "items": {"type": "object", "required": ["familyId", "provider", "packageName", "command", "certificationBeforeHarvest", "status"]}},
+    "proposalsSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

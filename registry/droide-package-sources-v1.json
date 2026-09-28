@@ -1,0 +1,1091 @@
+{
+  "schemaVersion": 1,
+  "revision": "release-v1.00-foundry-all-installable",
+  "packages": [
+    {
+      "familyId": "quality.eslint",
+      "provider": "NPM",
+      "packageName": "eslint",
+      "command": "eslint",
+      "provenanceUrl": "https://www.npmjs.com/package/eslint",
+      "certification": "CERTIFIED",
+      "requirements": {
+        "minimumNodeMajor": 22
+      }
+    },
+    {
+      "familyId": "quality.markdownlint",
+      "provider": "NPM",
+      "packageName": "markdownlint-cli",
+      "command": "markdownlint",
+      "provenanceUrl": "https://www.npmjs.com/package/markdownlint-cli",
+      "certification": "CERTIFIED",
+      "requirements": {
+        "minimumNodeMajor": 22
+      }
+    },
+    {
+      "familyId": "test.jest",
+      "provider": "NPM",
+      "packageName": "jest",
+      "command": "jest",
+      "provenanceUrl": "https://www.npmjs.com/package/jest",
+      "certification": "CERTIFIED",
+      "requirements": {
+        "minimumNodeMajor": 22
+      }
+    },
+    {
+      "familyId": "test.vitest",
+      "provider": "NPM",
+      "packageName": "vitest",
+      "command": "vitest",
+      "provenanceUrl": "https://www.npmjs.com/package/vitest",
+      "certification": "CERTIFIED",
+      "requirements": {
+        "minimumNodeMajor": 22
+      }
+    },
+    {
+      "familyId": "debug.python-debugpy",
+      "provider": "PYPI",
+      "packageName": "debugpy",
+      "command": "debugpy",
+      "provenanceUrl": "https://pypi.org/project/debugpy/",
+      "certification": "CERTIFIED",
+      "requirements": {
+        "minimumPythonMajor": 3,
+        "minimumPythonMinor": 10
+      },
+      "healthArgs": [
+        "--help"
+      ]
+    },
+    {
+      "familyId": "quality.sqlfluff",
+      "provider": "PYPI",
+      "packageName": "sqlfluff",
+      "command": "sqlfluff",
+      "provenanceUrl": "https://pypi.org/project/sqlfluff/",
+      "certification": "CERTIFIED",
+      "requirements": {
+        "minimumPythonMajor": 3,
+        "minimumPythonMinor": 10
+      }
+    },
+    {
+      "familyId": "debug.delve",
+      "provider": "GO",
+      "packageName": "github.com/go-delve/delve/cmd/dlv",
+      "command": "dlv",
+      "provenanceUrl": "https://github.com/go-delve/delve",
+      "certification": "CERTIFIED",
+      "go": {
+        "modulePath": "github.com/go-delve/delve"
+      },
+      "healthArgs": [
+        "version"
+      ]
+    },
+    {
+      "familyId": "quality.golangci-lint",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "golangci/golangci-lint",
+      "command": "golangci-lint",
+      "provenanceUrl": "https://github.com/golangci/golangci-lint/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "v",
+        "assetTokens": [
+          "golangci-lint",
+          "linux",
+          "arm64"
+        ],
+        "artifactFormat": "TAR_GZ",
+        "assetMaxBytes": 268435456,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "STATIC_OR_MUSL",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/golangci/golangci-lint/blob/a1002350762bd9faf272101a4eb32aabfcba8ca2/.goreleaser.yml"
+        }
+      }
+    },
+    {
+      "familyId": "quality.protolint",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "yoheimuta/protolint",
+      "command": "protolint",
+      "provenanceUrl": "https://github.com/yoheimuta/protolint/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "v",
+        "assetTokens": [
+          "protolint",
+          "linux",
+          "arm64"
+        ],
+        "artifactFormat": "TAR_GZ",
+        "assetMaxBytes": 268435456,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "STATIC_OR_MUSL",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/yoheimuta/protolint/blob/78ad21127fa4e8b1ca7c6cbf6b563202cbe56d8d/.goreleaser.yml"
+        }
+      }
+    },
+    {
+      "familyId": "build.bazel",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "bazelbuild/bazel",
+      "command": "bazel",
+      "provenanceUrl": "https://github.com/bazelbuild/bazel/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "",
+        "assetTokens": [
+          "bazel",
+          "linux",
+          "arm64"
+        ],
+        "assetNameTemplate": "bazel-{version}-linux-arm64",
+        "artifactFormat": "RAW",
+        "artifactLayout": "SINGLE_COMMAND",
+        "executableBasename": "bazel",
+        "assetMaxBytes": 134217728,
+        "runtimeCompatibility": {
+          "guestProfile": "UBUNTU_24_04_GLIBC_ARM64",
+          "libc": "GLIBC",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/bayurohmat608-create/Droide-bengkel/actions/runs/35893981997",
+          "requiredGuestPackages": [
+            "ca-certificates",
+            "git",
+            "unzip",
+            "zip"
+          ]
+        }
+      },
+      "healthArgs": [
+        "--version"
+      ]
+    },
+    {
+      "familyId": "cli.adb",
+      "provider": "ANDROID_SDK",
+      "packageName": "platform-tools",
+      "command": "adb",
+      "provenanceUrl": "https://developer.android.com/tools/releases/platform-tools",
+      "certification": "PENDING",
+      "bundle": {
+        "id": "android.platform-tools",
+        "primaryFamilyId": "cli.adb"
+      }
+    },
+    {
+      "familyId": "cli.fastboot",
+      "provider": "ANDROID_SDK",
+      "packageName": "platform-tools",
+      "command": "fastboot",
+      "provenanceUrl": "https://developer.android.com/tools/releases/platform-tools",
+      "certification": "PENDING",
+      "bundle": {
+        "id": "android.platform-tools",
+        "primaryFamilyId": "cli.adb"
+      }
+    },
+    {
+      "familyId": "cli.docker",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "docker-cli",
+      "command": "docker",
+      "provenanceUrl": "https://docs.docker.com/engine/install/binaries/",
+      "certification": "PENDING"
+    },
+    {
+      "familyId": "cli.kubectl",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "kubectl",
+      "command": "kubectl",
+      "provenanceUrl": "https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/",
+      "certification": "CERTIFIED",
+      "vendorOfficial": {
+        "versionStrategy": "TEXT_ENDPOINT",
+        "versionUrl": "https://dl.k8s.io/release/stable.txt",
+        "tagPrefix": "v",
+        "artifactUrlTemplate": "https://dl.k8s.io/release/{tag}/bin/linux/arm64/kubectl",
+        "checksumUrlTemplate": "https://dl.k8s.io/release/{tag}/bin/linux/arm64/kubectl.sha256",
+        "artifactFormat": "RAW",
+        "executableBasename": "kubectl",
+        "assetMaxBytes": 160000000,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "STATIC_OR_MUSL",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/kubernetes/kubernetes/blob/master/hack/lib/golang.sh"
+        }
+      }
+    },
+    {
+      "familyId": "cli.helm",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "helm",
+      "command": "helm",
+      "provenanceUrl": "https://helm.sh/docs/intro/install/",
+      "certification": "CERTIFIED",
+      "vendorOfficial": {
+        "versionStrategy": "GITHUB_RELEASE",
+        "versionGithubRepository": "helm/helm",
+        "tagPrefix": "v",
+        "artifactUrlTemplate": "https://get.helm.sh/helm-{tag}-linux-arm64.tar.gz",
+        "checksumUrlTemplate": "https://get.helm.sh/helm-{tag}-linux-arm64.tar.gz.sha256sum",
+        "artifactFormat": "TAR_GZ",
+        "executableBasename": "helm",
+        "assetMaxBytes": 128000000,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "STATIC_OR_MUSL",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/helm/helm/blob/main/Makefile"
+        },
+        "archiveMemberPath": "linux-arm64/helm",
+        "archiveMaxFiles": 16,
+        "archiveMaxUnpackedBytes": 268435456
+      }
+    },
+    {
+      "familyId": "debug.codelldb",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "vadimcn/codelldb",
+      "command": "codelldb",
+      "provenanceUrl": "https://github.com/vadimcn/codelldb/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "v",
+        "assetTokens": [
+          "codelldb",
+          "linux",
+          "arm64"
+        ],
+        "artifactFormat": "VSIX",
+        "artifactLayout": "WHOLE_TREE",
+        "treeEntryPoint": "extension/adapter/codelldb",
+        "treeExecutablePaths": [
+          "extension/adapter/codelldb",
+          "extension/bin/codelldb-launch",
+          "extension/lldb/bin/lldb",
+          "extension/lldb/bin/lldb-server"
+        ],
+        "treeMaxFiles": 4096,
+        "treeMaxUnpackedBytes": 536870912,
+        "assetMaxBytes": 134217728,
+        "runtimeCompatibility": {
+          "guestProfile": "UBUNTU_24_04_GLIBC_ARM64",
+          "libc": "GLIBC",
+          "integration": "DAP_REVERSE_TCP",
+          "evidenceUrl": "https://github.com/bayurohmat608-create/Droide-bengkel/actions/runs/35893981997",
+          "requiredGuestCapabilities": [
+            "LOOPBACK_TCP"
+          ],
+          "requiredGuestPackages": [
+            "ca-certificates",
+            "libgcc-s1",
+            "libstdc++6",
+            "python3",
+            "zlib1g"
+          ]
+        }
+      },
+      "debugAdapter": {
+        "id": "lldb-codelldb",
+        "extensions": [
+          "c",
+          "cc",
+          "cpp",
+          "cxx",
+          "h",
+          "hpp",
+          "rs"
+        ],
+        "args": [],
+        "reverseTcp": {
+          "connectArgument": "--connect",
+          "authTokenArgument": "--auth-token",
+          "authHeaderName": "Auth-Token"
+        },
+        "autoConfigure": false,
+        "requiredGuestCapabilities": [
+          "PTRACE"
+        ]
+      },
+      "healthArgs": [
+        "--help"
+      ]
+    },
+    {
+      "familyId": "debug.netcoredbg",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "Samsung/netcoredbg",
+      "command": "netcoredbg",
+      "provenanceUrl": "https://github.com/Samsung/netcoredbg/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "",
+        "assetTokens": [
+          "netcoredbg",
+          "linux",
+          "arm64"
+        ],
+        "artifactFormat": "TAR_GZ",
+        "artifactLayout": "WHOLE_TREE",
+        "treeEntryPoint": "netcoredbg",
+        "treeExecutablePaths": [
+          "netcoredbg"
+        ],
+        "treeMaxFiles": 512,
+        "treeMaxUnpackedBytes": 268435456,
+        "assetMaxBytes": 67108864,
+        "runtimeCompatibility": {
+          "guestProfile": "UBUNTU_24_04_GLIBC_ARM64",
+          "libc": "GLIBC",
+          "integration": "DAP_STDIO",
+          "evidenceUrl": "https://github.com/bayurohmat608-create/Droide-bengkel/actions/runs/35893981997",
+          "requiredGuestPackages": [
+            "ca-certificates",
+            "libgcc-s1",
+            "libstdc++6",
+            "libicu74",
+            "libssl3t64",
+            "libunwind8",
+            "libkrb5-3",
+            "tzdata",
+            "zlib1g"
+          ]
+        }
+      },
+      "healthArgs": [
+        "--version"
+      ],
+      "debugAdapter": {
+        "id": "coreclr-netcoredbg",
+        "extensions": [
+          "cs",
+          "fs",
+          "fsx"
+        ],
+        "args": [
+          "--interpreter=vscode"
+        ],
+        "autoConfigure": false
+      }
+    },
+    {
+      "familyId": "package.bun",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "oven-sh/bun",
+      "command": "bun",
+      "provenanceUrl": "https://github.com/oven-sh/bun/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "bun-v",
+        "assetTokens": [
+          "bun-linux-aarch64-musl.zip"
+        ],
+        "artifactFormat": "ZIP",
+        "artifactLayout": "SINGLE_COMMAND",
+        "executableBasename": "bun",
+        "assetMaxBytes": 160000000,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "STATIC_OR_MUSL",
+          "integration": "CLI",
+          "evidenceUrl": "https://bun.sh/docs/installation"
+        }
+      }
+    },
+    {
+      "familyId": "package.leiningen",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "leiningen",
+      "command": "lein",
+      "provenanceUrl": "https://leiningen.org/",
+      "certification": "PENDING"
+    },
+    {
+      "familyId": "package.nimble",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "nim-lang/nimble",
+      "command": "nimble",
+      "provenanceUrl": "https://github.com/nim-lang/nimble/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "v",
+        "assetTokens": [
+          "nimble",
+          "linux",
+          "aarch64"
+        ],
+        "artifactFormat": "TAR_GZ",
+        "assetMaxBytes": 67108864,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "STATIC_OR_MUSL",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/nim-lang/nimble/blob/e94bf871e951230836fea0d5179f339a011fe6c6/.github/workflows/binaries.yml"
+        }
+      }
+    },
+    {
+      "familyId": "package.nuget",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "nuget.exe",
+      "command": "nuget",
+      "provenanceUrl": "https://learn.microsoft.com/nuget/install-nuget-client-tools",
+      "certification": "PENDING"
+    },
+    {
+      "familyId": "package.pub",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "dart-sdk",
+      "command": "dart",
+      "provenanceUrl": "https://dart.dev/tools/pub/cmd",
+      "certification": "PENDING",
+      "bundle": {
+        "id": "dart-sdk",
+        "primaryFamilyId": "runtime.dart"
+      },
+      "healthArgs": [
+        "pub",
+        "--help"
+      ]
+    },
+    {
+      "familyId": "package.rubygems",
+      "provider": "RUBYGEMS",
+      "packageName": "rubygems-update",
+      "command": "gem",
+      "provenanceUrl": "https://rubygems.org/pages/download",
+      "certification": "PENDING"
+    },
+    {
+      "familyId": "package.sbt",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "sbt/sbt",
+      "command": "sbt",
+      "provenanceUrl": "https://github.com/sbt/sbt/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "v",
+        "assetTokens": [
+          "sbt"
+        ],
+        "assetNameTemplate": "sbt-{version}.zip",
+        "artifactFormat": "ZIP",
+        "artifactLayout": "WHOLE_TREE",
+        "treeEntryPoint": "sbt/bin/sbt",
+        "treeExecutablePaths": [
+          "sbt/bin/sbt"
+        ],
+        "treeMaxFiles": 64,
+        "treeMaxUnpackedBytes": 268435456,
+        "interpreterFamilyId": "runtime.jvm-shell",
+        "interpreterCommand": "bash",
+        "interpreterArgs": [
+          "{entry}"
+        ],
+        "assetMaxBytes": 134217728,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "INTERPRETED",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/bayurohmat608-create/Droide-bengkel/actions/runs/35908360083"
+        }
+      },
+      "healthArgs": [
+        "--script-version"
+      ]
+    },
+    {
+      "familyId": "package.uv",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "astral-sh/uv",
+      "command": "uv",
+      "provenanceUrl": "https://github.com/astral-sh/uv/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "",
+        "assetTokens": [
+          "uv-aarch64-unknown-linux-musl.tar.gz"
+        ],
+        "artifactFormat": "TAR_GZ",
+        "artifactLayout": "SINGLE_COMMAND",
+        "executableBasename": "uv",
+        "assetMaxBytes": 128000000,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "STATIC_OR_MUSL",
+          "integration": "CLI",
+          "evidenceUrl": "https://docs.astral.sh/uv/reference/policies/platforms/"
+        }
+      }
+    },
+    {
+      "familyId": "quality.clippy",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "rustup-component:clippy",
+      "command": "cargo-clippy",
+      "provenanceUrl": "https://doc.rust-lang.org/clippy/usage.html",
+      "certification": "PENDING",
+      "bundle": {
+        "id": "rustup-toolchain",
+        "primaryFamilyId": "toolchain.rust"
+      }
+    },
+    {
+      "familyId": "quality.hadolint",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "hadolint/hadolint",
+      "command": "hadolint",
+      "provenanceUrl": "https://github.com/hadolint/hadolint/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "v",
+        "assetTokens": [
+          "hadolint",
+          "linux",
+          "arm64"
+        ],
+        "artifactFormat": "RAW",
+        "assetMaxBytes": 134217728,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "STATIC_OR_MUSL",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/hadolint/hadolint/blob/2bd38b6377d24f3754979e25efc85a6a411da3fb/.github/workflows/release.yml"
+        }
+      }
+    },
+    {
+      "familyId": "quality.ktlint",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "ktlint/ktlint",
+      "command": "ktlint",
+      "provenanceUrl": "https://github.com/ktlint/ktlint/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "",
+        "assetTokens": [
+          "ktlint"
+        ],
+        "exactAssetName": "ktlint",
+        "artifactFormat": "RAW",
+        "artifactLayout": "SINGLE_COMMAND",
+        "executableBasename": "ktlint",
+        "interpreterFamilyId": "runtime.java",
+        "interpreterCommand": "java",
+        "interpreterArgs": [
+          "-jar"
+        ],
+        "assetMaxBytes": 134217728,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "INTERPRETED",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/ktlint/ktlint/blob/master/documentation/release-latest/docs/install/cli.md"
+        }
+      }
+    },
+    {
+      "familyId": "quality.php-cs-fixer",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "PHP-CS-Fixer/PHP-CS-Fixer",
+      "command": "php-cs-fixer",
+      "provenanceUrl": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "v",
+        "assetTokens": [
+          "php-cs-fixer",
+          "phar"
+        ],
+        "artifactFormat": "PHAR",
+        "executableBasename": "php-cs-fixer.phar",
+        "interpreterFamilyId": "runtime.php",
+        "interpreterCommand": "php",
+        "assetMaxBytes": 67108864,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "INTERPRETED",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer"
+        }
+      }
+    },
+    {
+      "familyId": "quality.phpstan",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "phpstan/phpstan",
+      "command": "phpstan",
+      "provenanceUrl": "https://github.com/phpstan/phpstan/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "",
+        "assetTokens": [
+          "phpstan.phar"
+        ],
+        "artifactFormat": "PHAR",
+        "artifactLayout": "SINGLE_COMMAND",
+        "executableBasename": "phpstan.phar",
+        "interpreterFamilyId": "runtime.php",
+        "interpreterCommand": "php",
+        "assetMaxBytes": 67108864,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "INTERPRETED",
+          "integration": "CLI",
+          "evidenceUrl": "https://phpstan.org/user-guide/getting-started"
+        }
+      }
+    },
+    {
+      "familyId": "quality.rubocop",
+      "provider": "RUBYGEMS",
+      "packageName": "rubocop",
+      "command": "rubocop",
+      "provenanceUrl": "https://rubygems.org/gems/rubocop",
+      "certification": "CERTIFIED"
+    },
+    {
+      "familyId": "quality.stylua",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "JohnnyMorganz/StyLua",
+      "command": "stylua",
+      "provenanceUrl": "https://github.com/JohnnyMorganz/StyLua/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "v",
+        "assetTokens": [
+          "stylua-linux-aarch64-musl.zip"
+        ],
+        "artifactFormat": "ZIP",
+        "artifactLayout": "SINGLE_COMMAND",
+        "executableBasename": "stylua",
+        "assetMaxBytes": 33554432,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "STATIC_OR_MUSL",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/JohnnyMorganz/StyLua/releases"
+        }
+      }
+    },
+    {
+      "familyId": "quality.swiftformat",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "nicklockwood/SwiftFormat",
+      "command": "swiftformat",
+      "provenanceUrl": "https://github.com/nicklockwood/SwiftFormat/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "",
+        "assetTokens": [
+          "swiftformat",
+          "linux",
+          "aarch64"
+        ],
+        "artifactFormat": "ZIP",
+        "executableBasename": "swiftformat_linux_aarch64",
+        "assetMaxBytes": 134217728,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "STATIC_OR_MUSL",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/nicklockwood/SwiftFormat/blob/173d2cb252474cd8e8baeaf13636f5d565408ec9/Dockerfile"
+        }
+      }
+    },
+    {
+      "familyId": "quality.swiftlint",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "realm/SwiftLint",
+      "command": "swiftlint",
+      "provenanceUrl": "https://github.com/realm/SwiftLint/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "",
+        "assetTokens": [
+          "swiftlint",
+          "linux",
+          "arm64"
+        ],
+        "artifactFormat": "ZIP",
+        "executableBasename": "swiftlint-static",
+        "assetMaxBytes": 268435456,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "STATIC_OR_MUSL",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/realm/SwiftLint/blob/d5156105b3c58c3ca125daef7735e6515d2fd408/.github/workflows/release.yml"
+        }
+      }
+    },
+    {
+      "familyId": "quality.tflint",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "terraform-linters/tflint",
+      "command": "tflint",
+      "provenanceUrl": "https://github.com/terraform-linters/tflint/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "v",
+        "assetTokens": [
+          "tflint",
+          "linux",
+          "arm64"
+        ],
+        "artifactFormat": "ZIP",
+        "executableBasename": "tflint",
+        "assetMaxBytes": 134217728,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "STATIC_OR_MUSL",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/terraform-linters/tflint/blob/d5d0da25ba456ea27d19305c01b5b2f1d955bade/.goreleaser.yml"
+        }
+      }
+    },
+    {
+      "familyId": "runtime.dart",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "dart-sdk",
+      "command": "dart",
+      "provenanceUrl": "https://dart.dev/get-dart/archive",
+      "certification": "CERTIFIED",
+      "bundle": {
+        "id": "dart-sdk",
+        "primaryFamilyId": "runtime.dart"
+      },
+      "vendorOfficial": {
+        "versionStrategy": "PINNED",
+        "pinnedVersion": "3.13.4",
+        "pinnedSha256": "1d545609bdf9da6fb5e68fbd96a599e2836e44ee64379991bd4493ee764d2fdb",
+        "tagPrefix": "",
+        "artifactUrlTemplate": "https://storage.googleapis.com/dart-archive/channels/stable/release/{tag}/sdk/dartsdk-linux-arm64-release.zip",
+        "artifactFormat": "ZIP",
+        "artifactLayout": "WHOLE_TREE",
+        "executableBasename": "dart",
+        "treeEntryPoint": "dart-sdk/bin/dart",
+        "treeExecutablePaths": [
+          "dart-sdk/bin/dart",
+          "dart-sdk/bin/dartaotruntime",
+          "dart-sdk/bin/dartaotruntime_asan",
+          "dart-sdk/bin/dartaotruntime_msan",
+          "dart-sdk/bin/dartaotruntime_tsan",
+          "dart-sdk/bin/dartvm",
+          "dart-sdk/bin/utils/gen_snapshot",
+          "dart-sdk/bin/utils/wasm-opt"
+        ],
+        "treeAuxCommands": {},
+        "treeMaxFiles": 1200,
+        "treeMaxUnpackedBytes": 800000000,
+        "assetMaxBytes": 300000000,
+        "runtimeCompatibility": {
+          "guestProfile": "UBUNTU_24_04_GLIBC_ARM64",
+          "libc": "GLIBC",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/bayurohmat608-create/Droide-bengkel/actions/runs/35904429827",
+          "requiredGuestPackages": [
+            "ca-certificates",
+            "libgcc-s1",
+            "libstdc++6",
+            "tzdata",
+            "zlib1g"
+          ]
+        }
+      },
+      "healthArgs": [
+        "--version"
+      ]
+    },
+    {
+      "familyId": "runtime.powershell",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "PowerShell/PowerShell",
+      "command": "pwsh",
+      "provenanceUrl": "https://github.com/PowerShell/PowerShell/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "v",
+        "assetTokens": [
+          "powershell",
+          "linux",
+          "arm64"
+        ],
+        "artifactFormat": "TAR_GZ",
+        "artifactLayout": "WHOLE_TREE",
+        "treeEntryPoint": "pwsh",
+        "treeExecutablePaths": [
+          "pwsh"
+        ],
+        "treeMaxFiles": 4096,
+        "treeMaxUnpackedBytes": 536870912,
+        "assetMaxBytes": 268435456,
+        "runtimeCompatibility": {
+          "guestProfile": "UBUNTU_24_04_GLIBC_ARM64",
+          "libc": "GLIBC",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/bayurohmat608-create/Droide-bengkel/actions/runs/35893981997",
+          "requiredGuestPackages": [
+            "ca-certificates",
+            "libgcc-s1",
+            "libstdc++6",
+            "libicu74",
+            "libssl3t64",
+            "libunwind8",
+            "libkrb5-3",
+            "tzdata",
+            "zlib1g"
+          ]
+        }
+      },
+      "healthArgs": [
+        "-NoLogo",
+        "-NoProfile",
+        "-Command",
+        "$PSVersionTable.PSVersion.ToString()"
+      ]
+    },
+    {
+      "familyId": "test.dart",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "dart-sdk",
+      "command": "dart",
+      "provenanceUrl": "https://dart.dev/tools/dart-test",
+      "certification": "PENDING",
+      "bundle": {
+        "id": "dart-sdk",
+        "primaryFamilyId": "runtime.dart"
+      },
+      "healthArgs": [
+        "help",
+        "test"
+      ]
+    },
+    {
+      "familyId": "test.phpunit",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "phpunit.phar",
+      "command": "phpunit",
+      "provenanceUrl": "https://phar.phpunit.de/",
+      "certification": "CERTIFIED",
+      "vendorOfficial": {
+        "versionStrategy": "GITHUB_RELEASE_MAX_SEMVER",
+        "versionGithubRepository": "sebastianbergmann/phpunit",
+        "tagPrefix": "",
+        "artifactUrlTemplate": "https://phar.phpunit.de/phpunit-{tag}.phar",
+        "checksumUrlTemplate": "https://phar.phpunit.de/",
+        "artifactFormat": "PHAR",
+        "executableBasename": "phpunit.phar",
+        "interpreterFamilyId": "runtime.php",
+        "interpreterCommand": "php",
+        "assetMaxBytes": 67108864,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "INTERPRETED",
+          "integration": "CLI",
+          "evidenceUrl": "https://docs.phpunit.de/en/12.5/installation.html"
+        }
+      },
+      "healthArgs": [
+        "--version"
+      ]
+    },
+    {
+      "familyId": "test.rspec",
+      "provider": "RUBYGEMS",
+      "packageName": "rspec",
+      "command": "rspec",
+      "provenanceUrl": "https://rubygems.org/gems/rspec",
+      "certification": "CERTIFIED"
+    },
+    {
+      "familyId": "toolchain.kotlin",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "JetBrains/kotlin",
+      "command": "kotlinc",
+      "provenanceUrl": "https://github.com/JetBrains/kotlin/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "v",
+        "assetTokens": [
+          "kotlin-compiler"
+        ],
+        "artifactFormat": "ZIP",
+        "artifactLayout": "WHOLE_TREE",
+        "treeEntryPoint": "kotlinc/lib/kotlin-compiler.jar",
+        "treeExecutablePaths": [
+          "kotlinc/bin/kotlinc"
+        ],
+        "treeMaxFiles": 256,
+        "treeMaxUnpackedBytes": 201326592,
+        "interpreterFamilyId": "runtime.java",
+        "interpreterCommand": "java",
+        "interpreterArgs": [
+          "-Dkotlin.home={tree}/kotlinc",
+          "-cp",
+          "{tree}/kotlinc/lib/kotlin-preloader.jar",
+          "org.jetbrains.kotlin.preloading.Preloader",
+          "-cp",
+          "{entry}",
+          "org.jetbrains.kotlin.cli.jvm.K2JVMCompiler"
+        ],
+        "assetMaxBytes": 134217728,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "INTERPRETED",
+          "integration": "CLI",
+          "evidenceUrl": "https://kotlinlang.org/docs/command-line.html"
+        }
+      },
+      "healthArgs": [
+        "-version"
+      ]
+    },
+    {
+      "familyId": "toolchain.scala",
+      "provider": "GITHUB_RELEASE",
+      "packageName": "scala/scala3",
+      "command": "scala",
+      "provenanceUrl": "https://github.com/scala/scala3/releases",
+      "certification": "CERTIFIED",
+      "githubRelease": {
+        "tagPrefix": "",
+        "assetTokens": [
+          "scala3"
+        ],
+        "assetNameTemplate": "scala3-{version}.zip",
+        "artifactFormat": "ZIP",
+        "artifactLayout": "WHOLE_TREE",
+        "treeEntryPoint": "scala3-{version}/libexec/scala-cli.jar",
+        "treeExecutablePaths": [
+          "scala3-{version}/bin/scala",
+          "scala3-{version}/bin/scalac"
+        ],
+        "treeMaxFiles": 256,
+        "treeMaxUnpackedBytes": 268435456,
+        "interpreterFamilyId": "runtime.java",
+        "interpreterCommand": "java",
+        "interpreterArgs": [
+          "-jar",
+          "{entry}",
+          "--prog-name",
+          "scala",
+          "--skip-cli-updates",
+          "--cli-default-scala-version",
+          "{version}",
+          "-r",
+          "file://{tree}/scala3-{version}/maven2"
+        ],
+        "assetMaxBytes": 268435456,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "INTERPRETED",
+          "integration": "CLI",
+          "evidenceUrl": "https://www.scala-lang.org/download/3.9.0.html"
+        }
+      },
+      "healthArgs": [
+        "version"
+      ]
+    },
+    {
+      "familyId": "toolchain.solidity",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "solc",
+      "command": "solc",
+      "provenanceUrl": "https://binaries.soliditylang.org/linux-arm64/list.json",
+      "certification": "CERTIFIED",
+      "vendorOfficial": {
+        "versionStrategy": "PINNED",
+        "pinnedVersion": "0.8.37",
+        "pinnedSha256": "717142f4275804e75c3d0bafd264db669da9cf411550c7c29cc68f634d17a9da",
+        "tagPrefix": "v",
+        "artifactUrlTemplate": "https://binaries.soliditylang.org/linux-arm64/solc-linux-arm64-{tag}+commit.f401782d",
+        "artifactFormat": "RAW",
+        "artifactLayout": "SINGLE_COMMAND",
+        "executableBasename": "solc",
+        "assetMaxBytes": 33554432,
+        "runtimeCompatibility": {
+          "guestProfile": "ALPINE_3_24_MUSL_ARM64",
+          "libc": "STATIC_OR_MUSL",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/bayurohmat608-create/Droide-bengkel/actions/runs/35897707317"
+        }
+      },
+      "healthArgs": [
+        "--version"
+      ]
+    },
+    {
+      "familyId": "toolchain.swift",
+      "provider": "VENDOR_OFFICIAL",
+      "packageName": "swift-toolchain",
+      "command": "swift",
+      "provenanceUrl": "https://www.swift.org/install/linux/",
+      "certification": "CERTIFIED",
+      "vendorOfficial": {
+        "versionStrategy": "PINNED",
+        "pinnedVersion": "6.4.0",
+        "pinnedSha256": "21eacfe571194717d269cc1e0030533bbee6131dfde82cd4f9cfbc2512e354a9",
+        "tagPrefix": "",
+        "artifactUrlTemplate": "https://download.swift.org/swift-{tag}-release/ubuntu2404-aarch64/swift-{tag}-RELEASE/swift-{tag}-RELEASE-ubuntu24.04-aarch64.tar.gz",
+        "artifactFormat": "TAR_GZ",
+        "artifactLayout": "WHOLE_TREE",
+        "executableBasename": "swift",
+        "treeEntryPoint": "swift-6.4.0-RELEASE-ubuntu24.04-aarch64/usr/bin/swift",
+        "treeExecutablePaths": [],
+        "treeAuxCommands": {
+          "swiftc": "swift-6.4.0-RELEASE-ubuntu24.04-aarch64/usr/bin/swiftc",
+          "swift-package": "swift-6.4.0-RELEASE-ubuntu24.04-aarch64/usr/bin/swift-package",
+          "sourcekit-lsp": "swift-6.4.0-RELEASE-ubuntu24.04-aarch64/usr/bin/sourcekit-lsp"
+        },
+        "treeMaxFiles": 3000,
+        "treeMaxUnpackedBytes": 4000000000,
+        "treeLinkPolicy": "SAFE_RELATIVE",
+        "treeModePolicy": "PINNED_ARCHIVE",
+        "assetMaxBytes": 1250000000,
+        "runtimeCompatibility": {
+          "guestProfile": "UBUNTU_24_04_GLIBC_ARM64",
+          "libc": "GLIBC",
+          "integration": "CLI",
+          "evidenceUrl": "https://github.com/bayurohmat608-create/Droide-bengkel/actions/runs/35909204431",
+          "requiredGuestPackages": [
+            "ca-certificates",
+            "binutils",
+            "git",
+            "libc6-dev",
+            "libcurl4-openssl-dev",
+            "libedit2",
+            "libgcc-13-dev",
+            "libncurses-dev",
+            "libpython3.12t64",
+            "libsqlite3-0",
+            "libstdc++-13-dev",
+            "libxml2-dev",
+            "libz3-dev",
+            "pkg-config",
+            "python3",
+            "tzdata",
+            "unzip",
+            "zip",
+            "zlib1g-dev"
+          ]
+        }
+      },
+      "healthArgs": [
+        "--version"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.baystudio.compat</groupId>
+  <artifactId>spake2-boringssl-compat</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+  <name>Droide ADB SPAKE2 BoringSSL Compatibility</name>
+  <description>Independently implemented Java compatibility layer for Android Wireless Debugging SPAKE2.</description>
+  <licenses>
+    <license><name>BSD-3-Clause</name><distribution>repo</distribution></license>
+  </licenses>
+</project>

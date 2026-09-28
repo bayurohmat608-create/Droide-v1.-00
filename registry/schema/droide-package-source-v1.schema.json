@@ -1,0 +1,638 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://droide.dev/schema/package-source-v1.json",
+  "title": "Droide Declarative Package Source Catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "revision",
+    "packages"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]{1,100}$"
+    },
+    "packages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/package"
+      }
+    }
+  },
+  "$defs": {
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "familyId",
+        "provider",
+        "packageName",
+        "command",
+        "provenanceUrl",
+        "certification"
+      ],
+      "properties": {
+        "familyId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]{1,120}$"
+        },
+        "provider": {
+          "enum": [
+            "NPM",
+            "PYPI",
+            "CARGO",
+            "GO",
+            "RUBYGEMS",
+            "COMPOSER",
+            "ANDROID_SDK",
+            "GITHUB_RELEASE",
+            "VENDOR_OFFICIAL"
+          ]
+        },
+        "packageName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 220
+        },
+        "command": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._+-]{1,80}$"
+        },
+        "provenanceUrl": {
+          "type": "string",
+          "pattern": "^https://"
+        },
+        "certification": {
+          "enum": [
+            "CERTIFIED",
+            "PENDING"
+          ]
+        },
+        "requirements": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "minimumNodeMajor": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "minimumPythonMajor": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "minimumPythonMinor": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "go": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "modulePath"
+          ],
+          "properties": {
+            "modulePath": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 220
+            }
+          }
+        },
+        "githubRelease": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "assetTokens",
+            "artifactFormat",
+            "assetMaxBytes"
+          ],
+          "properties": {
+            "tagPrefix": {
+              "type": "string",
+              "maxLength": 16
+            },
+            "assetTokens": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              }
+            },
+            "exactAssetName": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._+-]{1,180}$"
+            },
+            "assetMaxBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 536870912
+            },
+            "artifactFormat": {
+              "enum": [
+                "TAR_GZ",
+                "TGZ",
+                "ZIP",
+                "VSIX",
+                "RAW",
+                "PHAR"
+              ]
+            },
+            "executableBasename": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._+-]{1,120}$"
+            },
+            "interpreterFamilyId": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]{1,120}$"
+            },
+            "interpreterCommand": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._+-]{1,80}$"
+            },
+            "interpreterArgs": {
+              "type": "array",
+              "maxItems": 12,
+              "items": {
+                "type": "string",
+                "maxLength": 120
+              }
+            },
+            "artifactLayout": {
+              "enum": [
+                "SINGLE_COMMAND",
+                "WHOLE_TREE"
+              ]
+            },
+            "treeEntryPoint": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "treeExecutablePaths": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              }
+            },
+            "treeMaxFiles": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4096
+            },
+            "treeMaxUnpackedBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1073741824
+            },
+            "runtimeCompatibility": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "guestProfile",
+                "libc",
+                "integration",
+                "evidenceUrl"
+              ],
+              "properties": {
+                "guestProfile": {
+                  "enum": [
+                    "ALPINE_3_24_MUSL_ARM64",
+                    "UBUNTU_24_04_GLIBC_ARM64"
+                  ]
+                },
+                "libc": {
+                  "enum": [
+                    "STATIC_OR_MUSL",
+                    "INTERPRETED",
+                    "GLIBC",
+                    "UNKNOWN"
+                  ]
+                },
+                "integration": {
+                  "enum": [
+                    "CLI",
+                    "DAP_STDIO",
+                    "DAP_REVERSE_TCP"
+                  ]
+                },
+                "requiredCommands": {
+                  "type": "array",
+                  "maxItems": 32,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9._+-]{1,80}$"
+                  }
+                },
+                "requiredFamilyIds": {
+                  "type": "array",
+                  "maxItems": 32,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9._-]{1,120}$"
+                  }
+                },
+                "requiredGuestPackages": {
+                  "type": "array",
+                  "maxItems": 64,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9+_.@-]{0,119}$"
+                  }
+                },
+                "evidenceUrl": {
+                  "type": "string",
+                  "pattern": "^https://",
+                  "maxLength": 500
+                },
+                "requiredGuestCapabilities": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "uniqueItems": true,
+                  "items": {
+                    "enum": [
+                      "LOOPBACK_TCP",
+                      "PROCFS",
+                      "PTRACE"
+                    ]
+                  }
+                }
+              }
+            },
+            "assetNameTemplate": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 180
+            }
+          }
+        },
+        "healthArgs": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "string",
+            "maxLength": 120
+          }
+        },
+        "supportedEnvironments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "versionPolicy": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "allowLatest": {
+              "type": "boolean"
+            },
+            "sideBySide": {
+              "type": "boolean"
+            },
+            "workspaceSelectable": {
+              "type": "boolean"
+            },
+            "versionScopedUninstall": {
+              "type": "boolean"
+            }
+          }
+        },
+        "bundle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "primaryFamilyId"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]{1,120}$"
+            },
+            "primaryFamilyId": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]{1,120}$"
+            }
+          }
+        },
+        "debugAdapter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "extensions",
+            "args"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]{1,100}$"
+            },
+            "extensions": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 32,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_+.-]{1,24}$"
+              }
+            },
+            "args": {
+              "type": "array",
+              "maxItems": 32,
+              "items": {
+                "type": "string",
+                "maxLength": 240
+              }
+            },
+            "autoConfigure": {
+              "type": "boolean"
+            },
+            "reverseTcp": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "connectArgument",
+                "authTokenArgument"
+              ],
+              "properties": {
+                "connectArgument": {
+                  "type": "string",
+                  "pattern": "^--[A-Za-z0-9][A-Za-z0-9-]{0,79}$"
+                },
+                "authTokenArgument": {
+                  "type": "string",
+                  "pattern": "^--[A-Za-z0-9][A-Za-z0-9-]{0,79}$"
+                },
+                "authHeaderName": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9-]{0,79}$"
+                }
+              }
+            },
+            "requiredGuestCapabilities": {
+              "type": "array",
+              "maxItems": 16,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "LOOPBACK_TCP",
+                  "PROCFS",
+                  "PTRACE"
+                ]
+              }
+            }
+          }
+        },
+        "vendorOfficial": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "versionStrategy",
+            "artifactUrlTemplate",
+            "artifactFormat",
+            "executableBasename",
+            "assetMaxBytes",
+            "runtimeCompatibility"
+          ],
+          "properties": {
+            "versionStrategy": {
+              "enum": [
+                "PINNED",
+                "TEXT_ENDPOINT",
+                "GITHUB_RELEASE",
+                "GITHUB_RELEASE_MAX_SEMVER"
+              ]
+            },
+            "versionUrl": {
+              "type": "string",
+              "pattern": "^https://",
+              "maxLength": 500
+            },
+            "versionGithubRepository": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}$"
+            },
+            "tagPrefix": {
+              "type": "string",
+              "maxLength": 16
+            },
+            "artifactUrlTemplate": {
+              "type": "string",
+              "pattern": "^https://",
+              "maxLength": 500
+            },
+            "checksumUrlTemplate": {
+              "type": "string",
+              "pattern": "^https://",
+              "maxLength": 500
+            },
+            "artifactFormat": {
+              "enum": [
+                "RAW",
+                "PHAR",
+                "TAR_GZ",
+                "TGZ",
+                "ZIP"
+              ]
+            },
+            "executableBasename": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._+-]{1,120}$"
+            },
+            "assetMaxBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483648
+            },
+            "runtimeCompatibility": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "guestProfile",
+                "libc",
+                "integration",
+                "evidenceUrl"
+              ],
+              "properties": {
+                "guestProfile": {
+                  "enum": [
+                    "ALPINE_3_24_MUSL_ARM64",
+                    "UBUNTU_24_04_GLIBC_ARM64"
+                  ]
+                },
+                "libc": {
+                  "enum": [
+                    "STATIC_OR_MUSL",
+                    "INTERPRETED",
+                    "GLIBC",
+                    "UNKNOWN"
+                  ]
+                },
+                "integration": {
+                  "enum": [
+                    "CLI",
+                    "DAP_STDIO",
+                    "DAP_REVERSE_TCP"
+                  ]
+                },
+                "requiredCommands": {
+                  "type": "array",
+                  "maxItems": 32,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9._+-]{1,80}$"
+                  }
+                },
+                "requiredFamilyIds": {
+                  "type": "array",
+                  "maxItems": 32,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9._-]{1,120}$"
+                  }
+                },
+                "requiredGuestPackages": {
+                  "type": "array",
+                  "maxItems": 64,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9+_.@-]{0,119}$"
+                  }
+                },
+                "evidenceUrl": {
+                  "type": "string",
+                  "pattern": "^https://",
+                  "maxLength": 500
+                },
+                "requiredGuestCapabilities": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "uniqueItems": true,
+                  "items": {
+                    "enum": [
+                      "LOOPBACK_TCP",
+                      "PROCFS",
+                      "PTRACE"
+                    ]
+                  }
+                }
+              }
+            },
+            "archiveMemberPath": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "archiveMaxFiles": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4096
+            },
+            "archiveMaxUnpackedBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1073741824
+            },
+            "interpreterFamilyId": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]{1,120}$"
+            },
+            "interpreterCommand": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._+-]{1,80}$"
+            },
+            "pinnedVersion": {
+              "type": "string",
+              "pattern": "^[0-9][0-9A-Za-z._+-]{0,79}$"
+            },
+            "pinnedSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "artifactLayout": {
+              "enum": [
+                "SINGLE_COMMAND",
+                "WHOLE_TREE"
+              ]
+            },
+            "treeEntryPoint": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "treeExecutablePaths": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              }
+            },
+            "treeAuxCommands": {
+              "type": "object",
+              "maxProperties": 16,
+              "propertyNames": {
+                "pattern": "^[A-Za-z0-9._+-]{1,80}$"
+              },
+              "additionalProperties": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              }
+            },
+            "treeMaxFiles": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 8192
+            },
+            "treeMaxUnpackedBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 6442450944
+            },
+            "treeLinkPolicy": {
+              "enum": [
+                "REJECT",
+                "SAFE_RELATIVE"
+              ]
+            },
+            "treeModePolicy": {
+              "enum": [
+                "EXPLICIT_ALLOWLIST",
+                "PINNED_ARCHIVE"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
