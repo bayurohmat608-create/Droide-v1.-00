@@ -1,0 +1,106 @@
+name: Android CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up exact Temurin JDK
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
+        with:
+          distribution: temurin
+          java-version: '17.0.20.1'
+          check-latest: false
+
+      - name: Set up Android SDK tools
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: 'platform-tools'
+          log-accepted-android-sdk-licenses: 'false'
+
+      - name: Install exact Android SDK inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdkmanager --install "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Verify build environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          java -XshowSettings:properties -version 2>&1 | tee android-ci-java-env.log
+          java_version="$(java -version 2>&1 | awk -F '"' '/version/ {print $2; exit}')"
+          test "$java_version" = "17.0.20.1"
+          java_vendor="$(java -XshowSettings:properties -version 2>&1 | sed -n 's/^ *java.vendor = //p' | head -1)"
+          case "$java_vendor" in
+            *Adoptium*|*Temurin*) ;;
+            *) echo "Unexpected JDK vendor: $java_vendor" >&2; exit 1;;
+          esac
+          : "${ANDROID_SDK_ROOT:=${ANDROID_HOME:-}}"
+          test -f "$ANDROID_SDK_ROOT/platforms/android-36/android.jar"
+          test -x "$ANDROID_SDK_ROOT/build-tools/36.0.0/aapt2"
+          python3 tools/build-readiness/prepare_build.py source
+          python3 tools/build-readiness/prepare_build.py environment --android-sdk-root "$ANDROID_SDK_ROOT"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          cache-provider: basic
+          validate-wrappers: true
+
+      - name: Release source gate
+        run: ./tools/verify_release_source.sh
+
+      - name: Dependency policy
+        run: python3 ./tools/verify_dependency_policy.py
+
+      - name: Runtime license closure
+        run: python3 ./tools/verify_runtime_licenses.py
+
+      - name: Unit tests, lint, release APK and bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon --stacktrace clean test lintRelease assembleRelease bundleRelease 2>&1 | tee android-ci-gradle.log
+
+      - name: Verify release artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t apks < <(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' -print | sort)
+          mapfile -t bundles < <(find app/build/outputs/bundle/release -maxdepth 1 -type f -name '*.aab' -print | sort)
+          test "${#apks[@]}" -gt 0
+          test "${#bundles[@]}" -gt 0
+          for artifact in "${apks[@]}" "${bundles[@]}"; do test -s "$artifact"; unzip -t "$artifact" >/dev/null; done
+          sha256sum "${apks[@]}" "${bundles[@]}" > android-ci-artifact-sha256.txt
+
+      - name: Upload release outputs
+        if: success()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: droide-release-unsigned
+          path: |
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/bundle/release/*.aab
+            app/build/reports/lint-results-release.html
+            android-ci-artifact-sha256.txt
+            android-ci-gradle.log
+          if-no-files-found: error
+          retention-days: 14
