@@ -24,6 +24,6 @@ Run `./tools/verify_release_source.sh` to verify the static release closure.
 
 A public APK/AAB remains fail-closed until the trusted online release build resolves and reviews the complete Gradle transitive graph, writes dependency locks and `gradle/verification-metadata.xml`, and reruns the release gates. Run `tools/generate_dependency_trust.sh` in that environment.
 
-This tree also does not choose a license for Droide-owned application source. BayStudio must add the intended project license before describing the public repository as open source.
+Droide-owned source code and original project material are licensed under the MIT License. Third-party components retain their respective licenses; `LICENSE_SCOPE.md` defines the repository-level boundary.
 
 The embedded application compliance copy is `app/src/main/assets/legal/DISTRIBUTION_COMPLIANCE.md`.

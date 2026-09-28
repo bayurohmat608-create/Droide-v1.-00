@@ -669,7 +669,7 @@ private fun SettingsDetail(
                 ActionRow("Updates", "Release status", { onLegalRoute(LegalRoute.UPDATES) })
                 ActionRow("Privacy", "Privacy details", { onLegalRoute(LegalRoute.PRIVACY) })
                 ActionRow("Terms of Service", "Terms are not configured for this build", { onLegalRoute(LegalRoute.TERMS) })
-                ActionRow("Droide License", "Distribution license status", { onLegalRoute(LegalRoute.DROIDE_LICENSE) })
+                ActionRow("Droide License", "MIT license for Droide-owned source", { onLegalRoute(LegalRoute.DROIDE_LICENSE) })
                 SectionTitle("Legal")
                 ActionRow("Open Source Licenses", "Dependency licenses", { onLegalRoute(LegalRoute.OPEN_SOURCE) })
                 ActionRow("Third-Party Notices", "Brand marks, attributions and license scope", { onLegalRoute(LegalRoute.THIRD_PARTY) })
@@ -769,9 +769,9 @@ private fun LegalSettingsContent(
         LegalRoute.THIRD_PARTY -> LegalAssetPage("Third-Party Notices", OpenSourceLicenseCatalog.THIRD_PARTY_NOTICES_ASSET, onBack, showBackHeader, modifier)
         LegalRoute.BRAND_ASSETS -> LegalAssetPage("Brand Asset Terms", OpenSourceLicenseCatalog.BRAND_ASSET_TERMS_ASSET, onBack, showBackHeader, modifier)
         LegalRoute.UPDATES -> LegalAssetPage("Release & Distribution Status", OpenSourceLicenseCatalog.DISTRIBUTION_COMPLIANCE_ASSET, onBack, showBackHeader, modifier)
-        LegalRoute.DROIDE_LICENSE -> LegalTextPage(
+        LegalRoute.DROIDE_LICENSE -> LegalAssetPage(
             "Droide License",
-            "Distribution license not configured. Public release stays disabled until one is selected.",
+            OpenSourceLicenseCatalog.DROIDE_LICENSE_ASSET,
             onBack,
             showBackHeader,
             modifier,

@@ -53,4 +53,5 @@ object OpenSourceLicenseCatalog {
     const val THIRD_PARTY_NOTICES_ASSET = "legal/THIRD_PARTY_NOTICES.md"
     const val BRAND_ASSET_TERMS_ASSET = "legal/BRAND_ASSET_TERMS.md"
     const val DISTRIBUTION_COMPLIANCE_ASSET = "legal/DISTRIBUTION_COMPLIANCE.md"
+    const val DROIDE_LICENSE_ASSET = "legal/DROIDE_LICENSE.md"
 }

@@ -27,7 +27,7 @@ Droide now maps every directly declared app runtime dependency and every bundled
 
 The complete source-offer terms are packaged in `legal/COPYLEFT_SOURCE_OFFER.md`. PRoot/OpenMinis, talloc and QEMU corresponding source archives are already included in the public tree. Exact package source locators are recorded for Alpine and Ubuntu aggregate packages. BayStudio's written offer covers any distributed copyleft component whose corresponding source is not already present in the same release and remains valid for at least three years after the last distribution of that binary version.
 
-Sora Editor 0.24.6 remains LGPL-2.1-or-later. Its exact version and license are pinned in the catalog. A public Droide source release plus the pinned dependency declaration provides the material needed to rebuild Droide against a compatible modified Sora library; the final Droide project license must not remove recipients' LGPL rights.
+Sora Editor 0.24.6 remains LGPL-2.1-or-later. Its exact version and license are pinned in the catalog. Droide-owned source uses the MIT License, which does not remove recipients' LGPL rights or the library's relinking requirements.
 
 ## Termux terminal scope
 
@@ -39,7 +39,7 @@ The source tree cannot generate the resolved Gradle transitive graph in an offli
 
 ## Droide-owned source license
 
-This document does not choose a license for Droide-owned application source. BayStudio must intentionally add the project license before the public source repository is declared open source.
+Droide-owned source code and original project material are licensed under the MIT License. Third-party software and assets remain under their respective licenses; see `legal/DROIDE_LICENSE.md`, `legal/THIRD_PARTY_NOTICES.md`, and the repository `LICENSE_SCOPE.md`.
 
 ## Release rule
 

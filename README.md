@@ -8,6 +8,7 @@ Droide is a mobile IDE for Android built by **BayStudio** and engineered by **Ba
 - Android: `minSdk 29`, `targetSdk 36`, `compileSdk 36`
 - JVM toolchain: Java 17
 - Source tree: release-clean, with internal recovery/checkpoint history excluded
+- First-party license: **MIT**
 - Binary distribution: currently fail-closed pending the items documented in `RELEASE_AND_COMPLIANCE.md`
 
 ## Architecture
@@ -44,7 +45,7 @@ The release gate checks source hygiene, secret/build-output exclusions, dependen
 
 ## Legal and redistribution
 
-Third-party notices and full packaged license texts live under `app/src/main/assets/legal/` and `third_party/`. Keep those files intact. The current binary redistribution blockers are documented in `RELEASE_AND_COMPLIANCE.md`. A project license for Droide-owned source must be intentionally selected before public source distribution.
+Droide-owned source code and original project material are licensed under the MIT License. Third-party components retain their original licenses and are not relicensed under MIT. See `LICENSE`, `LICENSE_SCOPE.md`, `app/src/main/assets/legal/`, and `third_party/`. Binary redistribution requirements are documented in `RELEASE_AND_COMPLIANCE.md`.
 
 ## Credits
 
