@@ -25,7 +25,7 @@ class GitManagerTest {
         PathSecurity.deleteTreeNoFollow(root)
     }
 
-    @Test fun initStageAndStatusRoundTrip() = runBlocking {
+    @Test fun initStageAndStatusRoundTrip() = runBlocking<Unit> {
         assertFalse(git.isRepository())
         assertTrue(git.init().contains("Initialized"))
         assertTrue(git.isRepository())
@@ -39,8 +39,7 @@ class GitManagerTest {
         assertTrue(git.status().contains("src/Main.kt"))
     }
 
-
-    @Test fun pullAndPushRejectImportedUnsafeRemote() = runBlocking {
+    @Test fun pullAndPushRejectImportedUnsafeRemote() = runBlocking<Unit> {
         git.init()
         val repo = FileRepositoryBuilder()
             .setGitDir(root.resolve(".git"))
@@ -67,7 +66,8 @@ class GitManagerTest {
             }
         }
     }
-    @Test fun commitRequiresExplicitIdentityAndUsesConfiguredAuthor() = runBlocking {
+
+    @Test fun commitRequiresExplicitIdentityAndUsesConfiguredAuthor() = runBlocking<Unit> {
         git.init()
         assertNull(git.identity())
         root.resolve("README.md").writeText("hello\n")
@@ -90,7 +90,7 @@ class GitManagerTest {
         }
     }
 
-    @Test fun identityValidationRejectsControlCharactersAndMalformedEmail() = runBlocking {
+    @Test fun identityValidationRejectsControlCharactersAndMalformedEmail() = runBlocking<Unit> {
         git.init()
         assertThrows(IllegalArgumentException::class.java) {
             runBlocking { git.configureIdentity("Bad\nName", "bay@example.com") }
@@ -100,7 +100,7 @@ class GitManagerTest {
         }
     }
 
-    @Test fun githubPatIsNeverOfferedToNonGithubRemote() = runBlocking {
+    @Test fun githubPatIsNeverOfferedToNonGithubRemote() = runBlocking<Unit> {
         git.init()
         val repo = FileRepositoryBuilder().setGitDir(root.resolve(".git")).setWorkTree(root).build()
         repo.use {
@@ -112,7 +112,7 @@ class GitManagerTest {
         assertFalse(result.contains("ghp_test_secret"))
     }
 
-    @Test fun githubPatCloneRejectsSshAndNonGithubBeforeNetwork() = runBlocking {
+    @Test fun githubPatCloneRejectsSshAndNonGithubBeforeNetwork() = runBlocking<Unit> {
         assertThrows(IllegalArgumentException::class.java) {
             runBlocking { git.clone("https://example.com/owner/repo.git", token = "secret") }
         }
@@ -120,5 +120,4 @@ class GitManagerTest {
             runBlocking { git.clone("git@github.com:owner/repo.git", token = "secret") }
         }
     }
-
 }
