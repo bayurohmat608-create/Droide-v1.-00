@@ -1,0 +1,68 @@
+name: R8 9.1.29 Cache Fetch
+
+on:
+  push:
+    branches:
+      - cp-r8-dependency-fetch-20260930
+
+permissions:
+  contents: read
+
+jobs:
+  fetch-r8:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Set up Temurin JDK 17
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
+        with:
+          distribution: temurin
+          java-version: '17.0.20.1'
+          check-latest: false
+
+      - name: Set up exact Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          gradle-version: '8.13'
+          cache-disabled: true
+
+      - name: Resolve exact R8 dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe="$RUNNER_TEMP/r8-probe"
+          mkdir -p "$probe"
+          cat > "$probe/settings.gradle.kts" <<'EOF'
+          buildscript {
+              repositories {
+                  maven {
+                      url = uri("https://storage.googleapis.com/r8-releases/raw")
+                      content { includeModule("com.android.tools", "r8") }
+                  }
+                  google()
+                  mavenCentral()
+              }
+              dependencies {
+                  classpath("com.android.tools:r8:9.1.29")
+              }
+          }
+          rootProject.name = "r8-probe"
+          EOF
+          printf '%s\n' '' > "$probe/build.gradle.kts"
+          gradle -p "$probe" --no-daemon --console=plain help
+          jar_path="$(find "$HOME/.gradle/caches/modules-2/files-2.1/com.android.tools/r8/9.1.29" -type f -name 'r8-9.1.29.jar' -print -quit)"
+          test -n "$jar_path" && test -s "$jar_path"
+          sha256sum "$jar_path" | tee "$RUNNER_TEMP/r8-9.1.29-sha256.txt"
+          mkdir -p "$RUNNER_TEMP/r8-cache"
+          cp -a "$HOME/.gradle/caches/modules-2" "$RUNNER_TEMP/r8-cache/"
+          tar -C "$RUNNER_TEMP/r8-cache" -czf "$RUNNER_TEMP/r8-gradle-modules-2.tar.gz" modules-2
+
+      - name: Upload R8 Gradle cache
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: r8-9.1.29-gradle-cache
+          path: |
+            ${{ runner.temp }}/r8-gradle-modules-2.tar.gz
+            ${{ runner.temp }}/r8-9.1.29-sha256.txt
+          if-no-files-found: error
+          retention-days: 1
