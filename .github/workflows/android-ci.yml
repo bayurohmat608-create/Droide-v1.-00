@@ -82,7 +82,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ./gradlew --no-daemon --stacktrace clean test lintRelease assembleRelease bundleRelease 2>&1 | tee android-ci-gradle.log
+          ./gradlew --no-daemon --max-workers=1 --stacktrace \
+            '-Pkotlin.daemon.jvmargs=-Xmx4096m -Xms512m -XX:MaxMetaspaceSize=1g' \
+            clean test lintRelease assembleRelease bundleRelease 2>&1 | tee android-ci-gradle.log
 
       - name: Upload CI diagnostics
         if: always()
