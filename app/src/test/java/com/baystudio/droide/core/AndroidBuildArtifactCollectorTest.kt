@@ -13,7 +13,7 @@ import org.junit.Test
 class AndroidBuildArtifactCollectorTest {
     private val workspace = "/data/local/tmp/droide/workspaces/demo"
 
-    @Test fun nonArtifactTaskNeverEnumeratesOldOutputs() = runBlocking {
+    @Test fun nonArtifactTaskNeverEnumeratesOldOutputs() = runBlocking<Unit> {
         val cache = Files.createTempDirectory("droide-artifact-test").toFile()
         try {
             var shellCalls = 0
@@ -26,7 +26,7 @@ class AndroidBuildArtifactCollectorTest {
         } finally { cache.deleteRecursively() }
     }
 
-    @Test fun successfulCollectionPreservesModulePath() = runBlocking {
+    @Test fun successfulCollectionPreservesModulePath() = runBlocking<Unit> {
         val cache = Files.createTempDirectory("droide-artifact-test").toFile()
         try {
             val remote = "$workspace/app/build/outputs/apk/debug/app-debug.apk"
@@ -39,7 +39,7 @@ class AndroidBuildArtifactCollectorTest {
         } finally { cache.deleteRecursively() }
     }
 
-    @Test fun listingAndPullFailuresAreFailClosedAndPartialCacheIsRemoved() = runBlocking {
+    @Test fun listingAndPullFailuresAreFailClosedAndPartialCacheIsRemoved() = runBlocking<Unit> {
         val cache = Files.createTempDirectory("droide-artifact-test").toFile()
         try {
             val remote = "$workspace/app/build/outputs/apk/debug/app-debug.apk"
@@ -55,7 +55,7 @@ class AndroidBuildArtifactCollectorTest {
         } finally { cache.deleteRecursively() }
     }
 
-    @Test fun artifactCountOverflowIsRejected() = runBlocking {
+    @Test fun artifactCountOverflowIsRejected() = runBlocking<Unit> {
         val cache = Files.createTempDirectory("droide-artifact-test").toFile()
         try {
             val listing = (0..40).joinToString("\n") { i -> "$workspace/module$i/build/outputs/apk/debug/module$i-debug.apk" }
