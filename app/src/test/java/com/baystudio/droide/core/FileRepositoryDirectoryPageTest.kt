@@ -9,7 +9,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class FileRepositoryDirectoryPageTest {
-    @Test fun directoryWithMoreThanFiveThousandFilesRemainsAccessibleAcrossPages() = runBlocking {
+    @Test fun directoryWithMoreThanFiveThousandFilesRemainsAccessibleAcrossPages() = runBlocking<Unit> {
         val root = Files.createTempDirectory("droide-directory-page-").toFile()
         try {
             val folder = root.resolve("huge").apply { mkdirs() }
@@ -28,7 +28,7 @@ class FileRepositoryDirectoryPageTest {
         } finally { PathSecurity.deleteTreeNoFollow(root) }
     }
 
-    @Test fun cursorIsFolderBoundAndDirectoriesSortBeforeFiles() = runBlocking {
+    @Test fun cursorIsFolderBoundAndDirectoriesSortBeforeFiles() = runBlocking<Unit> {
         val root = Files.createTempDirectory("droide-directory-order-").toFile()
         try {
             root.resolve("z.txt").writeText("x")
