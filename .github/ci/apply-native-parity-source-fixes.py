@@ -24,7 +24,7 @@ replace_once(
 )
 replace_once(
     worktree,
-    '''                        val integrated = RevWalk(parentGit.repository).use { walk ->\n                            walk.isMergedInto(walk.parseCommit(childHead), walk.parseCommit(parentHead))\n                        }\n''',
+    '''                        val integrated = RevWalk(parentGit.repository).use { walk ->\n                            val imported = parentGit.repository.resolve(childHead.name)\n                            imported != null && walk.isMergedInto(walk.parseCommit(imported), walk.parseCommit(parentHead))\n                        }\n''',
     '''                        val integrated = if (!parentGit.repository.objectDatabase.has(childHead)) {\n                            false\n                        } else {\n                            RevWalk(parentGit.repository).use { walk ->\n                                walk.isMergedInto(walk.parseCommit(childHead), walk.parseCommit(parentHead))\n                            }\n                        }\n''',
 )
 
