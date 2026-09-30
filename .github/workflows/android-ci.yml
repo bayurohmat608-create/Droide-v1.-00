@@ -66,7 +66,8 @@ jobs:
           validate-wrappers: true
 
       - name: Release source gate
-        run: ./tools/verify_release_source.sh
+        shell: bash
+        run: bash ./tools/verify_release_source.sh
 
       - name: Dependency policy
         run: python3 ./tools/verify_dependency_policy.py
