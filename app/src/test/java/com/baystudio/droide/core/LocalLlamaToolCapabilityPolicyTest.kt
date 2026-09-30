@@ -41,7 +41,7 @@ class LocalLlamaToolCapabilityPolicyTest {
     }
 
     @Test fun exactToolCallIsAcceptedAndWrongNonceRejected() {
-        val response = """{"choices":[{"finish_reason":"tool_calls","message":{"role":"assistant","content":null,"tool_calls":[{"id":"call_123","type":"function","function":{"name":"droide_echo_probe","arguments":"{\\\"nonce\\\":\\\"nonce-1\\\"}"}}]}}]}"""
+        val response = """{"choices":[{"finish_reason":"tool_calls","message":{"role":"assistant","content":null,"tool_calls":[{"id":"call_123","type":"function","function":{"name":"droide_echo_probe","arguments":"{\"nonce\":\"nonce-1\"}"}}]}}]}"""
         val call = LocalLlamaToolCapabilityPolicy.requireSingleToolCall(response, "nonce-1")
         assertEquals("call_123", call.id)
         assertEquals("droide_echo_probe", call.name)
@@ -67,7 +67,7 @@ class LocalLlamaToolCapabilityPolicyTest {
         )
         val body = LocalLlamaToolCapabilityPolicy.continuationProbeBody(modelId, "n", call, "result-x")
         assertTrue(body.contains("\"tool_call_id\":\"call_abc\""))
-        assertTrue(body.contains("\"result\":\"result-x\""))
+        assertTrue(body.contains("\\\"result\\\":\\\"result-x\\\""))
         assertTrue(body.contains("\"parallel_tool_calls\":false"))
         assertFalse(body.contains("droide_result_abc"))
     }
