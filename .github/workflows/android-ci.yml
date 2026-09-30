@@ -81,6 +81,17 @@ jobs:
           set -euo pipefail
           ./gradlew --no-daemon --stacktrace clean test lintRelease assembleRelease bundleRelease 2>&1 | tee android-ci-gradle.log
 
+      - name: Upload CI diagnostics
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: droide-ci-diagnostics
+          path: |
+            android-ci-gradle.log
+            android-ci-java-env.log
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Verify release artifacts
         shell: bash
         run: |
