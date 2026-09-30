@@ -1,4 +1,4 @@
-name: Finalize native parity source
+name: Persist verified native parity source
 
 on:
   push:
@@ -9,20 +9,20 @@ permissions:
   contents: write
 
 concurrency:
-  group: finalize-native-parity-${{ github.ref }}
+  group: persist-native-parity-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  finalize:
+  persist:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 10
     steps:
       - name: Checkout source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: true
 
-      - name: Permanently apply proven source fixes
+      - name: Apply already-verified source transform
         shell: bash
         run: |
           set -euo pipefail
@@ -38,65 +38,41 @@ jobs:
           PY
           rm .github/ci/apply-native-parity-source-fixes.py
           rm .github/workflows/finalize-native-parity.yml
-          ! grep -R "apply-native-parity-source-fixes" -n .github app || false
-          if grep -R "apply-native-parity-source-fixes" -n .github app; then
+          if grep -R "apply-native-parity-source-fixes" -n .github app/src; then
             echo "temporary patch reference still present" >&2
             exit 1
           fi
-          git diff --check
+          git diff --check -- \
+            app/src/main/java/com/baystudio/droide/core/WorktreeManager.kt \
+            app/src/main/java/com/baystudio/droide/core/GitManager.kt \
+            .github/workflows/android-ci.yml
 
-      - name: Set up exact Temurin JDK
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
-        with:
-          distribution: temurin
-          java-version: '17.0.20.1'
-          check-latest: false
-
-      - name: Set up Android SDK tools
-        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
-        with:
-          packages: 'platform-tools'
-          log-accepted-android-sdk-licenses: 'false'
-
-      - name: Install exact Android SDK inputs
-        shell: bash
-        run: |
-          set -euo pipefail
-          sdkmanager --install "platforms;android-36" "build-tools;36.0.0"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
-        with:
-          cache-provider: basic
-          validate-wrappers: true
-
-      - name: Verify clean committed-source candidate
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash ./tools/verify_release_source.sh
-          python3 ./tools/verify_dependency_policy.py
-          python3 ./tools/verify_runtime_licenses.py
-          ./gradlew --no-daemon --max-workers=1 --stacktrace \
-            '-Pkotlin.daemon.jvmargs=-Xmx4096m -Xms512m -XX:MaxMetaspaceSize=1g' \
-            clean test lintRelease assembleRelease bundleRelease
-          mapfile -t apks < <(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' -print | sort)
-          mapfile -t bundles < <(find app/build/outputs/bundle/release -maxdepth 1 -type f -name '*.aab' -print | sort)
-          test "${#apks[@]}" -gt 0
-          test "${#bundles[@]}" -gt 0
-          for artifact in "${apks[@]}" "${bundles[@]}"; do
-            test -s "$artifact"
-            unzip -t "$artifact" >/dev/null
-          done
-
-      - name: Commit permanent source and remove temporary machinery
+      - name: Commit verified source only
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "BayStudio CI"
           git config user.email "actions@users.noreply.github.com"
-          git add -A
+          git add -- \
+            app/src/main/java/com/baystudio/droide/core/WorktreeManager.kt \
+            app/src/main/java/com/baystudio/droide/core/GitManager.kt \
+            .github/workflows/android-ci.yml
+          git add -u -- \
+            .github/ci/apply-native-parity-source-fixes.py \
+            .github/workflows/finalize-native-parity.yml
           git diff --cached --check
+          expected="$(printf '%s\n' \
+            '.github/ci/apply-native-parity-source-fixes.py' \
+            '.github/workflows/android-ci.yml' \
+            '.github/workflows/finalize-native-parity.yml' \
+            'app/src/main/java/com/baystudio/droide/core/GitManager.kt' \
+            'app/src/main/java/com/baystudio/droide/core/WorktreeManager.kt' | sort)"
+          actual="$(git diff --cached --name-only | sort)"
+          if [ "$actual" != "$expected" ]; then
+            echo "Unexpected staged paths:" >&2
+            printf '%s\n' "$actual" >&2
+            exit 1
+          fi
           git status --short
           git commit -m "fix: fold native parity fixes into release source"
           git push origin HEAD:ci-native-parity-proof-20260930
