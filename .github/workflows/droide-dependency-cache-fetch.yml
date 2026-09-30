@@ -1,0 +1,61 @@
+name: Droide Dependency Cache Fetch
+
+on:
+  push:
+    branches:
+      - cp-r8-dependency-fetch-20260930
+
+permissions:
+  contents: read
+
+jobs:
+  fetch-dependencies:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Temurin JDK 17
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
+        with:
+          distribution: temurin
+          java-version: '17.0.20.1'
+          check-latest: false
+
+      - name: Resolve Gradle plugins and app dependency graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./gradlew
+          {
+            echo '=== debugCompileClasspath ==='
+            ./gradlew --no-daemon --console=plain :app:dependencies --configuration debugCompileClasspath
+            echo '=== debugRuntimeClasspath ==='
+            ./gradlew --no-daemon --console=plain :app:dependencies --configuration debugRuntimeClasspath
+            echo '=== debugUnitTestCompileClasspath ==='
+            ./gradlew --no-daemon --console=plain :app:dependencies --configuration debugUnitTestCompileClasspath
+          } | tee "$RUNNER_TEMP/dependency-resolution.log"
+
+      - name: Record exact module inventory
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          find "$HOME/.gradle/caches/modules-2/files-2.1" -type f -print0 \
+            | sort -z \
+            | xargs -0 sha256sum > "$RUNNER_TEMP/modules-2-sha256.txt"
+          mkdir -p "$RUNNER_TEMP/gradle-cache"
+          cp -a "$HOME/.gradle/caches/modules-2" "$RUNNER_TEMP/gradle-cache/"
+          tar -C "$RUNNER_TEMP/gradle-cache" -czf "$RUNNER_TEMP/droide-gradle-modules-2.tar.gz" modules-2
+
+      - name: Upload Gradle dependency cache
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: droide-gradle-dependency-cache
+          path: |
+            ${{ runner.temp }}/droide-gradle-modules-2.tar.gz
+            ${{ runner.temp }}/modules-2-sha256.txt
+            ${{ runner.temp }}/dependency-resolution.log
+          if-no-files-found: error
+          retention-days: 1
