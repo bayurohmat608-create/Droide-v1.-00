@@ -418,6 +418,18 @@ class GitManager(
                                 .setStartPoint(plan.remoteRef)
                                 .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
                                 .call()
+                            val remotePath = plan.remoteRef.removePrefix(Constants.R_REMOTES)
+                            val separator = remotePath.indexOf('/')
+                            check(separator > 0 && separator < remotePath.lastIndex) {
+                                "Invalid remote tracking ref: ${plan.remoteRef}"
+                            }
+                            val remoteName = remotePath.substring(0, separator)
+                            val remoteBranch = remotePath.substring(separator + 1)
+                            git.repository.config.apply {
+                                setString("branch", plan.localName, "remote", remoteName)
+                                setString("branch", plan.localName, "merge", Constants.R_HEADS + remoteBranch)
+                                save()
+                            }
                         }
                     }
                 } catch (t: Throwable) {

@@ -15,6 +15,9 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.jgit.transport.RefSpec
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.DiffFormatter
+import org.eclipse.jgit.dircache.DirCacheIterator
+import org.eclipse.jgit.treewalk.FileTreeIterator
+import org.eclipse.jgit.treewalk.filter.PathFilterGroup
 
 
 
@@ -191,7 +194,38 @@ class WorktreeManager(private val workDir: File) {
                     }
                 }
                 format(git.diff().setCached(true).call(), "staged")
-                format(git.diff().call(), "working tree")
+
+                // Working-tree entries may reference file content that does not exist as a Git object yet.
+                // Keep a FileTreeIterator attached to the formatter so JGit reads those bytes from disk
+                // instead of trying to reopen the synthetic working-tree object id from the object database.
+                val workingEntries = git.diff().call()
+                val allowedWorkingEntries = mutableListOf<DiffEntry>()
+                for (entry in workingEntries) {
+                    currentCoroutineContext().ensureActive()
+                    val paths = listOf(entry.oldPath, entry.newPath).filterNot { it == DiffEntry.DEV_NULL }
+                    if (paths.any(SensitivePathPolicy::isSensitive)) {
+                        redacted++
+                    } else if (allowedWorkingEntries.size < 80) {
+                        allowedWorkingEntries += entry
+                    } else {
+                        omittedEntries++
+                    }
+                }
+                if (allowedWorkingEntries.isNotEmpty() && !out.truncated) {
+                    out.write("\n--- working tree ---\n".toByteArray(Charsets.UTF_8))
+                    val allowedPaths = allowedWorkingEntries
+                        .flatMap { listOf(it.oldPath, it.newPath) }
+                        .filterNot { it == DiffEntry.DEV_NULL }
+                        .distinct()
+                    DiffFormatter(out).use { workingFormatter ->
+                        workingFormatter.setRepository(git.repository)
+                        workingFormatter.setPathFilter(PathFilterGroup.createFromStrings(allowedPaths))
+                        workingFormatter.format(
+                            DirCacheIterator(git.repository.readDirCache()),
+                            FileTreeIterator(git.repository),
+                        )
+                    }
+                }
             }
             buildString {
                 append(statusText)
@@ -387,9 +421,12 @@ class WorktreeManager(private val workDir: File) {
                     val parent = openGit(workDir) ?: error("Cannot verify parent Git repository")
                     parent.use { parentGit ->
                         val parentHead = parentGit.repository.resolve(Constants.HEAD) ?: error("Cannot resolve parent HEAD")
-                        val integrated = RevWalk(parentGit.repository).use { walk ->
-                            val imported = parentGit.repository.resolve(childHead.name)
-                            imported != null && walk.isMergedInto(walk.parseCommit(imported), walk.parseCommit(parentHead))
+                        val integrated = if (!parentGit.repository.objectDatabase.has(childHead)) {
+                            false
+                        } else {
+                            RevWalk(parentGit.repository).use { walk ->
+                                walk.isMergedInto(walk.parseCommit(childHead), walk.parseCommit(parentHead))
+                            }
                         }
                         require(integrated) { "Workspace $safe contains commits not merged into the parent branch; review and merge before removal." }
                     }
