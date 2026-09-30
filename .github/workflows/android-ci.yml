@@ -22,6 +22,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Apply native parity source fixes
+        run: python3 .github/ci/apply-native-parity-source-fixes.py
+
       - name: Set up exact Temurin JDK
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
         with:
