@@ -46,10 +46,10 @@ class PathSecurityTest {
         val outside = Files.createTempDirectory("droide-delete-outside-")
         try {
             val marker = outside.resolve("KEEP.txt")
-            Files.writeString(marker, "keep")
+            Files.write(marker, "keep".toByteArray(Charsets.UTF_8))
             val tree = root.toPath().resolve("tree")
             Files.createDirectories(tree.resolve("ordinary"))
-            Files.writeString(tree.resolve("ordinary/x.txt"), "x")
+            Files.write(tree.resolve("ordinary/x.txt"), "x".toByteArray(Charsets.UTF_8))
             try {
                 Files.createSymbolicLink(tree.resolve("escape"), outside)
             } catch (_: UnsupportedOperationException) {
@@ -60,7 +60,7 @@ class PathSecurityTest {
 
             assertTrue(PathSecurity.deleteTreeNoFollow(tree.toFile()))
             assertFalse(Files.exists(tree, java.nio.file.LinkOption.NOFOLLOW_LINKS))
-            assertEquals("keep", Files.readString(marker))
+            assertEquals("keep", String(Files.readAllBytes(marker), Charsets.UTF_8))
         } finally {
             PathSecurity.deleteTreeNoFollow(outside.toFile())
         }
@@ -70,7 +70,7 @@ class PathSecurityTest {
         val outside = Files.createTempDirectory("droide-delete-top-outside-")
         try {
             val marker = outside.resolve("KEEP.txt")
-            Files.writeString(marker, "keep")
+            Files.write(marker, "keep".toByteArray(Charsets.UTF_8))
             val link = root.toPath().resolve("top-link")
             try {
                 Files.createSymbolicLink(link, outside)
@@ -82,10 +82,9 @@ class PathSecurityTest {
 
             assertTrue(PathSecurity.deleteTreeNoFollow(link.toFile()))
             assertFalse(Files.exists(link, java.nio.file.LinkOption.NOFOLLOW_LINKS))
-            assertEquals("keep", Files.readString(marker))
+            assertEquals("keep", String(Files.readAllBytes(marker), Charsets.UTF_8))
         } finally {
             PathSecurity.deleteTreeNoFollow(outside.toFile())
         }
     }
-
 }
