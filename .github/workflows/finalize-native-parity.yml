@@ -22,32 +22,17 @@ jobs:
         with:
           persist-credentials: true
 
-      - name: Apply already-verified source transform
+      - name: Apply already-verified Kotlin source transform
         shell: bash
         run: |
           set -euo pipefail
           python3 .github/ci/apply-native-parity-source-fixes.py
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('.github/workflows/android-ci.yml')
-          text = p.read_text()
-          block = '''      - name: Apply native parity source fixes\n        run: python3 .github/ci/apply-native-parity-source-fixes.py\n\n'''
-          if text.count(block) != 1:
-              raise SystemExit('expected exactly one temporary patch step')
-          p.write_text(text.replace(block, '', 1))
-          PY
           rm .github/ci/apply-native-parity-source-fixes.py
-          rm .github/workflows/finalize-native-parity.yml
-          if grep -R "apply-native-parity-source-fixes" -n .github app/src; then
-            echo "temporary patch reference still present" >&2
-            exit 1
-          fi
           git diff --check -- \
             app/src/main/java/com/baystudio/droide/core/WorktreeManager.kt \
-            app/src/main/java/com/baystudio/droide/core/GitManager.kt \
-            .github/workflows/android-ci.yml
+            app/src/main/java/com/baystudio/droide/core/GitManager.kt
 
-      - name: Commit verified source only
+      - name: Commit verified Kotlin source only
         shell: bash
         run: |
           set -euo pipefail
@@ -55,16 +40,11 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add -- \
             app/src/main/java/com/baystudio/droide/core/WorktreeManager.kt \
-            app/src/main/java/com/baystudio/droide/core/GitManager.kt \
-            .github/workflows/android-ci.yml
-          git add -u -- \
-            .github/ci/apply-native-parity-source-fixes.py \
-            .github/workflows/finalize-native-parity.yml
+            app/src/main/java/com/baystudio/droide/core/GitManager.kt
+          git add -u -- .github/ci/apply-native-parity-source-fixes.py
           git diff --cached --check
           expected="$(printf '%s\n' \
             '.github/ci/apply-native-parity-source-fixes.py' \
-            '.github/workflows/android-ci.yml' \
-            '.github/workflows/finalize-native-parity.yml' \
             'app/src/main/java/com/baystudio/droide/core/GitManager.kt' \
             'app/src/main/java/com/baystudio/droide/core/WorktreeManager.kt' | sort)"
           actual="$(git diff --cached --name-only | sort)"
