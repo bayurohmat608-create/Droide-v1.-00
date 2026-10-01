@@ -13,6 +13,11 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 
+
+
+
+
+
 object FoundryUbuntuGuestEnvironmentSpec {
     const val ID = "ubuntu-base-24.04.5-arm64"
     const val VERSION = "Ubuntu 24.04"
@@ -27,6 +32,9 @@ object FoundryUbuntuGuestEnvironmentSpec {
     const val LAYER_METADATA_PACKAGES = "droide.runtime.packages"
     const val LAYER_KIND = "ubuntu-apt-layer"
 
+    
+
+
 
     val baselinePackages = listOf(
         "ca-certificates",
@@ -35,6 +43,7 @@ object FoundryUbuntuGuestEnvironmentSpec {
      
     val canonicalBasePackages = FoundryUbuntuBaseManifest.packages
 
+    
 
     val legacyBroadRootPackages = listOf(
         "ca-certificates", "binutils", "curl", "git", "gnupg2", "libc6-dev",
@@ -44,6 +53,7 @@ object FoundryUbuntuGuestEnvironmentSpec {
         "libicu74", "libssl3", "libssl3t64", "libunwind8", "libkrb5-3",
     )
 
+    
 
     const val MAX_LAYER_PACKAGES = 48
     const val LAYER_TRANSACTION_OVERHEAD_BYTES = 64L * 1024L * 1024L
@@ -94,6 +104,10 @@ class AlpineReviewedGuestEnvironment(
 private object FoundryUbuntuGuestMutationGate {
     val mutex = Mutex()
 }
+
+
+
+
 
 
 class FoundryUbuntuGuestEnvironmentManager(
@@ -488,6 +502,8 @@ class FoundryUbuntuGuestEnvironmentManager(
                 protectedPackageSets.forEach { addAll(FoundryUbuntuGuestEnvironmentSpec.normalizeLayerPackages(it)) }
             }
             val removable = normalized.filterNot { it in protected }
+            
+
 
 
             if (removable.isNotEmpty() && !legacyBroadBasePreserved) {
@@ -778,7 +794,6 @@ SELF="${'$'}0"
 BASE="${'$'}{SELF%/*}"
 ROOTFS="${'$'}BASE/rootfs"
 DROIDE_ROOT="${LocalExecutionSubstrate.localRoot()}"
-mkdir -p "${'$'}ROOTFS/opt/droide/packages" "${'$'}ROOTFS/opt/droide/bin" "${'$'}DROIDE_ROOT/packages" "${'$'}DROIDE_ROOT/managed/ubuntu-bin"
 WORK="${'$'}{PWD:-${LocalExecutionSubstrate.localRoot()}}"
 case "${'$'}WORK" in
   "${LocalExecutionSubstrate.localRoot()}"|"${LocalExecutionSubstrate.localRoot()}"/*) ;;
@@ -790,11 +805,10 @@ PROOT_LOADER_32=${q(PackagedLinuxEngine.loaderEnvironment(appContext).getValue("
 PROOT_TMP_DIR=${q(File(root, "runtime-tmp").apply { mkdirs() }.absolutePath)}
 export PROOT_NO_SECCOMP PROOT_LOADER PROOT_LOADER_32 PROOT_TMP_DIR
 exec /system/bin/linker64 ${q(PackagedLinuxEngine.requireReady(appContext).absolutePath)} -0 -r "${'$'}ROOTFS" \
-  -b /dev -b /proc -b /sys -b "${'$'}DROIDE_ROOT:${'$'}DROIDE_ROOT" \
-  -b "${'$'}DROIDE_ROOT/packages:/opt/droide/packages" -b "${'$'}DROIDE_ROOT/managed/ubuntu-bin:/opt/droide/bin" -w "${'$'}WORK" \
+  -b /dev -b /proc -b /sys -b "${'$'}DROIDE_ROOT:${'$'}DROIDE_ROOT" -w "${'$'}WORK" \
   /usr/bin/env -i HOME=/root USER=root LOGNAME=root \
   DROIDE_PROCESS_LEASE="${'$'}{DROIDE_PROCESS_LEASE:-}" \
-  PATH=/opt/droide/bin:/root/.local/bin:/root/.cargo/bin:/root/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+  PATH=/root/.local/bin:/root/.cargo/bin:/root/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
   TERM="${'$'}{TERM:-xterm-256color}" LANG=C.UTF-8 LC_ALL=C.UTF-8 DEBIAN_FRONTEND=noninteractive "${'$'}@"
 """
 

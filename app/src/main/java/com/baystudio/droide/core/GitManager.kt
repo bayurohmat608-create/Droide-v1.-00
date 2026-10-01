@@ -573,6 +573,8 @@ class GitManager(
     // Pull and push must therefore re-validate both fetch and push URLs.
 
 
+
+
     private fun requireConfiguredRemotesAllowed(repository: Repository) {
         val config = repository.config
         val remotes = config.getSubsections("remote")
@@ -614,13 +616,17 @@ class GitManager(
         }
     }
 
+    
+
+
+
 
     private fun ensureRuntimeExclude() {
         val gd = gitDir()
         if (!gd.isDirectory) return
         val f = PathSecurity.resolveWithin(workDir, ".git/info/exclude")
         val wanted = listOf(
-            
+            // User-owned files must remain visible to Git status; sensitive-path protection is enforced explicitly at read/stage/commit time.
 
             ".droide/sessions/",
             ".droide/backups/",
@@ -678,6 +684,7 @@ class GitManager(
         require(safe.isNotBlank() && safe.length <= 500 && '\u0000' !in safe) { "Invalid commit message" }
         return safe
     }
+
 
 
     private fun atomicWrite(target: File, text: String) {

@@ -6,6 +6,7 @@ enum class AgentRequesterKind { PRIMARY, SUBAGENT }
 // Subagent values are created by SubagentManager, never from model text.
 
 
+
 data class AgentExecutionIdentity(
     val kind: AgentRequesterKind = AgentRequesterKind.PRIMARY,
     val agentType: String = "primary",

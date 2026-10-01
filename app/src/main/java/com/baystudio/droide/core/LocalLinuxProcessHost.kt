@@ -5,19 +5,14 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.*
 
  
-class LocalLinuxProcessHost(
-    private val root: File,
-    private val scope: CoroutineScope,
-    private val workingDirectory: File = root,
-    private val toolchainWorkspaceRoot: File = root,
-) : StdioProcessHost {
+class LocalLinuxProcessHost(private val root: File, private val scope: CoroutineScope) : StdioProcessHost {
     override val executionScope = ProcessExecutionScope.LOCAL_LINUX_ARM64
     override suspend fun pathMapper() = WorkspacePathMapper(root, root.canonicalPath)
     override suspend fun resolveExecutable(command: String): String? {
         ProcessSecurityPolicy.requireExecutableName(command)
-        val spec = LocalExecutionSubstrate.linuxLaunchSpec(workingDirectory, workspaceRoot = root, toolchainWorkspaceRoot = toolchainWorkspaceRoot)
+        val spec = LocalExecutionSubstrate.linuxLaunchSpec(root)
         val result = LocalProcessSupervisor.capture(
-            spec.shellCommand("command -v ${LocalExecutionSubstrate.shellQuote(command)}"), workingDirectory, spec.environment,
+            spec.shellCommand("command -v ${LocalExecutionSubstrate.shellQuote(command)}"), root, spec.environment,
             maxOutputBytes = 8192, timeoutMs = 10_000,
         )
         return result.output.trim().takeIf {
@@ -27,7 +22,7 @@ class LocalLinuxProcessHost(
     override suspend fun startInWorkspace(argv: List<String>, environment: Map<String, String>, remoteCwd: String): HostedStdioProcess {
         val cwd = File(remoteCwd).canonicalFile
         require(cwd.toPath().startsWith(root.canonicalFile.toPath()) && cwd.isDirectory) { "Process cwd escaped workspace" }
-        return LocalLinuxProcessHost(root, scope, cwd, toolchainWorkspaceRoot).start(argv, environment, null)
+        return LocalLinuxProcessHost(cwd, scope).start(argv, environment, null)
     }
     override suspend fun start(argv: List<String>, environment: Map<String, String>, resourceLimits: ProcessResourceLimits?): HostedStdioProcess = withContext(Dispatchers.IO) {
         scope.ensureActive()
@@ -35,7 +30,7 @@ class LocalLinuxProcessHost(
         require(argv.first().startsWith('/') || Regex("[A-Za-z0-9_][A-Za-z0-9._+-]{0,127}").matches(argv.first())) {
             "Executable must be an absolute guest path or a bare command name"
         }
-        val spec = LocalExecutionSubstrate.linuxLaunchSpec(workingDirectory, workspaceRoot = root, toolchainWorkspaceRoot = toolchainWorkspaceRoot)
+        val spec = LocalExecutionSubstrate.linuxLaunchSpec(root)
         val lease = RemoteProcessLease.createLocal("stdio")
         val payload = if (resourceLimits == null) argv else {
             val l = resourceLimits
@@ -45,7 +40,7 @@ class LocalLinuxProcessHost(
         }
         val command = spec.prefix + (environment + lease.environment).map { (k, v) -> "$k=$v" } + payload
         val process = ProcessBuilder("/system/bin/sh", "-c", lease.wrap(command.joinToString(" ", transform = LocalExecutionSubstrate::shellQuote)))
-            .directory(workingDirectory).apply { environment().putAll(spec.environment) }.start()
+            .directory(root).apply { environment().putAll(spec.environment) }.start()
         LocalHostedProcess(process, lease, scope)
     }
 }

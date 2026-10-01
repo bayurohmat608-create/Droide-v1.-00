@@ -8,17 +8,10 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 @Serializable
 data class AndroidToolchainCatalogDocument(
-    val schema: Int = 2,
+    val schema: Int = 1,
     val revision: String,
     val entries: List<AndroidToolchainCatalogEntry>,
 )
-
-@Serializable
-enum class AndroidToolchainArtifactHost {
-    ANDROID_ARM64,
-    LINUX_ARM64,
-    LINUX_X86_64,
-}
 
 @Serializable
 data class AndroidToolchainCatalogEntry(
@@ -36,7 +29,6 @@ data class AndroidToolchainCatalogEntry(
     val provenance: String,
     val provenanceUrl: String,
     val executionMode: AndroidToolchainExecutionMode = AndroidToolchainExecutionMode.ANDROID_NATIVE,
-    val artifactHost: AndroidToolchainArtifactHost = AndroidToolchainArtifactHost.ANDROID_ARM64,
     val supportedCompileSdks: List<Int> = emptyList(),
     val buildToolsVersions: List<String> = emptyList(),
     val ndkVersions: List<String> = emptyList(),
@@ -64,7 +56,6 @@ data class AndroidToolchainCatalogEntry(
         if (executionMode != AndroidToolchainExecutionMode.ANDROID_NATIVE) {
             require(abi == "arm64-v8a") { "Linux compatibility toolchains require an arm64-v8a device" }
         }
-        AndroidToolchainArtifactAdmission.validate(executionMode, artifactHost, abi)
         validateHttpsUrl(downloadUrl, "download URL")
         validateHttpsUrl(provenanceUrl, "provenance URL")
     }
@@ -102,50 +93,9 @@ data class AndroidToolchainCatalogEntry(
     }
 }
 
-object AndroidToolchainArtifactAdmission {
-    fun validate(
-        executionMode: AndroidToolchainExecutionMode,
-        artifactHost: AndroidToolchainArtifactHost,
-        deviceAbi: String,
-    ) {
-        when (executionMode) {
-            AndroidToolchainExecutionMode.ANDROID_NATIVE -> {
-                require(artifactHost == AndroidToolchainArtifactHost.ANDROID_ARM64) {
-                    "Android-native toolchain artifact must target Android ARM64"
-                }
-                require(deviceAbi == "arm64-v8a") {
-                    "Android-native managed toolchains are currently admitted only on arm64-v8a"
-                }
-            }
-            AndroidToolchainExecutionMode.LINUX_ARM64_PROOT -> {
-                require(artifactHost == AndroidToolchainArtifactHost.LINUX_ARM64) {
-                    "Linux ARM64 PRoot toolchain artifact must target Linux ARM64"
-                }
-                require(deviceAbi == "arm64-v8a") {
-                    "Linux ARM64 PRoot toolchains require an arm64-v8a device"
-                }
-            }
-            AndroidToolchainExecutionMode.LINUX_X86_64_PROOT_QEMU -> {
-                require(artifactHost == AndroidToolchainArtifactHost.LINUX_X86_64) {
-                    "x86_64/QEMU toolchain artifact must target Linux x86_64"
-                }
-                require(deviceAbi == "arm64-v8a") {
-                    "Linux x86_64/QEMU toolchains require an arm64-v8a device"
-                }
-            }
-        }
-    }
-
-    fun description(artifactHost: AndroidToolchainArtifactHost): String = when (artifactHost) {
-        AndroidToolchainArtifactHost.ANDROID_ARM64 -> "Android/ARM64"
-        AndroidToolchainArtifactHost.LINUX_ARM64 -> "Linux/ARM64"
-        AndroidToolchainArtifactHost.LINUX_X86_64 -> "Linux/x86_64 via QEMU"
-    }
-}
-
 object AndroidToolchainCatalog {
     private const val ASSET_NAME = "android-toolchain-catalog.json"
-    const val PINNED_ASSET_SHA256 = "8de4e22fe1a58b5a6a01f74ef849d31683d63def5ab9a348c683c9a79da16568"
+    const val PINNED_ASSET_SHA256 = "901f5bc33a6213aee534418caad98c48297f819dadc8fee85100dc92721d50d3"
     private val json = Json { ignoreUnknownKeys = false }
 
     fun load(context: Context): AndroidToolchainCatalogDocument {
@@ -158,7 +108,7 @@ object AndroidToolchainCatalog {
     }
 
     fun validate(document: AndroidToolchainCatalogDocument) {
-        require(document.schema == 2) { "Unsupported toolchain catalog schema ${document.schema}" }
+        require(document.schema == 1) { "Unsupported toolchain catalog schema ${document.schema}" }
         require(document.revision.matches(Regex("[A-Za-z0-9._+-]{1,100}"))) { "Invalid catalog revision" }
         require(document.entries.size <= 128) { "Toolchain catalog is unexpectedly large" }
         document.entries.forEach(AndroidToolchainCatalogEntry::validate)
@@ -180,24 +130,22 @@ object AndroidToolchainCatalog {
         document: AndroidToolchainCatalogDocument,
         requirements: AndroidToolchainRequirements,
         supportedAbis: List<String>,
-    ): AndroidToolchainCatalogEntry? {
-        val rankedWithinRuntime = document.entries
-            .asSequence()
-            .filter { it.abi in supportedAbis }
-            .filter { it.supports(requirements) }
-            .sortedWith(
-                compareBy<AndroidToolchainCatalogEntry> {
-                    supportedAbis.indexOf(it.abi).takeIf { index -> index >= 0 } ?: Int.MAX_VALUE
-                }
-                    .thenBy { compileDistance(it, requirements.effectiveCompileSdks.maxOrNull()) }
-                    .thenByDescending { it.javaVersion }
-            )
-            .toList()
-        return AndroidToolchainFallbackPolicy.select(
-            candidates = rankedWithinRuntime,
-            mode = AndroidToolchainCatalogEntry::executionMode,
-            supported = { true },
+    ): AndroidToolchainCatalogEntry? = document.entries
+        .asSequence()
+        .filter { it.abi in supportedAbis }
+        .filter { it.supports(requirements) }
+        .sortedWith(
+            compareBy<AndroidToolchainCatalogEntry> { runtimePriority(it.executionMode) }
+                .thenBy { supportedAbis.indexOf(it.abi).takeIf { index -> index >= 0 } ?: Int.MAX_VALUE }
+                .thenBy { compileDistance(it, requirements.effectiveCompileSdks.maxOrNull()) }
+                .thenByDescending { it.javaVersion }
         )
+        .firstOrNull()
+
+    private fun runtimePriority(mode: AndroidToolchainExecutionMode): Int = when (mode) {
+        AndroidToolchainExecutionMode.ANDROID_NATIVE -> 0
+        AndroidToolchainExecutionMode.LINUX_ARM64_PROOT -> 1
+        AndroidToolchainExecutionMode.LINUX_X86_64_PROOT_QEMU -> 2
     }
 
     private fun compileDistance(entry: AndroidToolchainCatalogEntry, required: Int?): Int {

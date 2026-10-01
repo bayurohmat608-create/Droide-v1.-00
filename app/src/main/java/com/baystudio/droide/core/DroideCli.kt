@@ -33,32 +33,6 @@ object DroideCli {
         }
     }
 
-    fun parse(cmdline: String): List<String> {
-        require(cmdline.length <= 16_384 && cmdline.none { it == '\u0000' || it == '\n' || it == '\r' }) { "Invalid CLI command" }
-        val words = mutableListOf<String>()
-        val word = StringBuilder()
-        var quote: Char? = null
-        var escaped = false
-        var started = false
-        fun finishWord() {
-            if (!started) return
-            require(words.size < 128 && word.length <= 4_096) { "CLI argument limit exceeded" }
-            words += word.toString()
-            word.setLength(0)
-            started = false
-        }
-        for (character in cmdline) {
-            when {
-                escaped -> { word.append(character); escaped = false; started = true }
-                character == '\\' && quote != '\'' -> { escaped = true; started = true }
-                quote != null -> if (character == quote) quote = null else word.append(character)
-                character == '\'' || character == '"' -> { quote = character; started = true }
-                character.isWhitespace() -> finishWord()
-                else -> { word.append(character); started = true }
-            }
-        }
-        require(!escaped && quote == null) { "Unclosed CLI quote or escape" }
-        finishWord()
-        return if (words.firstOrNull() == "droide") words.drop(1) else words
-    }
+    fun parse(cmdline: String): List<String> =
+        cmdline.trim().removePrefix("droide").trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
 }

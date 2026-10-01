@@ -83,6 +83,10 @@ class TerminalManager(
         return tab
     }
 
+    
+
+
+
 
     suspend fun createLocalOnMain(
         title: String = "Local",
@@ -112,6 +116,8 @@ class TerminalManager(
         if (activate) _active.value = id
         return tab
     }
+
+    
 
 
     suspend fun localExecutionSession(createIfMissing: Boolean = true): ITerminalSession? {
@@ -161,6 +167,9 @@ class TerminalManager(
         return if (createIfMissing) createDeviceWorkstation(title = "Workstation", activate = false).session else null
     }
 
+    
+
+
 
     suspend fun automatedExecutionSession(createIfMissing: Boolean = true): ITerminalSession? =
         linuxExecutionSession(createIfMissing)
@@ -193,6 +202,11 @@ class TerminalManager(
         val local = _tabs.value.firstOrNull { it.profile == Profile.LOCAL }?.session
         return if (preferWorkstation) workstation ?: local else local ?: workstation
     }
+
+
+    
+
+
 
 
     suspend fun revivePersistedLocalSessions(): Int {
@@ -241,6 +255,9 @@ class TerminalManager(
                 ?.let { persistentLocalHost?.markActive(projectKey, defaultDir, it.id) }
         }
     }
+
+    
+
 
 
     @Synchronized

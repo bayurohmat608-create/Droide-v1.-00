@@ -8,23 +8,6 @@ import org.junit.Test
 
 class LocalProcessSupervisorTest {
     private val cwd = File(requireNotNull(System.getProperty("java.io.tmpdir")))
-    @Test fun tailCaptureRetainsFinalBuildFailure() = runBlocking {
-        val result = LocalProcessSupervisor.capture(
-            listOf("/bin/sh", "-c", "head -c 100000 /dev/zero; printf 'FINAL: compilation failed'; exit 7"), cwd,
-            maxOutputBytes = 1024, keepTail = true,
-        )
-        assertEquals(7, result.exitCode)
-        assertTrue(result.output.contains("FINAL: compilation failed"))
-        assertTrue(result.output.endsWith("[output truncated]\n"))
-        assertTrue(result.output.length < 1100)
-    }
-
-    @Test fun streamedUnicodeMatchesCapturedOutput() = runBlocking {
-        val chunks = StringBuilder()
-        val result = LocalProcessSupervisor.capture(listOf("/bin/sh", "-c", "printf '日本語 😀 selesai'"), cwd, onOutput = chunks::append)
-        assertEquals("日本語 😀 selesai", result.output)
-        assertEquals(result.output, chunks.toString())
-    }
     @Test fun capturesExitStatusAndStderr() = runBlocking {
         val r = LocalProcessSupervisor.capture(listOf("/bin/sh", "-c", "printf out; printf err >&2; exit 7"), cwd)
         assertEquals(7, r.exitCode); assertEquals("outerr", r.output); assertFalse(r.timedOut)

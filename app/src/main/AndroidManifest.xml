@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.RUN_USER_INITIATED_JOBS" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" android:usesPermissionFlags="neverForLocation" />
 
     <application
@@ -16,31 +10,6 @@
         android:usesCleartextTraffic="false"
         android:label="Droide"
         android:theme="@android:style/Theme.Material.NoActionBar">
-        <service
-            android:name=".core.DevelopmentForegroundService"
-            android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="User-started interactive developer operations such as builds, tests, debugging, and virtual machine sessions that must continue while the Droide UI is briefly not visible." />
-        </service>
-
-        <service
-            android:name=".core.UserInitiatedArtifactTransferJobService"
-            android:enabled="@bool/user_initiated_transfer_jobs_enabled"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            android:exported="false"
-            tools:targetApi="34" />
-
-        <service
-            android:name=".core.PackageTransferForegroundService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
-
-        <receiver
-            android:name=".core.ArtifactTransferCancelReceiver"
-            android:exported="false" />
-
         <activity
             android:name=".GitHubOAuthCallbackActivity"
             android:exported="true"

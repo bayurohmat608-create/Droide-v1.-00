@@ -6,6 +6,11 @@ data class PermRule(val action: String, val resource: String, val effect: PermEf
 // Unified agent permission engine.
 
 
+
+
+
+
+
 class PermissionEngine(
     base: List<PermRule> = defaults(),
     policy: PermissionPolicyDocument = PermissionPolicyDocument.EMPTY,
@@ -21,6 +26,10 @@ class PermissionEngine(
     private val lock = Any()
 
     // Resolve one permission request for a concrete agent scope.
+
+
+
+
 
 
     fun decide(action: String, resource: String, agent: String = "build"): PermEffect = synchronized(lock) {
@@ -59,6 +68,7 @@ class PermissionEngine(
     }
 
     // Explicit pattern grant for trusted/internal callers.
+
 
 
     fun allowForSession(action: String, resourcePattern: String, agent: String = "*") = synchronized(lock) {
@@ -183,6 +193,8 @@ class PermissionEngine(
 
             PermRule("glob", "*", PermEffect.ALLOW),
             PermRule("grep", "*", PermEffect.ALLOW),
+
+            
 
 
             PermRule("shell", "pwd", PermEffect.ALLOW),

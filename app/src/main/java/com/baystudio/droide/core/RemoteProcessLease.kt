@@ -3,6 +3,13 @@ package com.baystudio.droide.core
 import java.util.UUID
 
 
+
+
+
+
+
+
+
 internal data class RemoteProcessLease private constructor(
     val pidFile: String,
     private val token: String,
@@ -28,38 +35,6 @@ internal data class RemoteProcessLease private constructor(
     }
 
     val environment: Map<String, String> get() = mapOf("DROIDE_PROCESS_LEASE" to token)
-
-    
-    fun recordLocalPid(pid: Int) {
-        require(local) { "Only local process leases can register Android-host pids" }
-        require(pid > 0) { "Invalid local process pid" }
-        LocalExecutionSubstrate.requireSafeLocalPath(pidFile)
-        val target = java.io.File(pidFile)
-        val parent = target.parentFile ?: error("Local process lease has no parent")
-        parent.mkdirs()
-        check(parent.isDirectory && !PathSecurity.isSymbolicLink(parent)) { "Local process lease directory is unsafe" }
-        check(!PathSecurity.isSymbolicLink(target)) { "Local process lease path is unsafe" }
-        val temp = java.io.File(parent, ".${target.name}.${java.util.UUID.randomUUID().toString().take(8)}.tmp")
-        check(!PathSecurity.isSymbolicLink(temp)) { "Local process lease temp path is unsafe" }
-        try {
-            java.io.FileOutputStream(temp).use { output ->
-                output.write("$pid:$token\n".toByteArray(Charsets.UTF_8))
-                output.flush()
-                output.fd.sync()
-            }
-            try {
-                java.nio.file.Files.move(
-                    temp.toPath(), target.toPath(),
-                    java.nio.file.StandardCopyOption.ATOMIC_MOVE,
-                    java.nio.file.StandardCopyOption.REPLACE_EXISTING,
-                )
-            } catch (_: Exception) {
-                java.nio.file.Files.move(temp.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
-            }
-        } finally {
-            if (temp.exists()) temp.delete()
-        }
-    }
 
     fun cleanupCommand(): String = "rm -f ${DeviceBridgeManager.shellQuote(pidFile)}"
 
@@ -105,21 +80,10 @@ internal data class RemoteProcessLease private constructor(
         fun reapAllCommand(): String {
             val runDir = "${DeviceBridgeManager.remoteRoot()}/run"
             DeviceBridgeManager.requireSafeRemotePath(runDir)
-            return reapAllInDirectory(runDir)
-        }
-
-        fun reapAllLocalCommand(): String {
-            val runDir = "${LocalExecutionSubstrate.localRoot()}/run"
-            LocalExecutionSubstrate.requireSafeLocalPath(runDir)
-            return reapAllInDirectory(runDir)
-        }
-
-        private fun reapAllInDirectory(runDir: String): String {
             val qDir = DeviceBridgeManager.shellQuote(runDir)
-            val loop = buildString {
+            return buildString {
                 append("set +e; dir=").append(qDir).append("; [ -d \"${'$'}dir\" ] || exit 0; ")
-                append("for f in \"${'$'}dir\"/*.pid; do [ -e \"${'$'}f\" ] || [ -L \"${'$'}f\" ] || continue; ")
-                append("[ -L \"${'$'}f\" ] && { rm -f \"${'$'}f\"; continue; }; [ -f \"${'$'}f\" ] || continue; ")
+                append("for f in \"${'$'}dir\"/*.pid; do [ -f \"${'$'}f\" ] || continue; ")
                 append("line=${'$'}(cat \"${'$'}f\" 2>/dev/null); pid=${'$'}{line%%:*}; tok=${'$'}{line#*:}; ")
                 append("valid=1; case \"${'$'}pid\" in ''|*[!0-9]*) valid=0;; esac; ")
                 append("case \"${'$'}tok\" in ''|*[!0-9a-f]*) valid=0;; esac; ")
@@ -128,9 +92,10 @@ internal data class RemoteProcessLease private constructor(
                 append("if owned_process \"${'$'}pid\" \"${'$'}tok\"; then ")
                 append(killGroupShell("${'$'}pid"))
                 append("fi; kill_token_processes \"${'$'}tok\"; fi; rm -f \"${'$'}f\"; done")
+            }.let { loop ->
+                "owned_process() { " + ownedProcessShell("${'$'}1", "${'$'}2") + "; }; " +
+                    "kill_token_processes() { " + killTokenProcessesShell("${'$'}1") + "; }; " + loop
             }
-            return "owned_process() { " + ownedProcessShell("${'$'}1", "${'$'}2") + "; }; " +
-                "kill_token_processes() { " + killTokenProcessesShell("${'$'}1") + "; }; " + loop
         }
 
         private fun terminateOneCommand(pidFile: String, token: String): String {
@@ -138,8 +103,7 @@ internal data class RemoteProcessLease private constructor(
             val qToken = DeviceBridgeManager.shellQuote(token)
             return buildString {
                 append("set +e; f=").append(qFile).append("; expected=").append(qToken).append("; ")
-                append("pid=''; got=''; [ -L \"${'$'}f\" ] && { rm -f \"${'$'}f\"; exit 0; }; ")
-                append("if [ -r \"${'$'}f\" ]; then line=${'$'}(cat \"${'$'}f\" 2>/dev/null); ")
+                append("pid=''; got=''; if [ -r \"${'$'}f\" ]; then line=${'$'}(cat \"${'$'}f\" 2>/dev/null); ")
                 append("pid=${'$'}{line%%:*}; got=${'$'}{line#*:}; ")
                 append("case \"${'$'}pid\" in ''|*[!0-9]*) pid='';; esac; fi; ")
                 append("if [ -n \"${'$'}pid\" ] && [ \"${'$'}got\" = \"${'$'}expected\" ] && ")
@@ -150,6 +114,11 @@ internal data class RemoteProcessLease private constructor(
                 append("rm -f \"${'$'}f\"")
             }
         }
+
+        // It never matches by command name and never targets processes without the inherited token, so unrelated shell/app processes remain out of scope.
+
+
+
 
 
         private fun killTokenProcessesShell(token: String): String = buildString {

@@ -23,6 +23,9 @@ data class AgentConfig(
 )
 
 
+
+
+
 class AgentService(
     private val files: FileRepository,
     private val terminal: ITerminalSession,
@@ -158,6 +161,8 @@ class AgentService(
         message
     }
     suspend fun undoLast(): String = editHistory.undo()
+    
+
 
 
     fun submitAsync(
@@ -217,7 +222,7 @@ class AgentService(
         
 
         val runLease = admissionLease ?: promptCoordinator.reserveDirectRun()
-        // Recheck state around cancellation-sensitive boundaries.
+        // A session switch/new run invalidates older coroutines so late cancellation/finally blocks cannot write into the newly selected chat.
 
         val generation = runGeneration.incrementAndGet()
         val creatingSession = currentSessionId == null
@@ -252,6 +257,7 @@ class AgentService(
             startedAtMs = System.currentTimeMillis(),
         )
         _busy.value = true
+        
 
 
         val unresolvedApiToolCalls = linkedMapOf<String, String>()
@@ -311,7 +317,7 @@ class AgentService(
                 }
                 turn += 1
                 modelStepsInSegment += 1
-                
+                // Re-check at every provider-turn boundary so disconnect/catalog-route changes and queued config promotion cannot reuse a stale provider/model proof.
 
                 ProviderRuntimeGuard.requireCertifiedSelection(activeConfig.providerId, activeConfig.baseUrl, activeConfig.model)
                 val finalStep = modelStepsInSegment == maxTurns || !ModelCapabilityRegistry.allowsToolUse(activeConfig.providerId, activeConfig.model)
@@ -488,6 +494,7 @@ class AgentService(
                         
                     }
                 }
+                
 
 
                 val usageBefore = tokens.usage.value
@@ -695,7 +702,7 @@ class AgentService(
                                 }.also { ensureRunCurrent(generation, runSessionId) }
                             }
                         }
-                        val evidence = AgentToolResultSemantics.classify(fname, result, AgentToolResultSemantics.operationFor(fname, fargs))
+                        val evidence = AgentToolResultSemantics.classify(fname, result, fargs["action"]?.jsonPrimitive?.contentOrNull)
                         val evidencedResult = evidence.annotate(fname, result)
                         updateStreamPart(call.partId) {
                             it.copy(state = if (evidence.isFailure) AgentStreamPartState.ERROR else AgentStreamPartState.COMPLETED,
@@ -709,7 +716,7 @@ class AgentService(
                         throw toolCancelled
                     } catch (toolError: Throwable) {
                         val message = "ERROR (${toolError::class.java.simpleName}): ${toolError.message ?: "Tool failed"}".take(12_000)
-                        val evidence = AgentToolResultSemantics.classify(fname, message, AgentToolResultSemantics.operationFor(fname, fargs))
+                        val evidence = AgentToolResultSemantics.classify(fname, message, fargs["action"]?.jsonPrimitive?.contentOrNull)
                         val evidencedMessage = evidence.annotate(fname, message)
                         updateStreamPart(call.partId) {
                             it.copy(state = AgentStreamPartState.ERROR, output = evidencedMessage, detail = evidence.uiDetail, endedAtMs = System.currentTimeMillis())
@@ -886,6 +893,9 @@ class AgentService(
             return false
         }
     }
+    
+
+
 
 
     internal fun boundedApiHistory(

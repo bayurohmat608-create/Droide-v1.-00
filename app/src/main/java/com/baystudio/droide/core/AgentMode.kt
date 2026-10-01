@@ -3,6 +3,12 @@ package com.baystudio.droide.core
 import kotlinx.serialization.Serializable
 
 
+
+
+
+
+
+
 @Serializable
 enum class AgentMode { BUILD, PLAN, REVIEW, EXPLORE }
 
@@ -26,6 +32,7 @@ object AgentModePolicy {
     }
 
     // Runtime check remains authoritative too, so a stale/provider-injected call still fails closed instead of executing.
+
 
 
     fun isToolVisible(mode: AgentMode, tool: String): Boolean = check(mode, tool) == null

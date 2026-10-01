@@ -10,6 +10,20 @@ import java.util.Base64
 import java.util.concurrent.atomic.AtomicBoolean
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 internal class GitHubAccountOAuthAuthority(
     private val random: SecureRandom = SecureRandom(),
     private val epochSeconds: () -> Long = { System.currentTimeMillis() / 1_000L },

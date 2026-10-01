@@ -10,8 +10,6 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.baystudio.droide.core.EditorRecoveryBuffer
-import com.baystudio.droide.core.EditorSelectionSnapshot
 import com.baystudio.droide.core.EditorFilePerformanceMode
 import com.baystudio.droide.core.EditorLargeFilePolicy
 import com.baystudio.droide.core.EditorReviewModePolicy
@@ -19,6 +17,12 @@ import com.baystudio.droide.core.FileIconRegistry
 import com.baystudio.droide.core.FileRepository
 import com.baystudio.droide.core.LargeFileException
 import com.baystudio.droide.core.runSuspendCatching
+
+
+
+
+
+
 
 
 @Stable
@@ -38,8 +42,6 @@ class EditorDocument internal constructor(initialPath: String) {
         private set
     
     var loadError by mutableStateOf<String?>(null)
-        private set
-    var pendingRecoveryBuffer by mutableStateOf<EditorRecoveryBuffer?>(null)
         private set
     private var loadGeneration = 0L
     private var saveInProgress = false
@@ -63,17 +65,17 @@ class EditorDocument internal constructor(initialPath: String) {
     var reviewMode by mutableStateOf(false)
         private set
 
-    val dirty: Boolean get() = pendingRecoveryBuffer != null || (kind == EditorDocumentKind.TEXT && loaded && (optimizedBufferDirty || content != savedContent))
+    val dirty: Boolean get() = kind == EditorDocumentKind.TEXT && loaded && (optimizedBufferDirty || content != savedContent)
      
-    val editable: Boolean get() = pendingRecoveryBuffer == null && kind == EditorDocumentKind.TEXT && loaded
-    val canEdit: Boolean get() = EditorReviewModePolicy.canEditText(kind == EditorDocumentKind.TEXT, loaded && pendingRecoveryBuffer == null, reviewMode)
+    val editable: Boolean get() = kind == EditorDocumentKind.TEXT && loaded
+    val canEdit: Boolean get() = EditorReviewModePolicy.canEditText(kind == EditorDocumentKind.TEXT, loaded, reviewMode)
     val fullIntelligence: Boolean get() = editable && performanceMode == EditorFilePerformanceMode.FULL_INTELLIGENCE
     val largeFileOptimized: Boolean get() = editable && performanceMode == EditorFilePerformanceMode.LARGE_FILE_OPTIMIZED
      
     val agentEditable: Boolean get() = EditorReviewModePolicy.canAgentEdit(canEdit, fullIntelligence)
 
     fun setReviewMode(enabled: Boolean) {
-        if ((!editable && pendingRecoveryBuffer == null) || reviewMode == enabled) return
+        if (!editable || reviewMode == enabled) return
         reviewMode = enabled
         status = if (enabled) "Review Mode · read-only" else if (dirty) "Review Mode off · unsaved changes" else "Review Mode off"
     }
@@ -82,6 +84,7 @@ class EditorDocument internal constructor(initialPath: String) {
         fileBytes = EditorLargeFilePolicy.utf8Bytes(text)
         lineCountHint = EditorLargeFilePolicy.lineCount(text, EditorLargeFilePolicy.FULL_INTELLIGENCE_MAX_LINES + 1)
         val classified = EditorLargeFilePolicy.classify(fileBytes, lineCountHint).mode
+        
 
 
         performanceMode = if (kind == EditorDocumentKind.TEXT && classified == EditorFilePerformanceMode.PREVIEW_ONLY) {
@@ -90,7 +93,7 @@ class EditorDocument internal constructor(initialPath: String) {
     }
 
     fun capture(text: String) {
-        if (pendingRecoveryBuffer != null || kind != EditorDocumentKind.TEXT || !loaded) return
+        if (kind != EditorDocumentKind.TEXT || !loaded) return
         if (reviewMode && content != text) return
         if (content != text) {
             content = text
@@ -100,6 +103,10 @@ class EditorDocument internal constructor(initialPath: String) {
         optimizedBufferDirty = text != savedContent
         captureSelection(selectionStart, selectionEnd)
     }
+
+    
+
+
 
 
     fun captureInsert(start: Int, inserted: String): Boolean {
@@ -168,67 +175,19 @@ class EditorDocument internal constructor(initialPath: String) {
     }
 
     fun captureSelection(start: Int, end: Int = start) {
-        if (pendingRecoveryBuffer != null) {
-            selectionStart = start.coerceAtLeast(0)
-            selectionEnd = end.coerceAtLeast(0)
-            return
-        }
         
         val upper = if (largeFileOptimized) maxOf(content.length, start, end).coerceAtLeast(0) else content.length
         selectionStart = start.coerceIn(0, upper)
         selectionEnd = end.coerceIn(0, upper)
     }
 
-    fun restoreDeferred(reference: EditorRecoveryBuffer, selection: EditorSelectionSnapshot? = null, review: Boolean = false) {
-        check(!dirty && reference.path == path) { "Cannot replace existing unsaved document" }
-        loadGeneration++
-        pendingRecoveryBuffer = reference
-        content = ""
-        savedContent = ""
-        loaded = false
-        kind = EditorDocumentKind.TEXT
-        loadError = null
-        reviewMode = review
-        selectionStart = selection?.start ?: 0
-        selectionEnd = selection?.end ?: selectionStart
-        status = "Recovered unsaved changes · open to load"
-        revision++
-        changeVersion++
-    }
-
     suspend fun ensureLoaded(files: FileRepository) {
-        val reference = pendingRecoveryBuffer
-        if (reference == null) {
-            if (!loaded) reload(files)
-            return
-        }
-        val generation = loadGeneration
-        try {
-            val recovered = reference.readText()
-            if (pendingRecoveryBuffer !== reference || loadGeneration != generation) return
-            val selection = EditorSelectionSnapshot(selectionStart, selectionEnd)
-            val review = reviewMode
-            loadDisk(files, restoringRecovery = true)
-            if (pendingRecoveryBuffer !== reference) return
-            pendingRecoveryBuffer = null
-            restoreUnsaved(recovered)
-            setReviewMode(review)
-            captureSelection(selection.start, selection.end)
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (failure: Exception) {
-            if (pendingRecoveryBuffer === reference) {
-                loadError = "Cannot recover $path: ${failure.message ?: "unknown error"}"
-                status = loadError.orEmpty()
-            }
-        }
+        if (loaded) return
+        reload(files)
     }
 
-    suspend fun reload(files: FileRepository, discardUnsaved: Boolean = false) =
-        loadDisk(files, discardUnsaved)
-
-    private suspend fun loadDisk(files: FileRepository, discardUnsaved: Boolean = false, restoringRecovery: Boolean = false) {
-        if (dirty && !discardUnsaved && !restoringRecovery) {
+    suspend fun reload(files: FileRepository, discardUnsaved: Boolean = false) {
+        if (dirty && !discardUnsaved) {
             status = "Reload skipped · unsaved edits preserved. Use Discard & reload to replace them."
             return
         }
@@ -236,7 +195,6 @@ class EditorDocument internal constructor(initialPath: String) {
             status = "Save in progress · reload after it finishes"
             return
         }
-        if (discardUnsaved && pendingRecoveryBuffer != null) pendingRecoveryBuffer = null
         val request = ++loadGeneration
         val path = this.path
         val startRevision = revision
@@ -312,7 +270,6 @@ class EditorDocument internal constructor(initialPath: String) {
     }
 
     suspend fun save(files: FileRepository): Result<Unit> {
-        if (pendingRecoveryBuffer != null) ensureLoaded(files)
         if (!editable) return Result.failure(IllegalStateException("This preview is read-only"))
         if (saveInProgress) return Result.failure(IllegalStateException("Save already in progress"))
         saveInProgress = true
@@ -350,25 +307,7 @@ class EditorDocument internal constructor(initialPath: String) {
         }
     }
 
-    fun unloadClean() {
-        check(!dirty && !saveInProgress) { "Cannot unload unsaved or saving document" }
-        loadGeneration++
-        content = ""
-        savedContent = ""
-        loaded = false
-        revision++
-    }
-
     fun discardUnsaved() {
-        if (pendingRecoveryBuffer != null) {
-            pendingRecoveryBuffer = null
-            loadGeneration++
-            revision++
-            changeVersion++
-            loadError = null
-            status = "Changes discarded · reopen to load saved file"
-            return
-        }
         if (!editable) return
         content = savedContent
         optimizedBufferDirty = false
@@ -462,9 +401,6 @@ class EditorWorkspaceState {
     fun peek(path: String): EditorDocument? = documents[path]
     fun allDocuments(): List<EditorDocument> = documents.values.toList()
     fun dirtyDocuments(): List<EditorDocument> = documents.values.filter { it.dirty }
-    fun deferredRecoveryBuffers(): Map<String, EditorRecoveryBuffer> = documents.values.mapNotNull { doc ->
-        doc.pendingRecoveryBuffer?.let { doc.path to it }
-    }.toMap()
     fun hasDirtyAtOrUnder(path: String): Boolean {
         val prefix = path.trimEnd('/') + "/"
         return documents.values.any { it.dirty && (it.path == path || it.path.startsWith(prefix)) }
@@ -544,6 +480,9 @@ class ActiveEditorBridge {
     var completion: (() -> Unit)? = null
     var signatureHelp: (() -> Unit)? = null
     var cursorLocation: (() -> Pair<Int, Int>)? = null
+
+    
+
 
 
     fun capture(): Boolean = safeInvoke(snapshot)

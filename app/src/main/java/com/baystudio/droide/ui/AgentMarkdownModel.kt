@@ -1,6 +1,11 @@
 package com.baystudio.droide.ui
 
-// Keep untrusted input and output bounded.
+// Parsing is bounded so a hostile or accidental 100k-character assistant response cannot create an unbounded Compose node tree.
+
+
+
+
+
 
 
 internal sealed interface AgentMarkdownBlock {
@@ -24,6 +29,9 @@ internal data class AgentStreamingMarkdownProjection(
     val tail: String,
     val completed: Boolean,
 )
+
+
+
 
 
 internal class AgentStreamingMarkdownProjector {
@@ -320,6 +328,10 @@ internal object AgentMarkdownParser {
         flushPlain()
         return out
     }
+
+    
+
+
 
 
     fun stableStreamingPrefixLength(markdown: String): Int {

@@ -85,6 +85,10 @@ class GitHubAccountManager(context: Context) {
     private val _snapshot = MutableStateFlow(initialSnapshot())
     val snapshot: StateFlow<Snapshot> = _snapshot.asStateFlow()
 
+    
+
+
+
 
     fun beginAuthorization(): Result<String> = synchronized(lifecycleLock) {
         if (!configured) {
@@ -124,7 +128,8 @@ class GitHubAccountManager(context: Context) {
         _snapshot.value = durableSnapshot(reason.take(200))
     }
 
-    // Keep operation ownership explicit across lifecycle boundaries.
+    // Callback exchange is serialized with refresh/revoke; after waiting for that lane, exact attempt ownership is checked again before any remote issue.
+
 
 
     suspend fun handleCallback(rawUri: String): Boolean {
@@ -143,7 +148,7 @@ class GitHubAccountManager(context: Context) {
             restorePendingIfNeeded()
             when (val result = authority.claimCallback(rawUri)) {
                 is GitHubAccountOAuthAuthority.CallbackResult.Accepted -> {
-                    
+                    // A process crash during exchange must require a fresh user authorization rather than resurrecting and replaying a callback that has already been claimed.
 
                     secrets.removeDurable(GitHubAccountSecretStore.SLOT_PENDING_OAUTH)
                     val previous = durableSnapshot()
@@ -213,6 +218,11 @@ class GitHubAccountManager(context: Context) {
         }
         return true
     }
+
+    
+
+
+
 
 
     suspend fun disconnect(): Result<DisconnectOutcome> = credentialNetworkMutex.withLock {
@@ -318,6 +328,10 @@ class GitHubAccountManager(context: Context) {
         return slug.takeIf { GITHUB_APP_SLUG.matches(it) }
             ?.let { "https://github.com/apps/$it/installations/new" }
     }
+
+    
+
+
 
 
     internal suspend fun currentGitTransportCredential(): GitHubTransportCredential? = credentialNetworkMutex.withLock {

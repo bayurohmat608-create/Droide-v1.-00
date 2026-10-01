@@ -3,10 +3,6 @@ package com.baystudio.droide.core
 import android.content.Context
 import java.io.File
 import java.io.OutputStream
-import java.io.FileOutputStream
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
-import kotlinx.coroutines.sync.Mutex
 import java.security.MessageDigest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +13,12 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+
+
+
+
+
+
 
 
 class AndroidToolchainCertificationManager(
@@ -85,26 +87,8 @@ class AndroidToolchainCertificationManager(
     private val _state = MutableStateFlow(State(latest = readLatest()))
     val state: StateFlow<State> = _state.asStateFlow()
 
-    private val runMutex = Mutex()
-
     suspend fun certify(level: Level): Report = withContext(Dispatchers.IO) {
-        check(runMutex.tryLock()) { "A toolchain certification run is already active" }
-        _state.value = _state.value.copy(running = true, currentStep = "", message = "Checking certification prerequisites…")
-        try {
-            certifyRun(level)
-        } catch (cancelled: CancellationException) {
-            _state.value = _state.value.copy(message = "Certification canceled.")
-            throw cancelled
-        } catch (failure: Throwable) {
-            _state.value = _state.value.copy(message = "Certification failed: ${failure.message ?: failure::class.java.simpleName}")
-            throw failure
-        } finally {
-            _state.value = _state.value.copy(running = false, currentStep = "")
-            runMutex.unlock()
-        }
-    }
-
-    private suspend fun certifyRun(level: Level): Report {
+        check(!_state.value.running) { "A toolchain certification run is already active" }
         val status = development.refresh()
         check(status.readiness == AndroidDevelopmentManager.Readiness.READY) { status.message }
         val info = development.workstationInfo() ?: error("Verified workstation toolchain is unavailable")
@@ -118,7 +102,7 @@ class AndroidToolchainCertificationManager(
 
         val steps = mutableListOf<StepResult>()
         val total = if (level == Level.FULL) 10 else 5
-        _state.value = _state.value.copy(running = true, completed = 0, total = total, message = "Starting ${level.name.lowercase()} certification…")
+        _state.value = State(running = true, total = total, message = "Starting ${level.name.lowercase()} certification…")
 
         suspend fun step(id: String, title: String, required: Boolean = true, block: suspend () -> String) {
             val start = System.currentTimeMillis()
@@ -193,29 +177,29 @@ class AndroidToolchainCertificationManager(
 
             if (level == Level.FULL) {
                 step("assemble-debug", "Gradle assembleDebug") {
-                    val result = development.build("assembleDebug", AndroidDevelopmentManager.BuildBackend.DEVICE_WORKSTATION)
+                    val result = development.buildDebug()
                     check(result.success) { result.output }
                     "${result.durationMs}ms · ${result.localArtifacts.size} artifact(s)"
                 }
                 step("unit-tests", "Gradle test") {
-                    val result = development.build("test", AndroidDevelopmentManager.BuildBackend.DEVICE_WORKSTATION)
+                    val result = development.test()
                     check(result.success) { result.output }
                     "${result.durationMs}ms"
                 }
                 step("lint", "Gradle lintDebug") {
-                    val result = development.build("lintDebug", AndroidDevelopmentManager.BuildBackend.DEVICE_WORKSTATION)
+                    val result = development.lint()
                     check(result.success) { result.output }
                     "${result.durationMs}ms"
                 }
                 step("release", "Release APK + AAB") {
-                    val apk = development.build("assembleRelease", AndroidDevelopmentManager.BuildBackend.DEVICE_WORKSTATION)
+                    val apk = development.buildReleaseApk()
                     check(apk.success) { apk.output }
-                    val bundle = development.build("bundleRelease", AndroidDevelopmentManager.BuildBackend.DEVICE_WORKSTATION)
+                    val bundle = development.buildReleaseBundle()
                     check(bundle.success) { bundle.output }
                     "APK ${apk.durationMs}ms · AAB ${bundle.durationMs}ms"
                 }
                 step("install-run-logcat", "Install, launch and logcat") {
-                    val debug = development.build("assembleDebug", AndroidDevelopmentManager.BuildBackend.DEVICE_WORKSTATION)
+                    val debug = development.buildDebug()
                     check(debug.success) { debug.output }
                     val apk = debug.localArtifacts
                         .filter { it.isFile && it.extension.equals("apk", ignoreCase = true) }
@@ -235,12 +219,12 @@ class AndroidToolchainCertificationManager(
 
         val identity = try {
             AndroidDeviceIdentityCollector(bridge).collect(requirePhysical = false)
-        } catch (cancelled: CancellationException) {
-            throw cancelled
         } catch (error: Throwable) {
             if (failure == null) failure = error
             null
         }
+
+        // Keep the collected identity in a failed report for diagnostics, but never let an emulator-shaped target become PASS and rely on the later offline promotion.
 
 
         if (failure == null && identity == null) {
@@ -297,14 +281,13 @@ class AndroidToolchainCertificationManager(
             },
         )
         if (!passed) throw IllegalStateException(_state.value.message, failure)
-        return report
+        report
     }
 
     suspend fun exportLatest(output: OutputStream) = withContext(Dispatchers.IO) {
         val report = _state.value.latest ?: readLatest() ?: error("No certification report is available")
         val bytes = (json.encodeToString(report) + "\n").toByteArray(Charsets.UTF_8)
-        output.write(bytes)
-        output.flush()
+        output.use { it.write(bytes); it.flush() }
     }
 
     fun latestReport(): Report? = _state.value.latest
@@ -361,19 +344,11 @@ class AndroidToolchainCertificationManager(
     private fun persist(report: Report) {
         val text = json.encodeToString(report) + "\n"
         val latest = File(reportRoot, "latest.json")
+        val temp = File(reportRoot, ".latest.tmp")
+        temp.writeText(text, Charsets.UTF_8)
+        check(temp.renameTo(latest) || run { latest.delete(); temp.renameTo(latest) }) { "Could not publish certification report" }
         val historyName = "${report.generatedAtEpochMs}-${report.packSha256.take(12)}-${report.level.lowercase()}.json"
-        fun publish(target: File) {
-            val temp = File.createTempFile(".certification-", ".tmp", reportRoot)
-            try {
-                FileOutputStream(temp).use { output ->
-                    output.write(text.toByteArray(Charsets.UTF_8))
-                    output.fd.sync()
-                }
-                Files.move(temp.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
-            } finally { temp.delete() }
-        }
-        publish(File(reportRoot, historyName))
-        publish(latest)
+        File(reportRoot, historyName).writeText(text, Charsets.UTF_8)
         reportRoot.listFiles { file -> file.name.endsWith(".json") && file.name != "latest.json" }
             ?.sortedByDescending(File::lastModified)
             ?.drop(MAX_HISTORY_REPORTS)

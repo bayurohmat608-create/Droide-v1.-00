@@ -29,7 +29,7 @@ class ManagedPackageInstaller(
     context: Context,
     private val bridge: DeviceBridgeManager,
     private val registry: ManagedPackageRegistry,
-    private val downloader: UserInitiatedArtifactTransfer = UserInitiatedArtifactTransfer(context.applicationContext),
+    private val downloader: TrustedArtifactDownloader = TrustedArtifactDownloader(context.applicationContext),
 ) {
     enum class Phase { IDLE, DOWNLOADING, VERIFYING, UPLOADING, ACTIVATING, HEALTH_CHECK, READY, CANCELED, FAILED }
 
@@ -53,7 +53,7 @@ class ManagedPackageInstaller(
     private val appContext = context.applicationContext
     private val localRoot = appContext.filesDir.absolutePath
 
-    internal fun owns(record: ManagedPackageRecord): Boolean =
+    private fun owns(record: ManagedPackageRecord): Boolean =
         PackageBackendContract.recordOwner(record.installRoot, record.metadata, localRoot) == backendId
 
     private fun requireOwner(record: ManagedPackageRecord) =
@@ -109,6 +109,10 @@ class ManagedPackageInstaller(
             throw error
         }
     }
+
+    
+
+
 
 
     private suspend fun installTermuxExecutable(
@@ -504,10 +508,8 @@ class ManagedPackageInstaller(
     private suspend fun reconcileUnlocked(): List<ManagedPackageRecord> {
         if (bridge.state.value.connected == null) return registry.list()
         val root = DeviceBridgeManager.remoteRoot()
-        val before = registry.list()
-        reconcileInterruptedRemovals(before, root)
         val valid = mutableListOf<ManagedPackageRecord>()
-        for (record in before.take(512)) {
+        for (record in registry.list().take(512)) {
             if (!owns(record)) {
                 valid += record
                 continue
@@ -520,93 +522,9 @@ class ManagedPackageInstaller(
                 if (present.exitCode == 0) valid += record
             }
         }
-        val projectable = valid.filter { record ->
-            !owns(record) || runCatching { dependencyClosure(record, valid) }.isSuccess
-        }
-        rebuildManagedBin(projectable)
-        // A failed probe or missing payload is repair state, not permission to erase its receipt.
-        return before
-    }
-
-    private suspend fun reconcileInterruptedRemovals(records: List<ManagedPackageRecord>, root: String) {
-        val trashRoot = DevicePackageRemovalJournal.trashRoot(root)
-        DeviceBridgeManager.requireSafeRemotePath(trashRoot)
-        val prepare = bridge.shell(
-            "set -eu; mkdir -p ${DeviceBridgeManager.shellQuote(trashRoot)}; test ! -L ${DeviceBridgeManager.shellQuote(trashRoot)}",
-        )
-        check(prepare.exitCode == 0) { "Could not prepare managed package removal journal: ${prepare.combined.takeLast(4_000)}" }
-
-        val ownedRecords = records.filter(::owns)
-        val expectedEntries = ownedRecords
-            .filter { it.installRoot.startsWith("$root/packages/") }
-            .associateBy { DevicePackageRemovalJournal.entryName(it) }
-        for (record in ownedRecords) {
-            requireOwner(record)
-            if (!record.installRoot.startsWith("$root/packages/")) continue
-            DeviceBridgeManager.requireSafeRemotePath(record.installRoot)
-            val trash = DevicePackageRemovalJournal.trashPath(root, record)
-            DeviceBridgeManager.requireSafeRemotePath(trash)
-            val sourcePresent = bridge.shell("test -d ${DeviceBridgeManager.shellQuote(record.installRoot)}").exitCode == 0
-            val trashPresent = bridge.shell("test -d ${DeviceBridgeManager.shellQuote(trash)}").exitCode == 0
-            if (!trashPresent) continue
-            check(bridge.shell("test ! -L ${DeviceBridgeManager.shellQuote(trash)}").exitCode == 0) {
-                "Unsafe symbolic-link managed package removal journal"
-            }
-            if (sourcePresent) {
-                check(bridge.shell("test ! -L ${DeviceBridgeManager.shellQuote(record.installRoot)}").exitCode == 0) {
-                    "Managed package root became a symbolic link during removal recovery"
-                }
-            }
-
-            val sourceHealthy = sourcePresent && runCatching { verifyInstalledRecord(record) }.getOrDefault(false)
-            val trashRecord = relocateRecord(record, trash)
-            val trashHealthy = runCatching { verifyInstalledRecord(trashRecord) }.getOrDefault(false)
-            when (DevicePackageRemovalJournal.recoveryAction(
-                receiptPresent = true,
-                sourcePresent = sourcePresent,
-                sourceHealthy = sourceHealthy,
-                trashPresent = true,
-                trashHealthy = trashHealthy,
-            )) {
-                DevicePackageRemovalJournal.RecoveryAction.RESTORE -> {
-                    val restore = bridge.shell(
-                        "set -eu; test ! -e ${DeviceBridgeManager.shellQuote(record.installRoot)}; " +
-                            "mv ${DeviceBridgeManager.shellQuote(trash)} ${DeviceBridgeManager.shellQuote(record.installRoot)}",
-                    )
-                    check(restore.exitCode == 0) { "Could not restore interrupted managed package removal: ${restore.combined.takeLast(4_000)}" }
-                }
-                DevicePackageRemovalJournal.RecoveryAction.REPLACE_SOURCE_FROM_TRASH -> {
-                    val restore = bridge.shell(
-                        "set -eu; rm -rf ${DeviceBridgeManager.shellQuote(record.installRoot)}; " +
-                            "mv ${DeviceBridgeManager.shellQuote(trash)} ${DeviceBridgeManager.shellQuote(record.installRoot)}",
-                    )
-                    check(restore.exitCode == 0) { "Could not recover healthy managed package removal journal: ${restore.combined.takeLast(4_000)}" }
-                }
-                DevicePackageRemovalJournal.RecoveryAction.DISCARD_TRASH -> {
-                    val cleanup = bridge.shell("rm -rf ${DeviceBridgeManager.shellQuote(trash)}")
-                    check(cleanup.exitCode == 0) { "Could not clean stale managed package removal journal: ${cleanup.combined.takeLast(4_000)}" }
-                }
-                DevicePackageRemovalJournal.RecoveryAction.HOLD_FOR_REPAIR,
-                DevicePackageRemovalJournal.RecoveryAction.NONE -> Unit
-            }
-        }
-
-        val listing = bridge.shellBounded(
-            "for p in ${DeviceBridgeManager.shellQuote(trashRoot)}/*; do " +
-                "if [ -L \"${'$'}p\" ]; then printf 'UNSAFE:%s\\n' \"${'$'}(basename \"${'$'}p\")\"; " +
-                "elif [ -d \"${'$'}p\" ]; then basename \"${'$'}p\"; fi; done",
-            maxOutputBytes = 64_000,
-        )
-        check(listing.exitCode == 0) { "Could not inspect managed package removal journal: ${listing.combined.takeLast(4_000)}" }
-        listing.stdout.lineSequence().map(String::trim).filter(String::isNotBlank).distinct().take(512).forEach { entry ->
-            require(entry.matches(Regex("[A-Za-z0-9._+-]{1,120}"))) { "Unsafe managed package removal journal entry" }
-            if (entry !in expectedEntries) {
-                val stale = "$trashRoot/$entry"
-                DeviceBridgeManager.requireSafeRemotePath(stale)
-                val cleanup = bridge.shell("rm -rf ${DeviceBridgeManager.shellQuote(stale)}")
-                check(cleanup.exitCode == 0) { "Could not finalize committed managed package removal: ${cleanup.combined.takeLast(4_000)}" }
-            }
-        }
+        rebuildManagedBin(valid)
+        registry.replaceAll(valid)
+        return valid
     }
 
     private suspend fun reconcileInterruptedPromotion(record: ManagedPackageRecord, root: String): Boolean {
@@ -644,6 +562,8 @@ class ManagedPackageInstaller(
         if (previousCandidates.isEmpty()) {
             return bridge.shell("test -d ${DeviceBridgeManager.shellQuote(record.installRoot)}").exitCode == 0
         }
+
+        
 
 
         if (verifyInstalledRecord(record)) {
@@ -718,6 +638,8 @@ class ManagedPackageInstaller(
     // The wrapper projection and registry update are one rollback-safe mutation.
 
 
+
+
     suspend fun rebindDependencies(record: ManagedPackageRecord, dependencyKeys: List<String>): ManagedPackageRecord =
         ManagedPackageMutationGate.mutex.withLock {
             requireOwner(record)
@@ -760,13 +682,9 @@ class ManagedPackageInstaller(
         require(record.scope == ExecutionScope.LOCAL_LINUX_ARM64.name) { "Only Device Workstation managed packages can be uninstalled here" }
         DeviceBridgeManager.requireSafeRemotePath(record.installRoot)
         val root = DeviceBridgeManager.remoteRoot()
-        require(record.installRoot.startsWith("$root/packages/") && !record.installRoot.contains("/.trash/")) {
-            "Refusing to remove a package outside Droide managed package storage"
-        }
+        require(record.installRoot.startsWith("$root/packages/")) { "Refusing to remove a package outside Droide managed package storage" }
 
         val before = registry.list()
-        check(before.any { it.familyId == record.familyId && it.version == record.version }) { "Managed package receipt is missing" }
-        requireFamilyOwner(record, before)
         val key = "${record.familyId}@${record.version}"
         val dependents = before.filter { it.familyId != record.familyId || it.version != record.version }
             .filter { key in it.dependencies }
@@ -783,40 +701,21 @@ class ManagedPackageInstaller(
             }
         }
 
-        val trashRoot = DevicePackageRemovalJournal.trashRoot(root)
-        val trash = DevicePackageRemovalJournal.trashPath(root, record)
-        listOf(trashRoot, trash).forEach(DeviceBridgeManager::requireSafeRemotePath)
-        val stage = bridge.shell(
-            "set -eu; mkdir -p ${DeviceBridgeManager.shellQuote(trashRoot)}; test ! -L ${DeviceBridgeManager.shellQuote(trashRoot)}; " +
-                "test -d ${DeviceBridgeManager.shellQuote(record.installRoot)}; test ! -L ${DeviceBridgeManager.shellQuote(record.installRoot)}; " +
-                "test ! -e ${DeviceBridgeManager.shellQuote(trash)}; " +
-                "mv ${DeviceBridgeManager.shellQuote(record.installRoot)} ${DeviceBridgeManager.shellQuote(trash)}",
-        )
-        check(stage.exitCode == 0) { "Could not stage managed package removal: ${stage.combined.takeLast(4_000)}" }
-
+        // Remove command projections first while the old package still exists, so wrapper rollback is possible.
         try {
-            PackageProjectionCommit.commit(before, remaining, ::rebuildManagedBin, registry::replaceAll)
+            rebuildManagedBin(remaining)
         } catch (failure: Throwable) {
-            withContext(NonCancellable) {
-                val restore = bridge.shell(
-                    "set -eu; if [ -d ${DeviceBridgeManager.shellQuote(trash)} ] && [ ! -e ${DeviceBridgeManager.shellQuote(record.installRoot)} ]; then " +
-                        "mv ${DeviceBridgeManager.shellQuote(trash)} ${DeviceBridgeManager.shellQuote(record.installRoot)}; fi",
-                )
-                if (restore.exitCode != 0) failure.addSuppressed(
-                    IllegalStateException("Could not restore managed package removal journal: ${restore.combined.takeLast(4_000)}")
-                )
-            }
+            runSuspendCatching { rebuildManagedBin(before) }
             throw failure
         }
 
-        val cleanupOk = withContext(NonCancellable) {
-            runCatching { bridge.shell("rm -rf ${DeviceBridgeManager.shellQuote(trash)}").exitCode == 0 }.getOrDefault(false)
+        val remove = bridge.shell("rm -rf ${DeviceBridgeManager.shellQuote(record.installRoot)}")
+        if (remove.exitCode != 0) {
+            runSuspendCatching { rebuildManagedBin(before) }
+            error("Could not remove package files: ${remove.combined}")
         }
-        if (cleanupOk) {
-            "Uninstalled ${record.familyId} ${record.version}."
-        } else {
-            "Uninstalled ${record.familyId} ${record.version}; staged files will be reclaimed during package recovery."
-        }
+        registry.replaceAll(remaining)
+        "Uninstalled ${record.familyId} ${record.version}."
     }
 
     suspend fun verify(record: ManagedPackageRecord): Boolean =
@@ -848,6 +747,7 @@ class ManagedPackageInstaller(
             }) return false
 
         // Never let an old, weaker health contract grandfather a guest runtime into READY.
+
 
 
         val currentGuestRecipe = WorkstationGuestPackageCatalog.find(candidate.familyId, candidate.version)

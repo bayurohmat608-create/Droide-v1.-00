@@ -11,6 +11,13 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 
+// Durable complete command logs are a separate concern/checkpoint.
+
+
+
+
+
+
 
 class BackgroundCommandManager(
     private val terminal: ITerminalSession,

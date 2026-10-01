@@ -31,6 +31,9 @@ data class ApkAnalysis(
     val largestEntries: List<ApkEntryInfo>,
 )
 
+// APKs are ZIP containers, so useful package-size diagnostics can be produced locally without executing or extracting untrusted package content.
+
+
 
 object ApkAnalyzer {
     suspend fun analyze(file: File): ApkAnalysis = withContext(Dispatchers.IO) {

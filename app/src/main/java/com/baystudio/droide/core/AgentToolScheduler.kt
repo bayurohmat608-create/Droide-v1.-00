@@ -1,6 +1,10 @@
 package com.baystudio.droide.core
 
-// Preserve ordering across mutation and approval boundaries.
+// Every serial call is a full ordering barrier, so reads never cross a mutation, question, shell, MCP/custom tool, approval boundary, hook boundary.
+
+
+
+
 
 
 internal object AgentToolScheduler {

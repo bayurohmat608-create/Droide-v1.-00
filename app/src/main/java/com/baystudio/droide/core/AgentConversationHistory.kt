@@ -4,7 +4,12 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
-// Owns the two histories with intentionally different lifecycles: - active: model-facing and compactable.
+// Owns the two histories with intentionally different lifecycles: - active: model-facing and compactable; - exact fork history: append-only and never compacted.
+
+
+
+
+
 
 
 internal class AgentConversationHistory {

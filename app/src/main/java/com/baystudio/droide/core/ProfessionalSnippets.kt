@@ -1,6 +1,13 @@
 package com.baystudio.droide.core
 
 
+
+
+
+
+
+
+
 object ProfessionalSnippets {
     const val MAX_SNIPPET_CHARS = 8_000
     const val MAX_SNIPPET_MARKERS = 96
@@ -139,6 +146,10 @@ object ProfessionalSnippets {
         text = text.replace("${'$'}{", "{")
         return text
     }
+
+    
+
+
 
 
     fun planSnippetEdits(original: String, primary: TextRangeEdit, additional: List<TextRangeEdit>): SnippetEditPlan {

@@ -13,14 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.baystudio.droide.core.AgentBrowserController
+import com.baystudio.droide.core.runSuspendCatching
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.ImeAction
 
 
 
@@ -43,26 +37,22 @@ fun BrowserPane(
     val owner = remember { Any() }
     var browserBinding by remember { mutableStateOf<AgentBrowserController.Binding?>(null) }
 
-    fun navigate(raw: String, operation: String = "open") {
+    fun navigate(raw: String) {
         if (loading) return
-        loading = true
         scope.launch {
+            loading = true
             status = "Loading…"
-            try {
-                val result = agentBrowser.execute(operation, url = raw.trim(), allowLoopback = true, waitMs = 350)
+            runSuspendCatching {
+                agentBrowser.execute("open", url = raw.trim(), allowLoopback = true, waitMs = 350)
+            }.onSuccess { result ->
                 val current = agentBrowser.currentUrl().ifBlank { raw.trim() }
                 inputUrl = current
                 onUrlChange(current)
                 status = result.lineSequence().firstOrNull { it.startsWith("title=") }
-                    ?.removePrefix("title=")?.takeIf { it.isNotBlank() } ?: current
-            } catch (timeout: TimeoutCancellationException) {
-                currentCoroutineContext().ensureActive()
-                status = "Blocked: browser operation timed out"
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (failure: Exception) {
-                status = "Blocked: ${failure.message ?: "navigation failed"}"
-            } finally { loading = false }
+                    ?.removePrefix("title=")?.takeIf { it.isNotBlank() }
+                    ?: current
+            }.onFailure { status = "Blocked: ${it.message ?: "navigation failed"}" }
+            loading = false
         }
     }
 
@@ -72,21 +62,22 @@ fun BrowserPane(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            IconButton(onClick = { navigate(inputUrl, "back") }, enabled = !loading) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-            }
+            IconButton(onClick = {
+                scope.launch {
+                    runSuspendCatching { agentBrowser.execute("back", allowLoopback = true, waitMs = 250) }
+                        .onSuccess { agentBrowser.currentUrl().takeIf(String::isNotBlank)?.let { inputUrl = it; onUrlChange(it) } }
+                }
+            }) { Icon(Icons.Default.ArrowBack, contentDescription = "Back") }
             OutlinedTextField(
                 inputUrl,
                 { inputUrl = it.take(2_000) },
                 Modifier.weight(1f),
                 placeholder = { Text("https://… or http://localhost:…") },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
-                keyboardActions = KeyboardActions(onGo = { navigate(inputUrl) }),
             )
-            IconButton(onClick = { navigate(inputUrl, "reload") }, enabled = !loading) {
-                Icon(Icons.Default.Refresh, contentDescription = "Reload")
-            }
+            IconButton(onClick = {
+                scope.launch { runSuspendCatching { agentBrowser.execute("reload", allowLoopback = true, waitMs = 250) } }
+            }) { Icon(Icons.Default.Refresh, contentDescription = "Reload") }
             Button(onClick = { navigate(inputUrl) }, enabled = !loading) { Text(if (loading) "…" else "Go") }
         }
         Text(

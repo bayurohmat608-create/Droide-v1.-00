@@ -36,8 +36,7 @@ internal class DroideTerminalViewClient(
     }
 
     override fun shouldBackButtonBeMappedToEscape(): Boolean = false
-    // DroideNativeTerminalView applies the user's valid IME profile after connection creation.
-    override fun shouldEnforceCharBasedInput(): Boolean = false
+    override fun shouldEnforceCharBasedInput(): Boolean = true
     override fun shouldUseCtrlSpaceWorkaround(): Boolean = false
     override fun isTerminalViewSelected(): Boolean = true
     override fun copyModeChanged(copyMode: Boolean) = Unit

@@ -38,6 +38,9 @@ data class AgentProfileSummary(
 // PermissionEngine remains authoritative and profile tool sets are restrictive-only.
 
 
+
+
+
 class AgentProfileManager(private val workDir: File, private val plugins: AgentPluginSource = AgentPluginSource.EMPTY) {
     fun discover(): List<AgentProfile> {
         val builtins = BUILTINS

@@ -1,6 +1,13 @@
 package com.baystudio.droide.core
 
 
+
+
+
+
+
+
+
 enum class WorkspaceDocumentKind { TEXT, IMAGE, BINARY, LARGE }
 
 data class WorkspaceDocumentSnapshot(
@@ -50,6 +57,7 @@ val WorkspaceDocumentSnapshot.version: WorkspaceDocumentVersion
     get() = WorkspaceDocumentVersion(revision, changeVersion)
 
 
+
 data class WorkspacePersistedReconciliation(
     val refreshed: List<String> = emptyList(),
     val removed: List<String> = emptyList(),
@@ -76,6 +84,12 @@ sealed interface WorkspaceDocumentMutationResult {
 }
 
 
+
+
+
+
+
+
 interface WorkspaceDocumentAuthority {
     suspend fun snapshot(path: String): WorkspaceDocumentSnapshot?
     suspend fun snapshots(): List<WorkspaceDocumentSnapshot>
@@ -83,6 +97,7 @@ interface WorkspaceDocumentAuthority {
     suspend fun dirtySnapshots(): List<WorkspaceDocumentSnapshot> = snapshots().filter { it.dirty }
 
     // Implementations must never persist the new content to disk as a side effect.
+
 
 
     suspend fun replaceText(
@@ -105,6 +120,9 @@ interface WorkspaceDocumentAuthority {
 }
 
 // Bindings are generation-scoped: closing an old binding can never detach a newer editor authority.
+
+
+
 
 
 class WorkspaceDocumentAuthorityBridge : WorkspaceDocumentAuthority {

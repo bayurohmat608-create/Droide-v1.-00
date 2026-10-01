@@ -1,6 +1,11 @@
 package com.baystudio.droide.core
 
-// UI surfaces should never implement their own extension switch.
+// UI surfaces should never implement their own extension switch; they should route every file identity through this registry.
+
+
+
+
+
 
 
 object FileIconRegistry {

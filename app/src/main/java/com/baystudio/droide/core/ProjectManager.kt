@@ -164,9 +164,7 @@ class ProjectManager(
     private fun defaultProject(): DroideProject =
         DroideProject("default", "Default", File(appFilesDir, "projects/default").absolutePath)
 
-    private var startupCleanup: List<File> = emptyList()
-
-    suspend fun init() = withContext(Dispatchers.IO) {
+    suspend fun init() {
         val projectsRoot = ProjectWorkspacePolicy.projectsRoot(appFilesDir).apply { mkdirs() }
         val loaded = store.load().mapNotNull { project ->
             val safeId = runCatching { PathSecurity.safeLeafName(project.id) }.getOrNull() ?: return@mapNotNull null
@@ -175,7 +173,8 @@ class ProjectManager(
         }.distinctBy { it.id }.toMutableList()
         val def = defaultProject()
         if (loaded.none { it.id == def.id }) loaded.add(0, def)
-        startupCleanup = ProjectWorkspaceMaintenance.prepare(projectsRoot, loaded.associate { it.id to File(it.rootPath) })
+        recoverDeleteStaging(loaded)
+        cleanupOrphanManagedWorkspaces(loaded)
         loaded.forEach { File(it.rootPath).mkdirs() }
         _projects.value = loaded
         store.save(loaded)
@@ -193,12 +192,6 @@ class ProjectManager(
         )
         recentsStore.save(_recentIds.value)
         refreshProjectPresentation()
-    }
-
-    internal suspend fun collectStartupGarbage(): List<String> {
-        val prepared = startupCleanup
-        startupCleanup = emptyList()
-        return ProjectWorkspaceMaintenance.collect(ProjectWorkspacePolicy.projectsRoot(appFilesDir), prepared)
     }
 
     suspend fun add(name: String, rootPath: String? = null, treeUri: String? = null): DroideProject {
@@ -237,6 +230,9 @@ class ProjectManager(
     // Authentication is transport-only and never persisted here.
 
 
+
+
+
     suspend fun cloneFromGit(
         name: String,
         url: String,
@@ -271,6 +267,46 @@ class ProjectManager(
         }
     }
 
+    
+
+
+
+    private fun recoverDeleteStaging(registered: List<DroideProject>) {
+        val projectsRoot = File(appFilesDir, "projects").canonicalFile.apply { mkdirs() }
+        val byId = registered.associateBy { it.id }
+        projectsRoot.listFiles().orEmpty()
+            .asSequence()
+            .filter { it.isDirectory && it.name.startsWith(".delete-") }
+            .forEach { staging ->
+                val id = staging.name.removePrefix(".delete-")
+                val project = byId[id]
+                if (project == null) {
+                    runCatching { PathSecurity.deleteTreeNoFollow(staging) }
+                    return@forEach
+                }
+                val target = runCatching { File(project.rootPath).canonicalFile }.getOrNull() ?: return@forEach
+                if (runCatching { ProjectWorkspacePolicy.requireDirectChild(projectsRoot, target) }.isFailure) return@forEach
+                if (!target.exists()) {
+                    runCatching {
+                        Files.move(staging.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE)
+                    }.getOrElse {
+                        runCatching { Files.move(staging.toPath(), target.toPath()) }
+                    }
+                }
+            }
+    }
+
+    private fun cleanupOrphanManagedWorkspaces(registered: List<DroideProject>) {
+        val projectsRoot = File(appFilesDir, "projects").canonicalFile.apply { mkdirs() }
+        val registeredRoots = registered.mapNotNull { project ->
+            runCatching { ProjectWorkspacePolicy.requireDirectChild(projectsRoot, File(project.rootPath)) }.getOrNull()?.path
+        }.toSet()
+        projectsRoot.listFiles().orEmpty()
+            .asSequence()
+            .filter { it.isDirectory && it.name.startsWith("p-") }
+            .filter { runCatching { it.canonicalPath }.getOrNull() !in registeredRoots }
+            .forEach { orphan -> runCatching { PathSecurity.deleteTreeNoFollow(orphan) } }
+    }
 
     // Persist first, then publish state so observers never see a switch that failed to save.
     suspend fun switch(id: String) {
@@ -286,6 +322,9 @@ class ProjectManager(
             refreshProjectPresentation()
         }
     }
+
+    
+
 
 
     suspend fun removeFromRecent(id: String) {
@@ -315,6 +354,8 @@ class ProjectManager(
     }
 
     // For SAF projects this deletes only Droide's app-private mirror; the external user tree is never deleted.
+
+
 
 
     suspend fun deleteWorkspace(id: String) = withContext(Dispatchers.IO) {
@@ -358,6 +399,8 @@ class ProjectManager(
     }
 
     // Presentation-only removal must use the referenced API.
+
+
 
 
     suspend fun remove(id: String, deleteWorkspace: Boolean) {

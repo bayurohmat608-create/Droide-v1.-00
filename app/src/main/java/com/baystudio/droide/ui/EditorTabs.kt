@@ -1,5 +1,6 @@
 package com.baystudio.droide.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -11,8 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.IconButton
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScrollableTabRow
@@ -57,8 +56,11 @@ internal fun DroideEditorTabs(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     FileTypeBrandIcon(path, size = 16.dp)
                     if (dirty) Icon(Icons.Default.Circle, "Unsaved", Modifier.size(7.dp), tint = DroideColors.Primary)
-                    Text(path.substringAfterLast('/'), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelLarge)
-                    IconButton(onClick = { onClose(path) }, modifier = Modifier.size(DroideDimensions.EditorTabBar)) { Icon(Icons.Default.Close, "Close ${path.substringAfterLast('/')}", Modifier.size(16.dp)) }
+                    Text(path.substringAfterLast('/'), maxLines = 1, style = MaterialTheme.typography.labelLarge)
+                    Box(
+                        Modifier.size(32.dp).clickable { onClose(path) },
+                        contentAlignment = Alignment.Center,
+                    ) { Icon(Icons.Default.Close, "Close ${path.substringAfterLast('/')}", Modifier.size(16.dp)) }
                 }
             }
         }

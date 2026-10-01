@@ -10,10 +10,15 @@ import android.view.inputmethod.InputConnection
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.baystudio.droide.core.CodeStyleProfile
-import com.baystudio.droide.core.CodingKeyboardMode
 import com.baystudio.droide.core.EditorInputInteractionPolicy
 import com.baystudio.droide.core.ProfessionalSmartTyping
 import io.github.rosemoe.sora.widget.CodeEditor
+
+
+
+
+
+
 
 
 internal class DroideCodeEditor(
@@ -24,7 +29,6 @@ internal class DroideCodeEditor(
 ) : CodeEditor(context) {
 
     private var codeStyle: CodeStyleProfile = codeStyle
-    private val codingKeyboard = CodingKeyboardController()
 
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop.toFloat()
     private var touchDownX = 0f
@@ -43,6 +47,8 @@ internal class DroideCodeEditor(
         isClickable = true
         setEditable(true)
         setSoftKeyboardEnabled(true)
+        
+
 
 
         setDisableSoftKbdIfHardKbdAvailable(false)
@@ -53,12 +59,14 @@ internal class DroideCodeEditor(
             InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS or
             InputType.TYPE_TEXT_FLAG_MULTI_LINE
 
+        
 
         props.disallowSuggestions = false
         props.adjustToSelectionOnResize = true
         props.useICULibToSelectWords = true
         setTabWidth(codeStyle.tabWidth)
 
+        
 
         setBlockLineEnabled(true)
         setBlockLineWidth(0.75f)
@@ -67,11 +75,15 @@ internal class DroideCodeEditor(
 
     override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection? {
         val connection = super.onCreateInputConnection(outAttrs) ?: return null
-        codingKeyboard.configure(connection, outAttrs, multiline = true)
+        
+
+
+
+        outAttrs.imeOptions = outAttrs.imeOptions or
+            EditorInfo.IME_FLAG_NO_EXTRACT_UI or
+            EditorInfo.IME_FLAG_NO_FULLSCREEN
         return connection
     }
-
-    fun applyKeyboardMode(mode: CodingKeyboardMode) = codingKeyboard.applyMode(this, mode)
 
     fun applyCodeStyle(profile: CodeStyleProfile) {
         codeStyle = profile
@@ -87,12 +99,20 @@ internal class DroideCodeEditor(
         }
     }
 
+    
+
+
 
     fun restoreInputFocus(showKeyboard: Boolean = true) {
         if (!isEnabled || !isEditable) return
         acquireInputFocus()
         if (showKeyboard) requestImeAfterUserInteraction()
     }
+
+    
+
+
+
 
 
     internal fun revealSelectionForActiveIme() {
@@ -167,6 +187,7 @@ internal class DroideCodeEditor(
                 touchDownY = event.y
                 touchMoved = false
                 touchUsedMultiplePointers = false
+                
 
 
                 parent?.requestDisallowInterceptTouchEvent(true)
@@ -186,12 +207,14 @@ internal class DroideCodeEditor(
             }
         }
 
+        
 
         val handled = super.onTouchEvent(event)
 
         when (event.actionMasked) {
             MotionEvent.ACTION_UP -> {
                 parent?.requestDisallowInterceptTouchEvent(false)
+                
 
 
                 if (EditorInputInteractionPolicy.shouldRetryImeAfterTouch(
@@ -226,6 +249,8 @@ internal class DroideCodeEditor(
             super.commitText(text, applyAutoIndent)
             return
         }
+
+        
 
 
         val accessory = accessoryModifiers
@@ -262,6 +287,7 @@ internal class DroideCodeEditor(
             }
         }
 
+        
 
         val allowSymbolCompletion = if (text.length == 1 && text[0] in charArrayOf('"', '\'', '`')) {
             val line = this.text.getLine(cursor.leftLine)

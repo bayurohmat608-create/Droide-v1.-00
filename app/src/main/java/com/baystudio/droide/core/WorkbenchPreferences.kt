@@ -16,7 +16,6 @@ object WorkbenchPreferences {
     private val WORD_WRAP = booleanPreferencesKey("editor_word_wrap")
     private val HARDWARE_SHORTCUTS = booleanPreferencesKey("hardware_shortcuts")
     private val ACCESSORY_KEYS_COMFORTABLE = booleanPreferencesKey("accessory_keys_comfortable")
-    private val CODING_KEYBOARD_MODE = stringPreferencesKey("coding_keyboard_mode")
     private val LANDSCAPE_FOCUS_MODE = booleanPreferencesKey("landscape_focus_mode")
     private val DETECT_INDENTATION = booleanPreferencesKey("editor_detect_indentation")
     private val INDENT_STYLE = stringPreferencesKey("editor_indent_style")
@@ -28,7 +27,6 @@ object WorkbenchPreferences {
         val wordWrap: Boolean = false,
         val hardwareShortcuts: Boolean = true,
         val accessoryKeysComfortable: Boolean = false,
-        val codingKeyboardMode: CodingKeyboardMode = CodingKeyboardMode.DEFAULT,
         val landscapeFocusMode: Boolean = false,
         val detectIndentation: Boolean = true,
         val indentStyle: IndentStyle = IndentStyle.SPACES,
@@ -50,7 +48,6 @@ object WorkbenchPreferences {
             wordWrap = prefs[WORD_WRAP] ?: false,
             hardwareShortcuts = prefs[HARDWARE_SHORTCUTS] ?: true,
             accessoryKeysComfortable = prefs[ACCESSORY_KEYS_COMFORTABLE] ?: false,
-            codingKeyboardMode = CodingKeyboardMode.fromStoredValue(prefs[CODING_KEYBOARD_MODE]),
             landscapeFocusMode = prefs[LANDSCAPE_FOCUS_MODE] ?: false,
             detectIndentation = prefs[DETECT_INDENTATION] ?: true,
             indentStyle = runCatching { IndentStyle.valueOf(prefs[INDENT_STYLE] ?: IndentStyle.SPACES.name) }.getOrDefault(IndentStyle.SPACES),
@@ -70,10 +67,6 @@ object WorkbenchPreferences {
 
     suspend fun setAccessoryKeysComfortable(context: Context, enabled: Boolean) {
         context.workbenchPreferences.edit { it[ACCESSORY_KEYS_COMFORTABLE] = enabled }
-    }
-
-    suspend fun setCodingKeyboardMode(context: Context, mode: CodingKeyboardMode) {
-        context.workbenchPreferences.edit { it[CODING_KEYBOARD_MODE] = mode.storageValue }
     }
 
     suspend fun setLandscapeFocusMode(context: Context, enabled: Boolean) {

@@ -5,6 +5,11 @@ import java.security.MessageDigest
 // The model never receives arbitrary PATH executables as callable tools.
 
 
+
+
+
+
+
 class AgentCapabilityActions(
     private val registry: UniversalCapabilityRegistry,
     private val execution: BuildRunDebugCoordinator,

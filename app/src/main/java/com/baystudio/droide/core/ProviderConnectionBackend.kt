@@ -15,6 +15,16 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
+// Professional invariants: - provider operations are serialized per provider; - candidate credentials are validated before replacing a working credential.
+
+
+
+
+
+
+
+
+
 
 class ProviderConnectionBackend(context: Context) {
     enum class Status { DISCONNECTED, CONNECTED }
@@ -142,7 +152,7 @@ class ProviderConnectionBackend(context: Context) {
 
     suspend fun disconnect(providerId: String): Result<Unit> {
         val id = normalizeProviderId(providerId)
-        
+        // Invalidate before waiting for the provider mutex so a late OAuth response cannot commit while disconnect is queued behind remote validation.
 
         invalidateOAuthSessionsForProvider(id)
         return lockFor(id).withLock {

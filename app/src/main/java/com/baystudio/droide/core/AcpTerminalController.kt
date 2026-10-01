@@ -25,6 +25,8 @@ import kotlinx.serialization.json.put
 // Agents receive process semantics, never a free-form shell string.
 
 
+
+
 internal class AcpTerminalController(
     private val processHost: StdioProcessHost,
     private val mapper: WorkspacePathMapper,
@@ -203,6 +205,7 @@ internal class AcpTerminalController(
 internal enum class AcpPermissionKind { MUTATION, EXECUTE }
 
 // One-shot bridge between ACP's permission request and the immediately following client operation.
+
 
 
 internal class AcpPermissionLedger {

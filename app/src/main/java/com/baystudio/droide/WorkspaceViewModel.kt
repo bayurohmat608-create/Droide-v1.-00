@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 // Rotation must not restart terminals, agent sessions, approvals, or the active project.
 
 
+
 class WorkspaceViewModel(application: Application) : AndroidViewModel(application) {
     private val runtimeJob = SupervisorJob()
     private val runtimeScope = CoroutineScope(runtimeJob + Dispatchers.Main.immediate)
@@ -31,6 +32,8 @@ class WorkspaceViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val _initError = MutableStateFlow<String?>(null)
     val initError: StateFlow<String?> = _initError
+
+    // Keep it in the retained ViewModel rather than Bundle/rememberSaveable so rotation and window resizing cannot drop unsaved text.
 
 
     private var editorRuntime: WorkspaceRuntime? = null

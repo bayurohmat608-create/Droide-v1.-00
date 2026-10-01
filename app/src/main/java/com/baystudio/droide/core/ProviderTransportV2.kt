@@ -5,6 +5,10 @@ import okhttp3.Request
 // A provider catalog entry chooses a protocol/auth family; the agent loop never branches on a provider name.
 
 
+
+
+
+
 data class ProviderTransportSpec(
     val protocol: ProviderWireProtocol,
     val authScheme: ProviderAuthScheme,

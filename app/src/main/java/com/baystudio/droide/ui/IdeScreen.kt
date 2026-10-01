@@ -21,8 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.baystudio.droide.core.*
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 import android.content.Context
 import android.view.KeyEvent as AndroidKeyEvent
@@ -127,10 +125,9 @@ fun IdeScreen(
     val workspaceEnvironment = remember(workspaceKey, activeFile) { WorkspaceEnvironmentDetector.detect(files.root, activeFile) }
     val activeLanguageName = remember(activeFile) { LanguageRegistry.forFile(activeFile)?.name ?: if (activeFile.isBlank()) "No file" else "Plain Text" }
     val themes = remember(workspaceKey) { ThemeManager(files.root) }
-    var themeTick by remember(workspaceKey) { mutableIntStateOf(0) }; val formatters = remember(workspaceKey, terminalManager) { FormatterManager(files.root, terminalManager) }; val commands = remember(workspaceKey) { CommandManager(files.root) }
+    var themeTick by remember(workspaceKey) { mutableIntStateOf(0) }; val formatters = remember(workspaceKey, terminalManager, deviceBridge, androidDevelopment, extensions) { FormatterManager(files.root, terminalManager, deviceBridge, androidDevelopment, extensions.capabilities) }; val commands = remember(workspaceKey) { CommandManager(files.root) }
     val taskManager = remember(workspaceKey) { TaskManager(files.root, terminalManager) }; val worktreeManager = remember(workspaceKey) { WorktreeManager(files.root) }
     val recoveryStore = remember(ctx, workspaceKey, activeProject) { EditorStateStore(ctx, activeProject ?: "default") }
-    var recoveryReady by remember(recoveryStore) { mutableStateOf(false) }
     val themeSnapshot = remember(workspaceKey, themeTick) { themes.snapshot() }
     SideEffect {
         DroideColors.install(themeSnapshot.ui)
@@ -291,14 +288,13 @@ fun IdeScreen(
         onDispose { binding.close() }
     }
     suspend fun persistEditorState() {
-        check(recoveryReady) { "Recovery is not ready; previous encrypted data was preserved" }
         editorBridge.capture()
         if (openFiles.isEmpty() && editorState.dirtyDocuments().isEmpty()) {
             recoveryStore.clear()
             return
         }
-        val dirty = editorState.dirtyDocuments().filter { it.pendingRecoveryBuffer == null }.associate { it.path to it.content }
-        recoveryStore.save(EditorRecoverySnapshot(openFiles, activeFile, dirty, editorState.selectionSnapshots(), editorState.reviewModePaths(), editorState.deferredRecoveryBuffers()))
+        val dirty = editorState.dirtyDocuments().associate { it.path to it.content }
+        recoveryStore.save(EditorRecoverySnapshot(openFiles, activeFile, dirty, editorState.selectionSnapshots(), editorState.reviewModePaths()))
     }
     suspend fun saveAllDirty(): Pair<String, Throwable>? {
         editorBridge.capture()
@@ -306,18 +302,14 @@ fun IdeScreen(
             val failure = doc.save(files).exceptionOrNull()
             if (failure != null) return doc.path to failure
             if (doc.fullIntelligence) runSuspendCatching { lsp.didSave(doc.path, doc.content) }
-            if (doc.path != activeFile && !doc.dirty) {
-                runSuspendCatching { lsp.didClose(doc.path) }
-                doc.unloadClean()
-            }
         }
         return null
     }
-    suspend fun workstationSupported(): Boolean { if (deviceBridgeState.supported) return true; snackbarHostState.showSnackbar("Wireless Debugging requires Android 11 or newer. Local Linux Run and Tasks remain available on supported ARM64 devices."); return false }
+    suspend fun workstationSupported(): Boolean { if (deviceBridgeState.supported) return true; snackbarHostState.showSnackbar("Device Workstation and on-device Run/Build require Android 11 or newer; editor, local terminal and Git remain available"); return false }
     suspend fun runAndroidTask(
         title: String,
         action: suspend () -> AndroidDevelopmentManager.BuildResult,
-    ): AndroidDevelopmentManager.BuildResult? {
+    ): AndroidDevelopmentManager.BuildResult? { if (!workstationSupported()) return null
         val saveFailure = saveAllDirty()
         if (saveFailure != null) {
             snackbarHostState.showSnackbar("Build cancelled: save failed for ${saveFailure.first}: ${saveFailure.second.message}")
@@ -347,7 +339,7 @@ fun IdeScreen(
         }
         return result
     }
-    suspend fun runCurrentFile(presentAsSheet: Boolean = true) {
+    suspend fun runCurrentFile(presentAsSheet: Boolean = true) { if (!workstationSupported()) return
         if (activeFile.isBlank()) { snackbarHostState.showSnackbar("Open a file first"); return }
         val failure = saveAllDirty()
         if (failure != null) { snackbarHostState.showSnackbar("Cannot run: save failed for ${failure.first}"); return }
@@ -440,48 +432,39 @@ fun IdeScreen(
     fun showActionFailure(prefix: String, error: Throwable) {
         scope.launch { snackbarHostState.showSnackbar("$prefix: ${error.message ?: error::class.java.simpleName}") }
     }
-    fun launchUserAction(block: suspend () -> Unit) = scope.launchUiCatching(
-        onError = { snackbarHostState.showSnackbar("Action failed: ${it.message ?: it::class.java.simpleName}") },
-        block = block,
-    )
     DisposableEffect(recoveryBridge, recoveryStore, workspaceKey) {
         val owner = Any()
         recoveryBridge.install(owner) {
-            check(recoveryReady) { "Recovery is not ready" }
             editorBridge.capture()
             val snapshot = if (openFiles.isEmpty() && editorState.dirtyDocuments().isEmpty()) null else EditorRecoverySnapshot(
                 openFiles = openFiles,
                 activeFile = activeFile,
-                dirtyBuffers = editorState.dirtyDocuments().filter { it.pendingRecoveryBuffer == null }.associate { it.path to it.content }, selections = editorState.selectionSnapshots(),
+                dirtyBuffers = editorState.dirtyDocuments().associate { it.path to it.content }, selections = editorState.selectionSnapshots(),
                 reviewFiles = editorState.reviewModePaths(),
-                deferredBuffers = editorState.deferredRecoveryBuffers(),
             )
             EditorRecoveryRequest(recoveryStore, snapshot)
         }
         onDispose { recoveryBridge.uninstall(owner) }
     }
     LaunchedEffect(recoveryStore, workspaceKey) {
-        val outcome = runSuspendCatching {
-            recoveryStore.load()?.let { recovered ->
-                val visible = EditorTabRetention.restoreDocuments(recovered, files, editorState)
-                if (visible.isNotEmpty()) {
-                    openFiles = visible
-                    activeFile = recovered.activeFile.takeIf { it in visible } ?: visible.first()
-                    workspaceTab = 1
-                    val count = recovered.dirtyPaths.size
-                    if (count > 0) scope.launch { snackbarHostState.showSnackbar("Recovered $count unsaved file(s)") }
-                }
-            }
+        val recovered = runSuspendCatching { recoveryStore.load() }.getOrElse { error ->
+            snackbarHostState.showSnackbar("Editor recovery unavailable; saved recovery data was kept: ${error.message}")
+            return@LaunchedEffect
+        } ?: return@LaunchedEffect
+        val visible = EditorTabRetention.restoreDocuments(recovered, files, editorState)
+        if (visible.isNotEmpty()) {
+            openFiles = visible
+            activeFile = recovered.activeFile.takeIf { it in visible } ?: visible.first()
+            workspaceTab = 1
+            val restoredDirty = editorState.dirtyDocuments().count { it.path in recovered.dirtyBuffers }
+            if (restoredDirty > 0) snackbarHostState.showSnackbar("Recovered $restoredDirty unsaved file(s)")
         }
-        if (outcome.isSuccess) recoveryReady = true
-        else scope.launch { snackbarHostState.showSnackbar("Editor recovery unavailable; saved data was kept: ${outcome.exceptionOrNull()?.message}") }
     }
     LaunchedEffect(recoveryStore, workspaceKey) {
         
         var persistedSignature = ""; var observedSignature = ""; var quietTicks = 0
         while (true) {
             kotlinx.coroutines.delay(2_000)
-            if (!recoveryReady) continue
             val dirty = editorState.dirtyDocuments()
             val signature = buildString {
                 append(activeFile).append('|').append(openFiles.joinToString(";"))
@@ -518,19 +501,6 @@ fun IdeScreen(
         if (expandedWorkbench) bottomPanelVisible = true
         else if (tool == DroideBottomTool.Terminal) workspaceTab = 2
     }
-    var linuxSetupJob by remember(terminalManager) { mutableStateOf<kotlinx.coroutines.Job?>(null) }
-    fun openLinuxTerminal(qemu: Boolean = false) {
-        if (linuxSetupJob != null || !terminalManager.canCreateTab) return
-        openBottomTool(DroideBottomTool.Terminal)
-        linuxSetupJob = scope.launch(start = kotlinx.coroutines.CoroutineStart.LAZY) {
-            try { terminalManager.openLinuxTerminal(qemu) }
-            catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
-            catch (failure: Exception) { snackbarHostState.showSnackbar(failure.message ?: "Linux setup failed") }
-            finally { linuxSetupJob = null }
-        }
-        linuxSetupJob?.start()
-    }
-    DisposableEffect(terminalManager) { onDispose { linuxSetupJob?.cancel() } }
     MaterialTheme(colorScheme = scheme) {
         BoxWithConstraints(
             Modifier.fillMaxSize().onPreviewKeyEvent { composeEvent ->
@@ -711,7 +681,6 @@ fun IdeScreen(
                                     theme = themeSnapshot,
                                     codeStyleDefaults = workbenchPrefs.codeStyleDefaults,
                                     wordwrap = wordwrap,
-                                    codingKeyboardMode = workbenchPrefs.codingKeyboardMode,
                                     accessoryKeysComfortable = workbenchPrefs.accessoryKeysComfortable, accessoryInputFocus = accessoryInputFocus, accessoryKeysExpanded = editorAccessoryKeysExpanded, onAccessoryKeysExpandedChange = { editorAccessoryKeysExpanded = it },
                                     onToggleBreakpoint = { line -> debugger.toggleBreakpoint(activeFile, line) },
                                     onOpenLocation = ::openLocation,
@@ -733,7 +702,7 @@ fun IdeScreen(
                         when (markdownMode) {
                             MarkdownPreviewMode.EDITOR -> ActiveEditorPane(Modifier.fillMaxSize())
                             MarkdownPreviewMode.PREVIEW -> {
-                                LaunchedEffect(activeFile, document.pendingRecoveryBuffer) { document.ensureLoaded(files) }
+                                LaunchedEffect(activeFile) { document.ensureLoaded(files) }
                                 MarkdownFilePreview(document, Modifier.fillMaxSize())
                             }
                             MarkdownPreviewMode.SPLIT -> BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -781,25 +750,24 @@ fun IdeScreen(
                                     .onFailure { scope.launch { snackbarHostState.showSnackbar(it.message ?: "Cannot open Device Workstation") } }
                                 else scope.launch { snackbarHostState.showSnackbar("Connect Device Workstation with Wireless Debugging first") }
                             }, enabled = terminalManager.canCreateTab) { Text("+ Workstation") }
+                            var linuxSetupJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+                            var linuxSetupBusy by remember { mutableStateOf(false) }
                             listOf(false to "+ Linux", true to "+ QEMU").forEach { (qemu, label) ->
-                                OutlinedButton(onClick = { openLinuxTerminal(qemu) }, enabled = terminalManager.canCreateTab && linuxSetupJob == null) { Text(label) }
+                                OutlinedButton(onClick = {
+                                    linuxSetupBusy = true
+                                    linuxSetupJob = scope.launch {
+                                        try { terminalManager.openLinuxTerminal(qemu) }
+                                        catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
+                                        catch (failure: Exception) { snackbarHostState.showSnackbar(failure.message ?: "Linux setup failed") }
+                                        finally { linuxSetupBusy = false; linuxSetupJob = null }
+                                    }
+                                }, enabled = terminalManager.canCreateTab && !linuxSetupBusy) { Text(label) }
                             }
-                            if (linuxSetupJob != null) OutlinedButton(onClick = { linuxSetupJob?.cancel() }) { Text("Cancel setup") }
+                            if (linuxSetupBusy) OutlinedButton(onClick = { linuxSetupJob?.cancel() }) { Text("Cancel setup") }
                             if (tabs.size > 1) OutlinedButton(onClick = { activeTab?.let { terminalManager.close(it) } }) { Text("Close") }
                         }
                     }
-                    terminalManager.activeSession()?.let { session ->
-                        TerminalPane(
-                            session = session,
-                            theme = themeSnapshot,
-                            accessoryKeysComfortable = workbenchPrefs.accessoryKeysComfortable,
-                            accessoryInputFocus = accessoryInputFocus,
-                            accessoryKeysExpanded = terminalAccessoryKeysExpanded,
-                            typingFocusMode = typingFocus,
-                            codingKeyboardMode = workbenchPrefs.codingKeyboardMode,
-                            onAccessoryKeysExpandedChange = { terminalAccessoryKeysExpanded = it },
-                        )
-                    }
+                    terminalManager.activeSession()?.let { TerminalPane(it, themeSnapshot, workbenchPrefs.accessoryKeysComfortable, accessoryInputFocus, terminalAccessoryKeysExpanded, typingFocus) { terminalAccessoryKeysExpanded = it } }
                         ?: Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) { Text("No terminal session", color = DroideColors.Muted) }
                 }
             }
@@ -869,7 +837,7 @@ fun IdeScreen(
             @Composable
             fun BottomPanelContent() {
                 when (bottomTool) {
-                    DroideBottomTool.Terminal -> TerminalSurface()
+                    DroideBottomTool.Terminal -> TerminalSurface(showCreate = false)
                     DroideBottomTool.Problems -> ProblemsSheet(
                         files = files,
                         lsp = lsp,
@@ -937,7 +905,7 @@ fun IdeScreen(
             fun TopChrome(compactTop: Boolean) {
                 val hasOutput = androidOutputText.isNotBlank() || !runnerMsg.isNullOrBlank(); val busy = executionState.busy || androidOperation.running
                 DroideIdeHeader(
-                    state = DroideIdeHeaderState(projectName, activeFile, compactTop, adaptive.wideHeader, isChatVisible, imePresentation.landscape, workbenchPrefs.landscapeFocusMode, busy, workspaceEnvironment.kind == WorkspaceKind.ANDROID_GRADLE, deviceBridgeState.connected != null, hasOutput, lastAndroidApk?.isFile == true, executionState.busy, workbenchNavigation.navigatorState.visible, workbenchNavigation.navigatorState.positionFraction, workbenchNavigation.navigatorState.viewportFraction, workbenchNavigation.navigatorState.canScrollLeft, workbenchNavigation.navigatorState.canScrollRight, mcpHealth, terminalManager.canCreateTab, linuxSetupJob != null),
+                    state = DroideIdeHeaderState(projectName, activeFile, compactTop, adaptive.wideHeader, isChatVisible, imePresentation.landscape, workbenchPrefs.landscapeFocusMode, busy, workspaceEnvironment.kind == WorkspaceKind.ANDROID_GRADLE, deviceBridgeState.connected != null, hasOutput, lastAndroidApk?.isFile == true, executionState.busy, workbenchNavigation.navigatorState.visible, workbenchNavigation.navigatorState.positionFraction, workbenchNavigation.navigatorState.viewportFraction, workbenchNavigation.navigatorState.canScrollLeft, workbenchNavigation.navigatorState.canScrollRight, mcpHealth),
                     actions = DroideIdeHeaderActions(
                         onProjects = { drawer = true },
                         onRun = {
@@ -957,8 +925,6 @@ fun IdeScreen(
                         onInstallRun = { scope.launch { installAndRunAndroid() } },
                         onLogcat = { scope.launch { loadAndroidLogcat(presentAsSheet = !expanded) } },
                         onDeviceWorkstation = { runCatching { terminalManager.createDeviceWorkstation() }.onSuccess { openBottomTool(DroideBottomTool.Terminal) }.onFailure { scope.launch { snackbarHostState.showSnackbar(it.message ?: "Cannot open Device Workstation") } } },
-                        onLocalLinux = { openLinuxTerminal() },
-                        onQemuTerminal = { openLinuxTerminal(qemu = true) },
                         onAndroidDevelopment = { showAndroidDevelopment = true },
                         onQuickOpen = { showQuickOpen = true },
                         onSearchFiles = { if (expanded || isChatVisible) { sidebarToolName = DroideRailTool.Search.name; sidebarVisible = true } else { showSearch = true; workspaceTab = 0 } },
@@ -1178,8 +1144,8 @@ fun IdeScreen(
                         snackbarHostState.showSnackbar("Save failed for ${failure.first}: ${failure.second.message}")
                     }
                 }
-                "undo" -> launchUserAction { snackbarHostState.showSnackbar(agent.undoLast()) }
-                "compact" -> launchUserAction {
+                "undo" -> scope.launch { snackbarHostState.showSnackbar(agent.undoLast()) }
+                "compact" -> scope.launch {
                     val cfg = AgentPreferences.load(ctx)
                     if (cfg.model.isBlank()) {
                         snackbarHostState.showSnackbar("Select a validated model first")
@@ -1188,8 +1154,8 @@ fun IdeScreen(
                         snackbarHostState.showSnackbar(agent.compactCurrent(resolved))
                     }
                 }
-                else -> launchUserAction {
-                    val resolved = withContext(Dispatchers.IO) { commands.resolve(cmd.removePrefix("/"), "") } ?: cmd
+                else -> scope.launch {
+                    val resolved = commands.resolve(cmd.removePrefix("/"), "") ?: cmd
                     val cfg = AgentPreferences.load(ctx)
                     if (cfg.model.isBlank()) {
                         snackbarHostState.showSnackbar("Select a validated model first")
@@ -1216,12 +1182,10 @@ fun IdeScreen(
         if (showSettings) SettingsScreen(
             themes = themes, formatters = formatters, wordwrap = wordwrap, hardwareShortcuts = hardwareShortcuts,
             accessoryKeysComfortable = workbenchPrefs.accessoryKeysComfortable, codeStyleDefaults = workbenchPrefs.codeStyleDefaults, androidDevelopment = androidDevelopment,
-            codingKeyboardMode = workbenchPrefs.codingKeyboardMode,
             deviceBridge = deviceBridge, githubAccount = githubAccount, projectName = projectName, initialPermissionPolicy = agent.perms.policySnapshot(),
             onWordwrap = { enabled -> scope.launch { WorkbenchPreferences.setWordWrap(ctx, enabled) } },
             onHardwareShortcuts = { enabled -> scope.launch { WorkbenchPreferences.setHardwareShortcuts(ctx, enabled) } },
             onAccessoryKeysComfortable = { enabled -> scope.launch { WorkbenchPreferences.setAccessoryKeysComfortable(ctx, enabled) } },
-            onCodingKeyboardMode = { mode -> WorkbenchPreferences.setCodingKeyboardMode(ctx, mode) },
             onDetectIndentation = { enabled -> scope.launch { WorkbenchPreferences.setDetectIndentation(ctx, enabled) } },
             onIndentStyle = { style -> scope.launch { WorkbenchPreferences.setIndentStyle(ctx, style) } },
             onTabWidth = { value -> scope.launch { WorkbenchPreferences.setTabWidth(ctx, value) } },

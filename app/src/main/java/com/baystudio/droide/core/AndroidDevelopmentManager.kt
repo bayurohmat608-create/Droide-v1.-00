@@ -19,6 +19,14 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 
+
+
+
+
+
+
+
+
 class AndroidDevelopmentManager(
     private val context: Context,
     private val projectRoot: File,
@@ -28,21 +36,12 @@ class AndroidDevelopmentManager(
     private val syncFingerprintCache = WorkspaceSyncFingerprintCache()
     private val artifactCollector = AndroidBuildArtifactCollector(context.cacheDir, bridge)
     private val buildResourceGovernor = MobileBuildResourceGovernor(context)
-    private val localToolchainDiscovery = LocalAndroidToolchainDiscovery(context.applicationContext, projectRoot)
-    private val localBuildRunner = LocalAndroidBuildRunner(context.applicationContext, projectRoot)
-    private val longOperationJournal = LongRunningOperationJournal(
-        File(context.applicationContext.filesDir, "operation-journal"),
-        stableProjectId(projectRoot),
-        android.os.Process.myPid(),
-        currentProcessIdentity = LocalExecutionSubstrate.processIdentity(),
-    )
     private val gradleWrapperProbe = GradleWrapperRuntimeProbe(bridge)
     private val gradleReadOnlyCacheResolver = GradleReadOnlyDependencyCacheResolver(bridge)
     private val gradleDependencyProbe = GradleDependencyRuntimeProbe(bridge)
      
     private val workstationMutationMutex = Mutex()
     enum class Readiness { READY, BRIDGE_REQUIRED, TOOLCHAIN_REQUIRED, UNSUPPORTED }
-    enum class BuildBackend(val label: String) { LOCAL_UBUNTU("Local Ubuntu"), DEVICE_WORKSTATION("Device Workstation") }
 
     enum class OperationPhase {
         IDLE,
@@ -87,7 +86,6 @@ class AndroidDevelopmentManager(
         val minSdk: Int? = null,
         val toolchainVersion: String? = null,
         val message: String = "Checking Android development environment…",
-        val buildBackend: BuildBackend? = null,
     )
 
     @Serializable
@@ -199,14 +197,7 @@ class AndroidDevelopmentManager(
         userCandidatesProvider = { externalToolchainResolver.readAll().map { it.manifest } },
     )
     private val projectToolchainAuthority = AndroidProjectToolchainAuthority(projectRoot, toolchainSelector, ::verifyRemoteToolchainRequirements)
-    private val runtimeTemporaryRoot = File(context.applicationContext.filesDir, "runtime-tmp")
-    private val localApkInspector = LocalAndroidApkInspector(projectRoot, runtimeTemporaryRoot)
-    private val appRuntime = AndroidAppRuntimeController(
-        bridge = bridge,
-        manifestProvider = { projectToolchainAuthority.resolve().resolved?.manifest },
-        snapshots = AndroidRuntimeApkSnapshot(runtimeTemporaryRoot),
-        localPackageInspector = localApkInspector::inspect,
-    )
+    private val appRuntime = AndroidAppRuntimeController(bridge) { projectToolchainAuthority.resolve().resolved?.manifest }
 
     suspend fun remoteStorageUsage(): RemoteStorageUsage = withContext(Dispatchers.IO) {
         check(bridge.state.value.connected != null) { "Device bridge is not connected" }
@@ -265,71 +256,56 @@ class AndroidDevelopmentManager(
     }
 
     private suspend fun refreshInternal(): Status = withContext(Dispatchers.IO) {
-        val interrupted = longOperationJournal.reconcileInterrupted()
-        if (interrupted.any { it.kind == LongRunningOperationJournal.Kind.BUILD }) {
-            _operation.value = OperationState(
-                OperationPhase.FAILED,
-                "Previous Gradle build was interrupted when the Android process ended; no build is being claimed as still running.",
-            )
-        }
         val model = AndroidProjectDetector.detect(projectRoot)
         if (model == null) {
             return@withContext Status(androidProject = false, readiness = Readiness.UNSUPPORTED, message = "Not an Android Gradle project.")
                 .also { _status.value = it }
         }
-        val requirements = model.toolchainRequirements()
-        val local = localToolchainDiscovery.resolve(requirements, model.androidGradlePluginVersions)
-        local.snapshot?.let { snapshot ->
+        if (Build.VERSION.SDK_INT < 30) {
             return@withContext Status(
                 androidProject = true,
-                readiness = Readiness.READY,
+                readiness = Readiness.UNSUPPORTED,
                 packageName = model.packageName,
                 compileSdk = model.compileSdk,
                 targetSdk = model.targetSdk,
                 minSdk = model.minSdk,
-                toolchainVersion = snapshot.versionLabel,
-                message = "Ready · Local Ubuntu · JDK ${snapshot.javaVersion} · SDK ${snapshot.compileSdks.sorted().joinToString(",")}",
-                buildBackend = BuildBackend.LOCAL_UBUNTU,
+                message = "Build bridge requires Android 11+ Wireless Debugging.",
             ).also { _status.value = it }
         }
-
-        val remoteUnavailable = when {
-            Build.VERSION.SDK_INT < 30 -> "Device Workstation requires Android 11+ Wireless Debugging."
-            bridge.state.value.connected == null -> "Device Workstation is not connected."
-            else -> null
-        }
-        if (remoteUnavailable != null) {
+        val bridgeState = bridge.state.value
+        if (bridgeState.connected == null) {
             return@withContext Status(
                 androidProject = true,
-                readiness = Readiness.TOOLCHAIN_REQUIRED,
+                readiness = Readiness.BRIDGE_REQUIRED,
                 packageName = model.packageName,
                 compileSdk = model.compileSdk,
                 targetSdk = model.targetSdk,
                 minSdk = model.minSdk,
-                message = "Local Ubuntu: ${local.failure ?: "Android toolchain unavailable"} $remoteUnavailable",
+                message = "Pair this device in Android Development settings.",
             ).also { _status.value = it }
         }
-
-        val resolution = projectToolchainAuthority.resolve(requirements)
-        val manifest = resolution.resolved?.manifest
-        val next = if (manifest == null) {
-            Status(
-                androidProject = true, readiness = Readiness.TOOLCHAIN_REQUIRED, packageName = model.packageName,
-                compileSdk = model.compileSdk, targetSdk = model.targetSdk, minSdk = model.minSdk,
-                message = "Local Ubuntu: ${local.failure ?: "unavailable"}. Device Workstation: ${resolution.failure ?: "install or select a compatible Android toolchain"}.",
+        val resolution = projectToolchainAuthority.resolve(model.toolchainRequirements())
+        val resolved = resolution.resolved
+        val manifest = resolved?.manifest
+        val next = when {
+            manifest == null -> Status(
+                true, Readiness.TOOLCHAIN_REQUIRED, model.packageName, model.compileSdk, model.targetSdk, model.minSdk, null,
+                resolution.failure
+                    ?: "Install or select an Android toolchain.",
             )
-        } else {
-            Status(
-                androidProject = true, readiness = Readiness.READY, packageName = model.packageName,
-                compileSdk = model.compileSdk, targetSdk = model.targetSdk, minSdk = model.minSdk,
-                toolchainVersion = manifest.version,
-                message = "Ready · Device Workstation · JDK ${manifest.javaVersion} · SDK ${manifest.compileSdks.sorted().joinToString(",")}",
-                buildBackend = BuildBackend.DEVICE_WORKSTATION,
+            else -> Status(
+                true, Readiness.READY, model.packageName, model.compileSdk, model.targetSdk, model.minSdk, manifest.version,
+                "Ready · JDK ${manifest.javaVersion} · SDK ${manifest.compileSdks.sorted().joinToString(",")}",
             )
         }
         _status.value = next
         next
     }
+
+    
+
+
+
 
 
     suspend fun provision(pack: File, expectedSha256: String): String = workstationMutationMutex.withLock {
@@ -630,6 +606,11 @@ class AndroidDevelopmentManager(
         )
     }
 
+    
+
+
+
+
 
     suspend fun installedToolchainReceipt(): ToolchainInstallReceipt? = withContext(Dispatchers.IO) {
         check(bridge.state.value.connected != null) { "Device bridge is not connected" }
@@ -680,11 +661,14 @@ class AndroidDevelopmentManager(
             "LANG" to "en_US.UTF-8",
         )
 
+        
+
 
         val packageRegistry = ManagedPackageRegistry(context)
         runSuspendCatching { ManagedPackageInstaller(context, bridge, packageRegistry).reconcile() }
         val managedRecords = packageRegistry.list()
             .filter { it.scope == ExecutionScope.LOCAL_LINUX_ARM64.name }
+            .take(128)
         val workspaceToolchains = WorkspaceToolchainPreferences(context, projectRoot)
         workspaceToolchains.prune(managedRecords.map { it.familyId to it.version }.toSet())
         val selections = workspaceToolchains.selections()
@@ -694,6 +678,7 @@ class AndroidDevelopmentManager(
             if (runCatching { DeviceBridgeManager.requireSafeRemotePath(record.installRoot) }.isFailure) return
             val present = bridge.shell("test -d ${DeviceBridgeManager.shellQuote(record.installRoot)}")
             if (present.exitCode != 0) {
+                packageRegistry.remove(record.familyId, record.version)
                 return
             }
             val candidatePaths = record.pathEntries + record.commands.values.mapNotNull {
@@ -741,6 +726,7 @@ class AndroidDevelopmentManager(
                 pathEntries += manifest.sdkRoot.trimEnd('/') + "/platform-tools"
                 pathEntries += extraExecutableDirs
             }
+            
 
 
             environment.putIfAbsent("JAVA_HOME", manifest.javaHome)
@@ -770,177 +756,111 @@ class AndroidDevelopmentManager(
     suspend fun test(): BuildResult = build("test")
     suspend fun lint(): BuildResult = build("lintDebug")
 
-    suspend fun build(task: String, requiredBackend: BuildBackend? = null): BuildResult = workstationMutationMutex.withLock {
+    suspend fun build(task: String): BuildResult = workstationMutationMutex.withLock {
         withContext(Dispatchers.IO) {
-            GradleTaskPath.parse(task)
-            val model = AndroidProjectDetector.detect(projectRoot) ?: error("Android project model disappeared")
-            val operationLease = longOperationJournal.begin(LongRunningOperationJournal.Kind.BUILD, "Gradle $task")
-            try {
-                var localFailure: String? = null
-                val result = AndroidBuildRouting.execute(
-                    requiredBackend = requiredBackend,
-                    resolveLocal = {
-                        localToolchainDiscovery.resolve(model.toolchainRequirements(), model.androidGradlePluginVersions)
-                            .also { localFailure = it.failure }.snapshot
-                    },
-                    runLocal = { snapshot ->
-                        _status.value = Status(
-                            androidProject = true,
-                            readiness = Readiness.READY,
-                            packageName = model.packageName,
-                            compileSdk = model.compileSdk,
-                            targetSdk = model.targetSdk,
-                            minSdk = model.minSdk,
-                            toolchainVersion = snapshot.versionLabel,
-                            message = "Ready · Local Ubuntu · JDK ${snapshot.javaVersion} · SDK ${snapshot.compileSdks.sorted().joinToString(",")}",
-                            buildBackend = BuildBackend.LOCAL_UBUNTU,
-                        )
-                        val localResult = localBuildRunner.build(task, snapshot) { message ->
-                            _operation.value = OperationState(OperationPhase.BUILDING, message)
-                        }
-                        BuildResult(
-                            success = localResult.success,
-                            exitCode = localResult.exitCode,
-                            output = localResult.output,
-                            localArtifacts = localResult.artifacts,
-                            durationMs = localResult.durationMs,
-                            diagnostics = localResult.diagnostics,
-                        )
-                    },
-                    runDevice = {
-                        val localDetail = if (requiredBackend == BuildBackend.DEVICE_WORKSTATION) ""
-                            else "Local Ubuntu: ${localFailure ?: "Android toolchain unavailable"}. "
-                        check(Build.VERSION.SDK_INT >= 30) {
-                            "${localDetail}Device Workstation requires Android 11+."
-                        }
-                        check(bridge.state.value.connected != null) {
-                            "${localDetail}Device Workstation is not connected."
-                        }
-                        buildRemoteLocked(task, model)
-                    },
-                )
-                if (result.success) operationLease.complete("Gradle $task completed")
-                else operationLease.fail("Gradle $task exited ${result.exitCode}")
-                _operation.value = OperationState(
-                    if (result.success) OperationPhase.READY else OperationPhase.FAILED,
-                    if (result.success) "Gradle task $task completed." else "Gradle task $task failed (exit ${result.exitCode}).",
-                )
-                result
-            } catch (cancelled: CancellationException) {
-                operationLease.cancel("Gradle $task canceled")
-                _operation.value = OperationState(OperationPhase.CANCELED, "Gradle operation $task canceled.")
-                throw cancelled
-            } catch (error: Throwable) {
-                operationLease.fail((error.message ?: "Gradle operation failed").take(300))
-                _operation.value = OperationState(OperationPhase.FAILED, error.message ?: "Gradle operation failed")
-                throw error
-            }
-        }
-    }
-
-    private suspend fun buildRemoteLocked(task: String, projectModel: AndroidProjectModel): BuildResult {
+        GradleTaskPath.parse(task)
         val remoteWorkspace = "${DeviceBridgeManager.remoteRoot()}/workspaces/${stableProjectId(projectRoot)}"
-        return AndroidEphemeralBuildInputs.withSession(projectRoot, bridge, remoteWorkspace) { sensitiveInputs ->
-            var activeBuildLease: RemoteProcessLease? = null
-            try {
-                val wrapperDescriptor = GradleWrapperInspector.inspect(projectRoot)
-                bridge.ensureHealthyConnection()
-                ensureRemoteFreeSpace(MIN_BUILD_FREE_SPACE_BYTES, "build this project")
-                val requirements = projectModel.toolchainRequirements()
-                val gradleConfigurationFingerprint = GradleProjectConfigurationFingerprint.compute(projectRoot)
-                val candidates = toolchainSelector.resolveAll(requirements)
-                val selection = AndroidBuildToolchainChooser.select(candidates, onAttempt = { candidate ->
-                    _operation.value = OperationState(
-                        OperationPhase.BUILDING,
-                        "Device Workstation · checking ${candidate.source.label} ${candidate.manifest.version} · JDK ${candidate.manifest.javaVersion}…",
-                    )
-                }) { candidate ->
-                    val bound = AndroidToolchainProjectBinding.bind(candidate.manifest, requirements)
-                    syncWorkspace(remoteWorkspace, bound, forceContentHash = true)
-                    sensitiveInputs.push()
-                    val version = gradleWrapperProbe.ensureReady(remoteWorkspace, bound, wrapperDescriptor)
-                    val cache = gradleReadOnlyCacheResolver.resolve(version)
-                    _operation.value = OperationState(
-                        OperationPhase.BUILDING,
-                        "Device Workstation · resolving Gradle project with ${candidate.source.label} ${candidate.manifest.version}…",
-                    )
-                    gradleDependencyProbe.ensureReady(remoteWorkspace, bound, wrapperDescriptor, gradleConfigurationFingerprint, cache)
-                    version
-                }
-                val manifest = AndroidToolchainProjectBinding.bind(selection.manifest, requirements)
-                projectToolchainAuthority.bind(
-                    manifest,
-                    selection.manifest,
-                    selection.source,
-                    wrapperDescriptor.fingerprintSha256,
-                    gradleConfigurationFingerprint,
-                )
-                val runtimeGradleVersion = selection.runtimeGradleVersion
-                val readOnlyDependencyCache = gradleReadOnlyCacheResolver.resolve(runtimeGradleVersion)
-                val resourcePlan = buildResourceGovernor.plan()
-                val projectHints = GradleProjectPerformanceHints.read(projectRoot)
-                val maxWorkers = minOf(resourcePlan.maxWorkers, projectHints.maxWorkers ?: resourcePlan.maxWorkers).coerceAtLeast(1)
-                val daemonIdleMillis = minOf(resourcePlan.daemonIdleMillis, projectHints.daemonIdleMillis ?: resourcePlan.daemonIdleMillis)
-                val useBuildCache = resourcePlan.useBuildCache && projectHints.buildCacheEnabled != false
-                val useLowProcessPriority = projectHints.priority != "normal"
-                val allowPersistentGradleDaemon = resourcePlan.pressure == MobileBuildResourcePolicy.Pressure.NORMAL && projectHints.daemonEnabled == true
-                val start = System.currentTimeMillis()
-                val command = GradleBuildCommand.create(
-                    manifest = manifest,
-                    remoteWorkspace = remoteWorkspace,
-                    task = task,
-                    maxWorkers = maxWorkers,
-                    useBuildCache = useBuildCache,
-                    useLowProcessPriority = useLowProcessPriority,
-                    daemonIdleMillis = daemonIdleMillis,
-                    allowPersistentDaemon = allowPersistentGradleDaemon,
-                    readOnlyDependencyCache = readOnlyDependencyCache,
-                )
-                _operation.value = OperationState(
-                    OperationPhase.BUILDING,
-                    "Device Workstation · Gradle: $task · $maxWorkers worker${if (maxWorkers == 1) "" else "s"} · ${resourcePlan.pressure.name.lowercase()}${if (useBuildCache) " · cache" else ""}",
-                )
-                val lineBuffer = StringBuilder()
-                val buildLease = RemoteProcessLease.create("gradle-build")
-                activeBuildLease = buildLease
-                val r = bridge.shellStreaming(buildLease.wrap(command), maxOutputBytes = 1_500_000) { text, _ ->
-                    synchronized(lineBuffer) {
-                        lineBuffer.append(text)
-                        if (lineBuffer.length > 32_000) lineBuffer.delete(0, lineBuffer.length - 16_000)
-                        val latest = lineBuffer.lineSequence().lastOrNull { it.isNotBlank() }?.trim().orEmpty()
-                        latest.takeIf { it.startsWith("> Task ") }?.let { taskLine ->
-                            _operation.value = OperationState(OperationPhase.BUILDING, "Device Workstation · ${taskLine.removePrefix("> ").take(220)}")
-                        }
-                    }
-                }
-                withContext(kotlinx.coroutines.NonCancellable) {
-                    runSuspendCatching { bridge.shellBounded(buildLease.cleanupCommand(), maxOutputBytes = 8_192) }
-                }
-                activeBuildLease = null
-                val output = r.combined
-                val artifacts = if (r.exitCode == 0) artifactCollector.collect(remoteWorkspace, task, start) else emptyList()
-                val diagnostics = GradleProblemParser.parse(output, remoteWorkspace)
-                _status.value = _status.value.copy(buildBackend = BuildBackend.DEVICE_WORKSTATION)
-                BuildResult(
-                    success = r.exitCode == 0,
-                    exitCode = r.exitCode,
-                    output = output,
-                    localArtifacts = artifacts,
-                    durationMs = System.currentTimeMillis() - start,
-                    diagnostics = diagnostics,
-                )
-            } catch (cancelled: CancellationException) {
-                activeBuildLease?.let { terminateBuildLease(it) }
-                activeBuildLease = null
-                throw cancelled
-            } catch (error: Throwable) {
-                activeBuildLease?.let { terminateBuildLease(it) }
-                activeBuildLease = null
-                throw error
+        AndroidEphemeralBuildInputs.withSession(projectRoot, bridge, remoteWorkspace) { sensitiveInputs ->
+        var activeBuildLease: RemoteProcessLease? = null
+        try {
+        val wrapperDescriptor = GradleWrapperInspector.inspect(projectRoot)
+        
+
+        bridge.ensureHealthyConnection()
+        val current = refresh()
+        check(current.readiness == Readiness.READY) { current.message }
+        ensureRemoteFreeSpace(MIN_BUILD_FREE_SPACE_BYTES, "build this project")
+        val projectModel = AndroidProjectDetector.detect(projectRoot) ?: error("Android project model disappeared")
+        val requirements = projectModel.toolchainRequirements(); val gradleConfigurationFingerprint = GradleProjectConfigurationFingerprint.compute(projectRoot)
+        val candidates = toolchainSelector.resolveAll(requirements)
+        val selection = AndroidBuildToolchainChooser.select(candidates, onAttempt = { candidate ->
+            _operation.value = OperationState(OperationPhase.BUILDING, "Checking ${candidate.source.label} ${candidate.manifest.version} · JDK ${candidate.manifest.javaVersion}…")
+        }) { candidate ->
+            val bound = AndroidToolchainProjectBinding.bind(candidate.manifest, requirements)
+            syncWorkspace(remoteWorkspace, bound, forceContentHash = true)
+            sensitiveInputs.push()
+            val version = gradleWrapperProbe.ensureReady(remoteWorkspace, bound, wrapperDescriptor)
+            val cache = gradleReadOnlyCacheResolver.resolve(version)
+            _operation.value = OperationState(OperationPhase.BUILDING, "Resolving Gradle project with ${candidate.source.label} ${candidate.manifest.version}…")
+            gradleDependencyProbe.ensureReady(remoteWorkspace, bound, wrapperDescriptor, gradleConfigurationFingerprint, cache)
+            version
+        }
+        val manifest = AndroidToolchainProjectBinding.bind(selection.manifest, requirements)
+        projectToolchainAuthority.bind(manifest, selection.manifest, selection.source, wrapperDescriptor.fingerprintSha256, gradleConfigurationFingerprint)
+        val runtimeGradleVersion = selection.runtimeGradleVersion; val readOnlyDependencyCache = gradleReadOnlyCacheResolver.resolve(runtimeGradleVersion)
+        val resourcePlan = buildResourceGovernor.plan()
+        val projectHints = GradleProjectPerformanceHints.read(projectRoot)
+        val maxWorkers = minOf(resourcePlan.maxWorkers, projectHints.maxWorkers ?: resourcePlan.maxWorkers).coerceAtLeast(1)
+        val daemonIdleMillis = minOf(resourcePlan.daemonIdleMillis, projectHints.daemonIdleMillis ?: resourcePlan.daemonIdleMillis)
+        val useBuildCache = resourcePlan.useBuildCache && projectHints.buildCacheEnabled != false
+        val useLowProcessPriority = projectHints.priority != "normal"
+        
+
+
+
+        val allowPersistentGradleDaemon = resourcePlan.pressure == MobileBuildResourcePolicy.Pressure.NORMAL && projectHints.daemonEnabled == true
+        val start = System.currentTimeMillis()
+        val command = GradleBuildCommand.create(
+            manifest = manifest,
+            remoteWorkspace = remoteWorkspace,
+            task = task,
+            maxWorkers = maxWorkers,
+            useBuildCache = useBuildCache,
+            useLowProcessPriority = useLowProcessPriority,
+            daemonIdleMillis = daemonIdleMillis,
+            allowPersistentDaemon = allowPersistentGradleDaemon,
+            readOnlyDependencyCache = readOnlyDependencyCache,
+        )
+        _operation.value = OperationState(
+            OperationPhase.BUILDING,
+            "Gradle: $task · $maxWorkers worker${if (maxWorkers == 1) "" else "s"} · ${resourcePlan.pressure.name.lowercase()}${if (useBuildCache) " · cache" else ""}",
+        )
+        val lineBuffer = StringBuilder()
+        val buildLease = RemoteProcessLease.create("gradle-build")
+        activeBuildLease = buildLease
+        val r = bridge.shellStreaming(buildLease.wrap(command), maxOutputBytes = 1_500_000) { text, _ ->
+            synchronized(lineBuffer) {
+                lineBuffer.append(text)
+                if (lineBuffer.length > 32_000) lineBuffer.delete(0, lineBuffer.length - 16_000)
+                val latest = lineBuffer.lineSequence().lastOrNull { it.isNotBlank() }?.trim().orEmpty()
+                val taskLine = latest.takeIf { it.startsWith("> Task ") }
+                if (taskLine != null) _operation.value = OperationState(OperationPhase.BUILDING, taskLine.removePrefix("> ").take(240))
             }
         }
+        withContext(kotlinx.coroutines.NonCancellable) {
+            runSuspendCatching { bridge.shellBounded(buildLease.cleanupCommand(), maxOutputBytes = 8_192) }
+        }
+        activeBuildLease = null
+        val output = r.combined
+        val artifacts = if (r.exitCode == 0) artifactCollector.collect(remoteWorkspace, task, start) else emptyList()
+        val diagnostics = GradleProblemParser.parse(output, remoteWorkspace)
+        BuildResult(
+            success = r.exitCode == 0,
+            exitCode = r.exitCode,
+            output = output,
+            localArtifacts = artifacts,
+            durationMs = System.currentTimeMillis() - start,
+            diagnostics = diagnostics,
+        ).also { result ->
+            _operation.value = OperationState(
+                if (result.success) OperationPhase.READY else OperationPhase.FAILED,
+                if (result.success) "Gradle task $task completed." else "Gradle task $task failed (exit ${result.exitCode}).",
+            )
+        }
+        } catch (cancelled: CancellationException) {
+            activeBuildLease?.let { terminateBuildLease(it) }
+            activeBuildLease = null
+            _operation.value = OperationState(OperationPhase.CANCELED, "Gradle operation $task canceled.")
+            throw cancelled
+        } catch (error: Throwable) {
+            activeBuildLease?.let { terminateBuildLease(it) }
+            activeBuildLease = null
+            _operation.value = OperationState(OperationPhase.FAILED, error.message ?: "Gradle operation failed")
+            throw error
+        }
+        }
+        }
     }
-
     private suspend fun terminateBuildLease(lease: RemoteProcessLease) = withContext(kotlinx.coroutines.NonCancellable) {
         
 
@@ -952,11 +872,6 @@ class AndroidDevelopmentManager(
 
     suspend fun installAndRun(apk: File, packageName: String? = null): String =
         appRuntime.installAndRun(apk, packageName)
-
-    internal fun requireRuntimeConnection() {
-        check(Build.VERSION.SDK_INT >= 30) { "Android install/run/debug requires Wireless Debugging on Android 11+" }
-        check(bridge.state.value.connected != null) { "Pair and connect Device Workstation before Android install/run/debug" }
-    }
 
      
     suspend fun installAndLaunchForDebug(
@@ -1071,9 +986,11 @@ class AndroidDevelopmentManager(
             current[rel] = WorkspaceSyncManifest.Entry(identity.sha256, WorkspaceExecutablePolicy.projectedMode(projectRoot, file))
         }
 
+        // Drop cache entries for files no longer present so a later recreation cannot inherit a stale digest for the same relative path.
 
         syncFingerprintCache.retainOnly(current.keys)
 
+        
 
         val stale = previous.keys - current.keys
         stale.chunked(100).forEach { batch ->
@@ -1099,6 +1016,8 @@ class AndroidDevelopmentManager(
                 modeResolver = { WorkspaceExecutablePolicy.projectedMode(projectRoot, it) })
             current[rel] = WorkspaceSyncManifest.Entry(projection.sha256, projection.mode)
         }
+
+        
 
 
         if (manifest != null) {

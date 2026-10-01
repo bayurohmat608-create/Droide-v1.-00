@@ -44,26 +44,20 @@ internal object EditorTabRetention {
 
     suspend fun restoreDocuments(snapshot: EditorRecoverySnapshot, files: FileRepository, state: EditorWorkspaceState): List<String> {
         val recovered = mutableListOf<String>()
-        for (path in (snapshot.openFiles + snapshot.dirtyPaths).distinct()) {
+        for (path in (snapshot.openFiles + snapshot.dirtyBuffers.keys).distinct()) {
             val exists = runSuspendCatching { files.exists(path) }.getOrDefault(false)
-            if (!exists && path !in snapshot.dirtyPaths) continue
+            if (!exists && path !in snapshot.dirtyBuffers) continue
+            val doc = state.document(path)
+            doc.ensureLoaded(files)
+            snapshot.dirtyBuffers[path]?.let(doc::restoreUnsaved)
+            snapshot.selections[path]?.let { doc.captureSelection(it.start, it.end) }
+            if (path in snapshot.reviewFiles) doc.setReviewMode(true)
             recovered += path
         }
-        val visible = restore(snapshot.openFiles, recovered, snapshot.dirtyPaths, snapshot.activeFile)
-        for (path in visible) {
-            val doc = state.document(path)
-            val deferred = snapshot.deferredBuffers[path]
-            if (deferred != null) doc.restoreDeferred(deferred, snapshot.selections[path], path in snapshot.reviewFiles)
-            else if (path in snapshot.dirtyBuffers) {
-                doc.ensureLoaded(files)
-                doc.restoreUnsaved(snapshot.dirtyBuffers.getValue(path))
-                snapshot.selections[path]?.let { doc.captureSelection(it.start, it.end) }
-                if (path in snapshot.reviewFiles) doc.setReviewMode(true)
-            }
-        }
-        return visible
+        return restore(snapshot.openFiles, recovered, snapshot.dirtyBuffers.keys, snapshot.activeFile)
     }
 
+     
     fun restore(
         openTabs: List<String>, recoveredPaths: List<String>, dirtyPaths: Set<String>, activePath: String = "",
     ): List<String> {

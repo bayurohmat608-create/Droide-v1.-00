@@ -14,11 +14,14 @@ val releaseKeyPassword = providers.gradleProperty("DROIDE_KEY_PASSWORD").orNull 
 val hasReleaseSigning = listOf(releaseKeystorePath, releaseKeystorePassword, releaseKeyAlias, releaseKeyPassword).all { !it.isNullOrBlank() }
 
 
+
 val githubOAuthClientId = (providers.gradleProperty("DROIDE_GITHUB_OAUTH_CLIENT_ID").orNull
     ?: System.getenv("DROIDE_GITHUB_OAUTH_CLIENT_ID")).orEmpty().trim()
 require(githubOAuthClientId.isEmpty() || Regex("[A-Za-z0-9._-]{8,128}").matches(githubOAuthClientId)) {
     "DROIDE_GITHUB_OAUTH_CLIENT_ID has an invalid format"
 }
+
+
 
 
 val githubAccountClientId = (providers.gradleProperty("DROIDE_GITHUB_ACCOUNT_CLIENT_ID").orNull
@@ -36,6 +39,8 @@ val githubAccountExchangeUrl = (providers.gradleProperty("DROIDE_GITHUB_ACCOUNT_
 require(githubAccountExchangeUrl.isEmpty() || Regex("https://[^\\s?#]+(?:/[^\\s?#]*)?").matches(githubAccountExchangeUrl)) {
     "DROIDE_GITHUB_ACCOUNT_EXCHANGE_URL must be an HTTPS URL without query or fragment"
 }
+
+
 
 
 val defaultGithubAccountRedirectUri = "com.baystudio.droide.oauth://github/callback"
@@ -134,7 +139,7 @@ android {
         jniLibs {
             
             useLegacyPackaging = true
-            keepDebugSymbols += setOf("**/libdroide_proot.so", "**/libproot-loader.so", "**/libproot-loader32.so", "**/libdroide_cli.so")
+            keepDebugSymbols += setOf("**/libdroide_proot.so", "**/libproot-loader.so", "**/libproot-loader32.so")
         }
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -172,6 +177,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.2")
 
+    
+
 
     implementation("io.github.rosemoe:editor:0.24.6")
     implementation("io.github.rosemoe:language-textmate:0.24.6")
@@ -184,12 +191,15 @@ dependencies {
     implementation("com.baystudio.compat:kadb-android-compat:2.1.4")
     implementation("com.baystudio.compat:kadb-mdns-android-compat:2.1.4")
 
+    
+
 
     implementation("org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r")
     implementation("androidx.documentfile:documentfile:1.1.0")
 
     testImplementation("junit:junit:4.13.2")
 
+    
 
     implementation("org.jsoup:jsoup:1.18.1")
     

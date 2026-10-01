@@ -12,7 +12,13 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-// Keep serialized names stable for backward compatibility.
+// dark / light are retained as the serialized field names for backward compatibility with existing .droide/theme.json custom-theme payloads.
+
+
+
+
+
+
 
 
 @Serializable

@@ -16,7 +16,6 @@ data class AndroidProjectModel(
     val buildToolsVersions: Set<String> = buildToolsVersion?.let(::setOf).orEmpty(),
     val ndkVersions: Set<String> = ndkVersion?.let(::setOf).orEmpty(),
     val cmakeVersions: Set<String> = cmakeVersion?.let(::setOf).orEmpty(),
-    val androidGradlePluginVersions: Set<String> = emptySet(),
 ) {
     fun toolchainRequirements(): AndroidToolchainRequirements = AndroidToolchainRequirements(
         compileSdk = compileSdk,
@@ -43,7 +42,6 @@ data class AndroidToolchainRequirements(
     val buildToolsVersions: Set<String> = buildToolsVersion?.let(::setOf).orEmpty(),
     val ndkVersions: Set<String> = ndkVersion?.let(::setOf).orEmpty(),
     val cmakeVersions: Set<String> = cmakeVersion?.let(::setOf).orEmpty(),
-    val androidGradlePluginVersions: Set<String> = emptySet(),
 ) {
     val effectiveCompileSdks: Set<Int> get() = compileSdks + listOfNotNull(compileSdk)
     val effectiveBuildToolsVersions: Set<String> get() = buildToolsVersions + listOfNotNull(buildToolsVersion)
@@ -138,16 +136,6 @@ object AndroidProjectDetector {
         val minSdks = intValues("minSdk") ?: return null
         val buildToolsVersions = versionValues("buildToolsVersion") ?: return null
         val ndkVersions = versionValues("ndkVersion") ?: return null
-        val androidGradlePluginVersions = buildTexts.indices.asSequence()
-            .flatMap { index ->
-                ANDROID_PLUGIN_VERSION.findAll(buildTexts[index])
-                    .filter { codeTexts[index].startsWith("id", it.range.first) }
-                    .map { it.groupValues[1] }
-            }
-            .distinct()
-            .take(MAX_COMPONENT_REQUIREMENTS + 1)
-            .toSet()
-        if (androidGradlePluginVersions.size > MAX_COMPONENT_REQUIREMENTS) return null
         val cmakeMarker = Regex("""\b(?:externalNativeBuild\s*\{[\s\S]*?cmake\s*\{|cmake\s*\{)""")
         val nativeMarker = Regex("""\b(?:externalNativeBuild|ndkVersion)""")
         val cmakeBuild = codeTexts.any(cmakeMarker::containsMatchIn) || safeRootFileExists(safeRoot, "CMakeLists.txt")
@@ -174,7 +162,6 @@ object AndroidProjectDetector {
             buildToolsVersions = buildToolsVersions,
             ndkVersions = ndkVersions,
             cmakeVersions = cmakeVersions,
-            androidGradlePluginVersions = androidGradlePluginVersions,
         )
     }
 
@@ -275,8 +262,5 @@ object AndroidProjectDetector {
     private const val MAX_COMPONENT_REQUIREMENTS = 128
     private val SKIP_DIRS = setOf(".git", ".gradle", "build", ".droide")
     private val ANDROID_PLUGIN_CALL = Regex("""\bid\s*(?:\(\s*)?["'](?:com\.android\.application|com\.android\.library|com\.android\.dynamic-feature)["']""")
-    private val ANDROID_PLUGIN_VERSION = Regex(
-        """\bid\s*(?:\(\s*)?["'](?:com\.android\.application|com\.android\.library|com\.android\.dynamic-feature)["']\s*\)?\s*version\s*(?:\(\s*)?["']([0-9][A-Za-z0-9+_.-]{0,79})["']"""
-    )
     private val ANDROID_BLOCK = Regex("""\bandroid\s*\{""")
 }

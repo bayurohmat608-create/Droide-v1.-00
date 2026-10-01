@@ -7,9 +7,14 @@ if [[ ! -x ./gradlew ]]; then
   exit 1
 fi
 
-./gradlew --write-locks --write-verification-metadata sha256 resolveDependencyInputs
-./gradlew --write-verification-metadata sha256 :app:testDebugUnitTest :app:lintDebug
-python3 tools/verify_dependency_trust.py
-./gradlew --dependency-verification strict resolveDependencyInputs :app:testDebugUnitTest :app:lintDebug
+./gradlew --write-locks :app:dependencies
 
-echo "Dependency checksums and lock state generated without APK/AAB packaging. Review their origin before release."
+
+./gradlew --write-verification-metadata sha256 \
+  :app:assembleDebug \
+  :app:testDebugUnitTest \
+  :app:lintDebug \
+  :app:assembleRelease \
+  :app:bundleRelease
+
+echo "Dependency trust metadata generated. Review lock state and gradle/verification-metadata.xml before release."

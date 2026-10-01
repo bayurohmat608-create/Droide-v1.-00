@@ -28,7 +28,7 @@ class ProviderModelIdentityTest {
             """{"messages":[]}""",
             """{"model":null,"messages":[]}""",
             """{"model":123,"messages":[]}""",
-            """{"model":"bad\u000amodel","messages":[]}""",
+            """{"model":"bad\\u000amodel","messages":[]}""",
         ).forEach { body ->
             assertTrue(runCatching { ProviderModelRequestIdentity.canonicalize(body, json) }.isFailure)
         }

@@ -5,6 +5,10 @@ import java.security.MessageDigest
 // Installation/repair is possible only for entries that the normal Extensions subsystem already marks AVAILABLE/INSTALLED.
 
 
+
+
+
+
 class AgentToolchainActions(
     private val extensions: DevelopmentExtensionsManager,
 ) {
@@ -47,11 +51,7 @@ class AgentToolchainActions(
             "${item.family.name} ${item.version.version} is ${item.state.name.lowercase()}, not installable: ${item.detail}"
         }
         val plan = extensions.installer.prepare(item)
-        val needsLicense = when (plan) {
-            is ExtensionInstallPlan.Android -> !plan.licenseAccepted
-            is ExtensionInstallPlan.AndroidLocalComponent -> !plan.licenseAccepted
-            else -> false
-        }
+        val needsLicense = plan is ExtensionInstallPlan.Android && !plan.licenseAccepted
         val preview = buildString {
             appendLine("Install managed toolchain/runtime")
             appendLine("${plan.familyName} ${plan.requestedVersion}")
@@ -59,26 +59,9 @@ class AgentToolchainActions(
             appendLine("Scope: ${item.version.scope.name.lowercase()}")
             appendLine("Components:")
             plan.components.take(32).forEach { appendLine("• ${it.take(300)}") }
-            when (plan) {
-                is ExtensionInstallPlan.Android -> {
-                    appendLine("Android SDK license SHA-256: ${plan.license.sha256}")
-                    appendLine("License accepted: ${plan.licenseAccepted}")
-                }
-                is ExtensionInstallPlan.AndroidLocalComponent -> {
-                    appendLine("Artifact: ${plan.entry.fileName}")
-                    appendLine("Artifact SHA-256: ${plan.entry.sha256}")
-                    appendLine("Upstream SHA-1: ${plan.entry.upstreamSha1}")
-                    appendLine("Ubuntu target: ${LocalAndroidSdkComponentEnvironment.GUEST_SDK_ROOT}/${plan.entry.guestTarget}")
-                    if (plan.entry.nativeTools.isNotEmpty()) {
-                        appendLine("ARM64 native overlays:")
-                        plan.entry.nativeTools.sortedBy { it.name }.forEach { tool ->
-                            appendLine("  ${tool.name}: sha256:${tool.sha256}")
-                        }
-                    }
-                    appendLine("Android SDK license SHA-256: ${plan.license.sha256}")
-                    appendLine("License accepted: ${plan.licenseAccepted}")
-                }
-                else -> Unit
+            if (plan is ExtensionInstallPlan.Android) {
+                appendLine("Android SDK license SHA-256: ${plan.license.sha256}")
+                appendLine("License accepted: ${plan.licenseAccepted}")
             }
             appendLine("Droide will install only artifacts/recipes already admitted by its certified/reviewed provider pipeline.")
         }.take(8_000)
@@ -92,10 +75,9 @@ class AgentToolchainActions(
         }
         
         
-        val result = extensions.unifiedAuthority.installPrepared(prepared.plan)
-        if (!result.success) return "TOOLCHAIN_INSTALL_RESULT\nsuccess=false\nmessage=${result.message.take(6_000)}"
+        val result = extensions.unifiedAuthority.install(prepared.item.family.id, prepared.item.version.version)
         
-        val refreshed = extensions.unifiedAuthority.info(prepared.plan.familyId, prepared.plan.resolvedVersion)
+        val refreshed = extensions.unifiedAuthority.info(prepared.item.family.id, prepared.item.version.version)
         require(refreshed?.state == "active" || refreshed?.state == "inactive") {
             "Managed install returned but unified authority did not prove INSTALLED: state=${refreshed?.state}"
         }
@@ -113,7 +95,6 @@ class AgentToolchainActions(
         require(item.state == ExtensionState.INSTALLED) { "Only Droide-managed installed packages can be repaired" }
         require(item.version.installKind in setOf(
             ExtensionInstallKind.ANDROID_MANAGED_TOOLCHAIN,
-            ExtensionInstallKind.ANDROID_LOCAL_COMPONENT,
             ExtensionInstallKind.MANAGED_PACKAGE,
             ExtensionInstallKind.GUEST_PACKAGE,
             ExtensionInstallKind.REVIEWED_RECIPE,
@@ -124,8 +105,7 @@ class AgentToolchainActions(
 
     suspend fun repair(item: ExtensionVersionState): String {
         
-        val result = extensions.unifiedAuthority.repairVersion(item.family.id, item.version.version)
-        if (!result.success) return "TOOLCHAIN_REPAIR_RESULT\nsuccess=false\nmessage=${result.message.take(6_000)}"
+        val result = extensions.unifiedAuthority.repair(item.family.id)
         
         val refreshed = extensions.unifiedAuthority.info(item.family.id, item.version.version)
         require(refreshed?.state == "active" || refreshed?.state == "inactive") {
@@ -140,7 +120,7 @@ class AgentToolchainActions(
         require(item.state == ExtensionState.INSTALLED) { "Install the managed package before selecting it for this workspace" }
         
         
-        val result = extensions.unifiedAuthority.activate(item.family.id, item.version.version, workspaceId ?: extensions.workspaceId)
+        val result = extensions.unifiedAuthority.activate(item.family.id, item.version.version, workspaceId)
         
         return "TOOLCHAIN_WORKSPACE_SELECTION family=${item.family.id} version=${item.version.version} status=${if (result.success) "selected" else "failed"} message=${result.message}"
     }

@@ -41,39 +41,29 @@ class Runner(
     suspend fun runFile(relPath: String): String = withContext(Dispatchers.IO) {
         when (val resolved = resolveFilePlan(relPath)) {
             is FilePlanResolution.Error -> "Runner: ${resolved.message}"
-            is FilePlanResolution.Ready -> executePlan(resolved.plan, 30_000).output
+            is FilePlanResolution.Ready -> executePlan(resolved.plan, 30_000)
         }
     }
 
      
-    suspend fun runPlan(plan: RunPlan, timeoutMs: Long = 120_000): String = runPlanResult(plan, timeoutMs).output
-
-    internal suspend fun runPlanResult(plan: RunPlan, timeoutMs: Long = 120_000): RunnerExecutionResult = withContext(Dispatchers.IO) {
+    suspend fun runPlan(plan: RunPlan, timeoutMs: Long = 120_000): String = withContext(Dispatchers.IO) {
         require(timeoutMs in 1_000L..15L * 60_000L) { "Invalid tool timeout" }
         executePlan(plan, timeoutMs)
     }
 
-    private suspend fun executePlan(plan: RunPlan, timeoutMs: Long): RunnerExecutionResult {
-        if (plan.steps.isEmpty() || plan.steps.any { it.isEmpty() }) {
-            return RunnerExecutionResult("Runner: run plan contains no executable command")
-        }
-        val runDirectory = PathSecurity.resolveWithin(workDir, ".droide/run")
-        check(runDirectory.mkdirs() || runDirectory.isDirectory) { "Could not prepare run directory" }
+    private suspend fun executePlan(plan: RunPlan, timeoutMs: Long): String {
+        PathSecurity.resolveWithin(workDir, ".droide/run").mkdirs()
         if (terminal is DevicePtySessionHandle) {
             terminal.refreshWorkspace()
             val prepare = terminal.execArgv(listOf("mkdir", "-p", ".droide/run"))
             if (prepare.exitCode != 0) {
-                return RunnerExecutionResult("Runner: could not prepare remote run directory\n${prepare.output.take(8_000)}")
+                return "Runner: could not prepare remote run directory\n${prepare.output.take(8_000)}"
             }
         }
         val out = StringBuilder("▶ ${plan.display}\n")
-        var lastExit: Int? = null
-        var timedOut = false
         for (originalStep in plan.steps) {
             val step = resolveCompilerAlias(originalStep)
             val r = terminal.execArgv(step, timeoutMs = timeoutMs)
-            lastExit = r.exitCode
-            timedOut = r.timedOut
             out.append("exit=${r.exitCode}\n${r.output.take(8_000)}\n")
             if (r.exitCode != 0 || r.timedOut) {
                 if (r.exitCode in setOf(-1, 126, 127)) {
@@ -83,7 +73,7 @@ class Runner(
                 break
             }
         }
-        return RunnerExecutionResult(out.toString().take(16_000), lastExit, timedOut, processStarted = true)
+        return out.toString().take(16_000)
     }
 
     private suspend fun resolveCompilerAlias(step: List<String>): List<String> {

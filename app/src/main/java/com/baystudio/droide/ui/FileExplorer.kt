@@ -99,6 +99,7 @@ fun FileExplorer(
                     page.nextCursor?.let { cursors[path] = it }
                 }
             }
+            
 
 
             children.keys.filterNot(next::containsKey).forEach { children.remove(it) }
@@ -172,7 +173,7 @@ fun FileExplorer(
                 err = null
                 importUi = ExplorerImportUiState("Selected file", StreamWriteProgress(StreamWritePhase.PREPARING))
                 try {
-                // Keep UI and native ownership work on the main thread.
+                // Keep both off the main thread so selecting a large/remote file cannot freeze the Compose frame loop before FileRepository's streaming copy even starts.
 
 
                 val source = withContext(Dispatchers.IO) {

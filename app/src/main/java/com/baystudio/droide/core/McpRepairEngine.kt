@@ -14,6 +14,21 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
+// The Agent must run verify/retry afterwards and receive a healthy tools/list result before claiming the MCP server is fixed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class McpRepairEngine(
     private val workDir: File,

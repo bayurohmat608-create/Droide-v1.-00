@@ -3,6 +3,11 @@ import kotlinx.serialization.json.*
 import kotlinx.coroutines.CancellationException
 
 
+
+
+
+
+
  
 data class AgentToolProgress(
     val outputDelta: String = "",
@@ -404,13 +409,14 @@ object AgentTools {
             }
             "environment_probe" -> AgentEnvironmentProbe.run(args, c)
             "ide" -> {
-                val request = AgentIdeRequest.parse(args)
+                val operation = args["operation"]?.jsonPrimitive?.contentOrNull ?: "status"
                 val actions = c.ideActions ?: return "ERROR: IDE action manager unavailable in this Agent context"
-                gate("ide_execute", request.permissionResource, c)?.let { return it }
-                c.onProgress(AgentToolProgress(detail = "IDE ${request.operation.replace('_', ' ')}"))
-                if (request.usesDisk) c.diskBacked("ide:${request.operation}", reconcileAfter = request.reconcileAfter) {
-                    actions.execute(request)
-                } else actions.execute(request)
+                gate("ide_execute", if (operation == "run_file") "$operation:${args["path"]?.jsonPrimitive?.contentOrNull.orEmpty()}" else operation, c)?.let { return it }
+                if (operation == "status") actions.execute(operation, args["path"]?.jsonPrimitive?.contentOrNull)
+                else c.diskBacked("ide:$operation", reconcileAfter = operation in setOf("run_file", "test")) {
+                    c.onProgress(AgentToolProgress(detail = "IDE ${operation.replace('_', ' ')}"))
+                    actions.execute(operation, args["path"]?.jsonPrimitive?.contentOrNull)
+                }
             }
             "undo_agent_edit" -> {
                 gate("edit", "agent-history:last", c)?.let { return it }
@@ -684,7 +690,7 @@ object AgentTools {
                 val op = args["operation"]?.jsonPrimitive?.contentOrNull ?: "read"
                 val url = args["url"]?.jsonPrimitive?.contentOrNull
                 val currentUrl = controller.currentUrl()
-                val effectiveUrl = AgentRepairCompletionPolicy.browserPermissionTarget(op, url, currentUrl)
+                val effectiveUrl = url ?: currentUrl
                 if (op in setOf("open", "navigate", "read", "status", "back", "reload", "wait", "screenshot")) {
                     gate("webfetch", effectiveUrl.ifBlank { "browser:$op" }, c)?.let { return it }
                 }
@@ -697,7 +703,6 @@ object AgentTools {
                 controller.execute(
                     operation = op,
                     url = url,
-                    expectedCurrentUrl = effectiveUrl.takeIf { op !in setOf("open", "navigate") },
                     target = args["target"]?.jsonPrimitive?.contentOrNull,
                     text = args["text"]?.jsonPrimitive?.contentOrNull,
                     submit = args["submit"]?.jsonPrimitive?.booleanOrNull ?: false,
@@ -745,6 +750,8 @@ object AgentTools {
     }
 
     // pre-execution containment permission order.
+
+
 
 
     private suspend fun shellContainmentGate(command: String, c: Ctx): String? {

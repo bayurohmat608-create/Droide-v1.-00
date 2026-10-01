@@ -16,55 +16,49 @@ import kotlinx.coroutines.withContext
 internal class AndroidAppRuntimeController(
     private val bridge: DeviceBridgeManager,
     private val manifestProvider: suspend () -> AndroidDevelopmentManager.ToolchainManifest?,
-    private val snapshots: AndroidRuntimeApkSnapshot,
-    private val localPackageInspector: suspend (File) -> String?,
 ) {
     @Volatile private var lastRuntimePackage: String? = null
 
-    suspend fun installAndRun(apk: File, expectedPackageName: String? = null): String = snapshots.withSnapshot(apk) { snapshot ->
-        val pkg = resolveAndValidate(snapshot, expectedPackageName)
-        bridge.install(snapshot, replace = true)
+    suspend fun installAndRun(apk: File, expectedPackageName: String? = null): String {
+        val pkg = resolveAndValidate(apk, expectedPackageName)
+        bridge.install(apk, replace = true)
         val launch = bridge.launch(pkg)
         check(launch.exitCode == 0) { launch.combined }
         lastRuntimePackage = pkg
-        "Installed and launched $pkg"
+        return "Installed and launched $pkg"
     }
 
     suspend fun installAndLaunchForDebug(
         apk: File,
         expectedPackageName: String? = null,
         waitTimeoutMs: Long = 12_000,
-    ): AndroidDevelopmentManager.DebugLaunchResult = snapshots.withSnapshot(apk) { snapshot ->
-        val pkg = resolveAndValidate(snapshot, expectedPackageName)
+    ): AndroidDevelopmentManager.DebugLaunchResult {
+        val pkg = resolveAndValidate(apk, expectedPackageName)
         require(waitTimeoutMs in 2_000..30_000) { "Invalid debugger wait timeout" }
-        bridge.install(snapshot, replace = true)
+        bridge.install(apk, replace = true)
         runSuspendCatching { bridge.forceStop(pkg) }
-        AndroidDebugLaunchGuard.run(stopOnFailure = {
-            val stopped = bridge.forceStop(pkg)
-            check(stopped.exitCode == 0) { stopped.combined }
-        }) {
-            val launch = bridge.launchDebuggable(pkg, suspendAtStart = true)
-            check(launch.exitCode == 0) { launch.combined }
-            lastRuntimePackage = pkg
-            val deadline = System.nanoTime() + waitTimeoutMs * 1_000_000
-            var lastPid: Int? = null
-            while (System.nanoTime() < deadline) {
-                val pid = bridge.pidOf(pkg)
-                if (pid != null) {
-                    lastPid = pid
-                    val debuggable = runSuspendCatching { bridge.jdwpPids(timeoutMs = 1_500) }.getOrDefault(emptyList())
-                    if (pid in debuggable) {
-                        return@run AndroidDevelopmentManager.DebugLaunchResult(
-                            pkg,
-                            pid,
-                            "Launched $pkg suspended for debugger attach (PID $pid)",
-                        )
-                    }
+        val launch = bridge.launchDebuggable(pkg, suspendAtStart = true)
+        check(launch.exitCode == 0) { launch.combined }
+        lastRuntimePackage = pkg
+        val deadline = System.currentTimeMillis() + waitTimeoutMs
+        var lastPid: Int? = null
+        while (System.currentTimeMillis() < deadline) {
+            val pid = bridge.pidOf(pkg)
+            if (pid != null) {
+                lastPid = pid
+                val debuggable = runSuspendCatching { bridge.jdwpPids(timeoutMs = 1_500) }.getOrDefault(emptyList())
+                if (pid in debuggable) {
+                    return AndroidDevelopmentManager.DebugLaunchResult(
+                        pkg,
+                        pid,
+                        "Launched $pkg suspended for debugger attach (PID $pid)",
+                    )
                 }
-                delay(150)
             }
-            error("$pkg launched but did not expose JDWP within ${waitTimeoutMs}ms" + (lastPid?.let { " (PID $it)" } ?: ""))
+            delay(150)
         }
+        runSuspendCatching { bridge.forceStop(pkg) }
+        error("$pkg launched but did not expose JDWP within ${waitTimeoutMs}ms" + (lastPid?.let { " (PID $it)" } ?: ""))
     }
 
     suspend fun stopApp(packageName: String? = null) {
@@ -97,10 +91,6 @@ internal class AndroidAppRuntimeController(
     }
 
     private suspend fun resolvePackageName(apk: File): String {
-        return AndroidApkInspectionPolicy.inspect(apk, localPackageInspector, ::resolveWorkstationPackageName)
-    }
-
-    private suspend fun resolveWorkstationPackageName(apk: File): String {
         require(apk.isFile && apk.extension.equals("apk", ignoreCase = true)) { "APK not found: ${apk.path}" }
         val manifest = manifestProvider() ?: error("Verified Android toolchain is unavailable")
         val remoteDir = "${DeviceBridgeManager.remoteRoot()}/tmp/apk-inspect/${UUID.randomUUID()}"
@@ -120,7 +110,11 @@ internal class AndroidAppRuntimeController(
             check(result.exitCode == 0 && !result.truncated) {
                 "AAPT2 could not inspect the built APK: ${result.combined}"
             }
-            return AndroidApkInspectionPolicy.packageName(result.stdout)
+            val lines = result.stdout.lineSequence().map(String::trim).filter(String::isNotBlank).toList()
+            require(lines.size == 1) { "AAPT2 returned an ambiguous package-name response" }
+            val pkg = lines.single()
+            DeviceBridgeManager.requirePackageName(pkg)
+            return pkg
         } finally {
             withContext(NonCancellable) {
                 runSuspendCatching {

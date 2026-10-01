@@ -203,7 +203,7 @@ class ReviewedGitHubReleaseInstaller(
     context: Context,
     private val bridge: DeviceBridgeManager,
     private val packageInstaller: ManagedPackageInstaller,
-    private val downloader: UserInitiatedArtifactTransfer = UserInitiatedArtifactTransfer(context.applicationContext),
+    private val downloader: TrustedArtifactDownloader = TrustedArtifactDownloader(context.applicationContext),
     private val environment: ReviewedGuestExecutionEnvironment = AlpineReviewedGuestEnvironment(context.applicationContext),
 ) {
     private val json = Json { ignoreUnknownKeys = false; prettyPrint = true }

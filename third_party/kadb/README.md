@@ -9,4 +9,4 @@ Runtime supporting artifacts are pinned under `third_party/maven`: Okio 3.17.0, 
 Kadb is Apache-2.0 licensed. The Droide SPAKE2 compatibility component is separately BSD-3-Clause and retains complete source, license, deterministic vectors, and provenance references. Preserve all upstream/component notices and source references when redistributing.
 
 ---
-Integration metadata synchronized with the reviewed Kadb compatibility baseline.
+Synchronized with the Droide 4.6.2 R6 Professional Workbench documentation checkpoint on 2026-09-16.

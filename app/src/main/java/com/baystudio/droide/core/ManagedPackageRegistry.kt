@@ -26,11 +26,14 @@ data class ManagedPackageRecord(
 )
 
 
+ 
 internal object ManagedPackageMutationGate {
     val mutex = Mutex()
 }
 
-// Persisted state remains the source of truth.
+// The files on disk remain the source of truth; this registry records ownership/version metadata so uninstall and environment resolution can be deterministic.
+
+
 
 
 class ManagedPackageRegistry(context: Context) {

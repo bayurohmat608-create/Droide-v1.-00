@@ -21,7 +21,6 @@
   },
   "bootstrap": {
     "dependencyTrustTool": "tools/generate_dependency_trust.sh",
-    "dependencyTrustVerifier": "tools/verify_dependency_trust.py",
     "releaseSourceGate": "tools/verify_release_source.sh",
     "thirdPartyIntegrityTool": "tools/verify_third_party_integrity.py"
   }

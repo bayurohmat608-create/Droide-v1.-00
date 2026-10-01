@@ -1,8 +1,8 @@
 package com.baystudio.droide.core
 
-import org.junit.Test
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import kotlin.test.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class OAuthAttemptCommitFenceTest {
     @Test

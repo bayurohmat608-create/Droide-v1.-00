@@ -34,6 +34,10 @@ internal data class ModelsDevCatalogSnapshot(
 // models.dev catalog bridge with bounded parsing, atomic cache replacement and conditional refresh.
 
 
+
+
+
+
 object ModelsDevCatalog {
     private val _revision = MutableStateFlow(0L)
      
@@ -227,6 +231,9 @@ object ModelsDevCatalog {
         val authScheme: ProviderAuthScheme,
         val note: String,
     )
+
+    
+
 
 
     private fun catalogRoute(id: String, npm: String): CatalogRoute? {

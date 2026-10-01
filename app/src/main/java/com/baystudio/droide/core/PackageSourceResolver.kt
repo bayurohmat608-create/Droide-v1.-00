@@ -6,7 +6,12 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
-// Commit durable state only after verification succeeds.
+// the referenced API is deliberately explicit so Extensions never turns an official upstream URL into a fake Install button before a transactional backend exists.
+
+
+
+
+
 
 
 @Serializable

@@ -55,7 +55,7 @@ class AndroidBuildArtifactCollectorTest {
         } finally { cache.deleteRecursively() }
     }
 
-    @Test fun artifactCountOverflowIsRejected(): Unit = runBlocking {
+    @Test fun artifactCountOverflowIsRejected() = runBlocking {
         val cache = Files.createTempDirectory("droide-artifact-test").toFile()
         try {
             val listing = (0..40).joinToString("\n") { i -> "$workspace/module$i/build/outputs/apk/debug/module$i-debug.apk" }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "foundry-local-jdk-2026-09-30",
+  "revision": "release-v1.00-foundry-all-installable",
   "packages": [
     {
       "familyId": "build.bazel",
@@ -1357,71 +1357,6 @@
       ]
     },
     {
-      "familyId": "toolchain.jdk",
-      "provider": "VENDOR_OFFICIAL",
-      "packageName": "Eclipse Temurin JDK",
-      "command": "java",
-      "provenanceUrl": "https://github.com/adoptium/temurin17-binaries/releases/tag/jdk-17.0.20.1%2B1",
-      "certification": "CERTIFIED",
-      "vendorOfficial": {
-        "versionStrategy": "PINNED",
-        "pinnedVersion": "17.0.20.1+1",
-        "pinnedSha256": "457b57af8f9c93ec39080bb8c764f559dc8c89a6da1a39d718a400b7890d3e41",
-        "tagPrefix": "jdk-",
-        "artifactUrlTemplate": "https://github.com/adoptium/temurin17-binaries/releases/download/{tag}/OpenJDK17U-jdk_aarch64_linux_hotspot_17.0.20.1_1.tar.gz",
-        "artifactFormat": "TAR_GZ",
-        "artifactLayout": "WHOLE_TREE",
-        "executableBasename": "java",
-        "treeEntryPoint": "jdk-17.0.20.1+1/bin/java",
-        "treeExecutablePaths": [],
-        "treeAuxCommands": {
-          "javac": "jdk-17.0.20.1+1/bin/javac",
-          "jar": "jdk-17.0.20.1+1/bin/jar",
-          "javadoc": "jdk-17.0.20.1+1/bin/javadoc",
-          "javap": "jdk-17.0.20.1+1/bin/javap",
-          "jdeps": "jdk-17.0.20.1+1/bin/jdeps",
-          "jlink": "jdk-17.0.20.1+1/bin/jlink",
-          "jmod": "jdk-17.0.20.1+1/bin/jmod",
-          "jps": "jdk-17.0.20.1+1/bin/jps",
-          "jstack": "jdk-17.0.20.1+1/bin/jstack",
-          "jstat": "jdk-17.0.20.1+1/bin/jstat",
-          "jcmd": "jdk-17.0.20.1+1/bin/jcmd",
-          "jmap": "jdk-17.0.20.1+1/bin/jmap",
-          "jshell": "jdk-17.0.20.1+1/bin/jshell",
-          "keytool": "jdk-17.0.20.1+1/bin/keytool"
-        },
-        "treeMaxFiles": 1024,
-        "treeMaxUnpackedBytes": 402653184,
-        "treeLinkPolicy": "SAFE_RELATIVE",
-        "treeModePolicy": "PINNED_ARCHIVE",
-        "assetMaxBytes": 191962709,
-        "runtimeCompatibility": {
-          "guestProfile": "UBUNTU_24_04_GLIBC_ARM64",
-          "libc": "GLIBC",
-          "integration": "CLI",
-          "evidenceUrl": "https://adoptium.net/temurin/releases/?arch=aarch64&os=linux&package=jdk&version=17",
-          "requiredGuestPackages": [
-            "ca-certificates",
-            "libgcc-s1",
-            "libstdc++6",
-            "zlib1g"
-          ]
-        }
-      },
-      "healthArgs": [
-        "-version"
-      ],
-      "versionPolicy": {
-        "allowLatest": true,
-        "sideBySide": true,
-        "workspaceSelectable": true,
-        "versionScopedUninstall": true
-      },
-      "supportedEnvironments": [
-        "linux/arm64"
-      ]
-    },
-    {
       "familyId": "toolchain.kotlin",
       "provider": "GITHUB_RELEASE",
       "packageName": "JetBrains/kotlin",
@@ -1636,5 +1571,5 @@
       ]
     }
   ],
-  "packagesSha256": "3effacc22c1e7845e3fc0941a3b82607b2f49d06e75f795a56c3f5c6a6e4a5c0"
+  "packagesSha256": "c9268536baf23a198d786279ee55e2a35bd8b33e87192c9ce6263744e8357934"
 }

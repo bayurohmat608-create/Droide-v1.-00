@@ -57,6 +57,12 @@ private data class ReviewedRubyGemsRecipeLock(
     val installedAtEpochMs: Long,
 )
 
+// Every cached .gem is then checked against the lock and the final installation is performed with --local, so activation cannot silently fetch new bytes.
+
+
+
+
+
 
 class ReviewedRubyGemsRecipeInstaller(
     context: Context,

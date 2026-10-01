@@ -1,8 +1,6 @@
 package com.baystudio.droide.ui
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -125,7 +123,7 @@ fun TasksSheet(manager: TaskManager, onDismiss: () -> Unit, beforeRun: suspend (
                 Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("${r.task.label}  •  exit ${r.exitCode}  •  ${r.durationMs} ms", style = MaterialTheme.typography.labelLarge)
                     Surface(Modifier.fillMaxWidth().heightIn(max = 240.dp), tonalElevation = 1.dp) {
-                        Text(r.output.ifBlank { "(no output)" }, Modifier.verticalScroll(rememberScrollState()).padding(8.dp), fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
+                        Text(r.output.ifBlank { "(no output)" }, Modifier.padding(8.dp), fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }

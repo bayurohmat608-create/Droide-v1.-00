@@ -19,7 +19,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import coil.compose.AsyncImage
 import com.baystudio.droide.core.CodeStyleAuthority
 import com.baystudio.droide.core.CodeStyleDefaults
-import com.baystudio.droide.core.CodingKeyboardMode
 import com.baystudio.droide.core.CodeStyleSnippets
 import com.baystudio.droide.core.FileRepository
 import com.baystudio.droide.core.DroideThemeSnapshot
@@ -44,6 +43,10 @@ import io.github.rosemoe.sora.widget.component.EditorAutoCompletion
 import kotlinx.coroutines.*
 
 
+
+
+
+
 @Composable
 internal fun EditorPane(
     files: FileRepository,
@@ -57,7 +60,6 @@ internal fun EditorPane(
     codeStyleDefaults: CodeStyleDefaults = CodeStyleDefaults(),
     wordwrap: Boolean = false,
     accessoryKeysComfortable: Boolean = false,
-    codingKeyboardMode: CodingKeyboardMode = CodingKeyboardMode.DEFAULT,
     accessoryInputFocus: AccessoryInputFocusController,
     accessoryKeysExpanded: Boolean,
     onAccessoryKeysExpandedChange: (Boolean) -> Unit,
@@ -121,10 +123,10 @@ internal fun EditorPane(
         )
     }
 
-    LaunchedEffect(document, document.pendingRecoveryBuffer, workspaceKey, path, lsp) {
+    LaunchedEffect(document, workspaceKey, path, lsp) {
         document.ensureLoaded(files)
         if (document.fullIntelligence) {
-            // Switching workspace panes or editor tabs must not emit didClose.
+            // Switching workspace panes or editor tabs must not emit didClose; IdeScreen closes the LSP document only when the tab closes.
 
             runSuspendCatching { lsp.didOpen(path, document.content) }
             lastLspVersion = document.changeVersion
@@ -157,6 +159,7 @@ internal fun EditorPane(
         onNavigationConsumed()
     }
     BindDroideSoraFeatures(editorRef, document, lsp, files, path)
+    
 
 
     LaunchedEffect(document, findQuery, document.content, document.performanceMode) {
@@ -843,7 +846,6 @@ internal fun EditorPane(
                 modifier = Modifier.fillMaxSize(),
                 factory = { ctx ->
                     DroideCodeEditor(ctx, languageId, accessoryModifiers, codeStyle).apply {
-                        applyKeyboardMode(codingKeyboardMode)
                         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                         applyDroideTheme(theme)
                         
@@ -908,7 +910,6 @@ internal fun EditorPane(
                 },
                 update = { view ->
                     view.applyDroideTheme(theme)
-                    view.applyKeyboardMode(codingKeyboardMode)
                     view.applyCodeStyle(codeStyle); view.configureDroideProfessionalEditorFeatures(document.largeFileOptimized)
                     highlightControllerRef[0]?.updateCodeStyle(codeStyle, document.content)
                     view.applyReviewMode(document.reviewMode)

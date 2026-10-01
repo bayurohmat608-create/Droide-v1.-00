@@ -17,6 +17,7 @@ import java.util.UUID
 // Durable local agent sessions.
 
 
+
 @Serializable
 data class DroideSession(
     val id: String,
@@ -101,6 +102,7 @@ class SessionManager(
     // Normal reads use small per-session sidecars and never decode historical message/tool bodies.
 
 
+
     suspend fun listSummaries(): List<SessionSummary> = withContext(Dispatchers.IO) {
         sessionFiles().mapNotNull { file -> readOrRepairIndex(file)?.summary() }
             .sortedByDescending { it.createdAt }
@@ -146,6 +148,8 @@ class SessionManager(
         File(dir, "$safeId.meta").delete()
     }
 
+    
+
 
     suspend fun fork(id: String, atIndex: Int = -1): DroideSession? = try {
         forkInternal(id, atIndex)
@@ -179,7 +183,7 @@ class SessionManager(
             forkApi = exact
             forkExact = exact
         } else {
-            
+            // Legacy latest-session continuation remains available, but stays marked non-exact so future historical forks cannot pretend a compacted/reconstructed history.
 
             val active = AgentHistory.completeGroups(src.apiHistory).flatten()
             if (active.size != src.apiHistory.size) return@withContext null
@@ -214,6 +218,10 @@ class SessionManager(
         val fileChanges = s.messages.filter { it.content.contains("write_file") || it.content.contains("edit_file") || it.content.contains("TOOL|") }.takeLast(5).joinToString("\n") { it.content.take(200) }
         return "Session ${s.id} diff:\n$gitDiff\n\nRecent file changes:\n$fileChanges".take(8000)
     }
+
+    
+
+
 
 
     suspend fun compact(

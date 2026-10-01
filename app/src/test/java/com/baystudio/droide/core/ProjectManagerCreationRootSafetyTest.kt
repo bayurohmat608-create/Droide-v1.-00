@@ -16,7 +16,7 @@ class ProjectManagerCreationRootSafetyTest {
 
             val (project, _) = manager.createFromTemplate("   ", "empty")
             val projectsRoot = appDir.resolve("projects").canonicalFile
-            val root = java.io.File(project.rootPath).canonicalFile
+            val root = project.rootPath.let(::java.io.File).canonicalFile
 
             assertEquals("Empty Project", project.name)
             assertFalse(root == projectsRoot)

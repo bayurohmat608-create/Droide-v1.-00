@@ -37,13 +37,7 @@ internal class EditorWorkspaceDocumentAuthority(
     ) : this(editorState, editorDispatcher, files, lsp)
 
     override suspend fun snapshot(path: String): WorkspaceDocumentSnapshot? = withContext(editorDispatcher) {
-        val document = editorState.peek(path) ?: return@withContext null
-        if (document.pendingRecoveryBuffer != null) {
-            val repository = files ?: error("Recovery document requires file authority")
-            document.ensureLoaded(repository)
-            check(document.pendingRecoveryBuffer == null) { document.loadError ?: "Recovery buffer is unavailable" }
-        }
-        document.toAuthoritySnapshot()
+        editorState.peek(path)?.toAuthoritySnapshot()
     }
 
     override suspend fun snapshots(): List<WorkspaceDocumentSnapshot> = withContext(editorDispatcher) {
@@ -75,7 +69,7 @@ internal class EditorWorkspaceDocumentAuthority(
         val conflicts = withContext(editorDispatcher) {
             when (mutation) {
                 is FileRepository.Mutation.Write -> editorState.peek(mutation.path)
-                    ?.takeIf { it.dirty && (it.pendingRecoveryBuffer != null || (it.loaded && (mutation.text == null || it.content != mutation.text))) }
+                    ?.takeIf { it.loaded && it.dirty && (mutation.text == null || it.content != mutation.text) }
                     ?.let { listOf(it.path) }.orEmpty()
                 is FileRepository.Mutation.Delete -> editorState.documentsAtOrUnder(mutation.path)
                     .filter { it.dirty }.map { it.path }
@@ -317,7 +311,7 @@ private fun EditorDocument.toAuthoritySnapshot(): WorkspaceDocumentSnapshot = Wo
     editable = agentEditable,
     revision = revision,
     changeVersion = changeVersion,
-    selectionStart = if (loaded && pendingRecoveryBuffer == null) selectionStart else 0,
-    selectionEnd = if (loaded && pendingRecoveryBuffer == null) selectionEnd else 0,
+    selectionStart = selectionStart,
+    selectionEnd = selectionEnd,
     savedContentLength = savedContent.length,
 )

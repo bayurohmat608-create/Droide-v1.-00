@@ -19,30 +19,13 @@ data class ValidatedNetworkTarget(
 
  
 object NetworkSecurity {
-    
-    fun validatePublicHttpsUrl(raw: String): URI {
+    fun validatePublicHttpsTarget(raw: String): ValidatedNetworkTarget {
         val uri = URI(raw.trim())
         require(uri.scheme.equals("https", ignoreCase = true)) { "Only HTTPS URLs are allowed" }
         require(uri.userInfo == null) { "User-info in URLs is not allowed" }
         require(uri.fragment == null) { "URL fragments are not allowed for network requests" }
         val host = uri.host ?: throw IllegalArgumentException("URL host is missing")
         require(!host.equals("localhost", true) && !host.endsWith(".localhost", true)) { "Localhost is blocked" }
-        require(uri.port == -1 || uri.port in 1..65535) { "Invalid HTTPS port" }
-        val canonicalHost = uri.toASCIIString().toHttpUrlOrNull()?.host
-            ?: throw IllegalArgumentException("Invalid HTTPS URL")
-        require(!canonicalHost.equals("localhost", true) && !canonicalHost.trimEnd('.').endsWith(".localhost", true) &&
-            !canonicalHost.trimEnd('.').equals("localhost", true)) { "Localhost is blocked" }
-        // OkHttp canonicalizes numeric/IPv6 literals without DNS. Resolve only those literals here;
-        // hostname DNS and every resolved address remain checked when a real request is made.
-        if (canonicalHost.contains(':') || canonicalHost.all { it in '0'..'9' || it == '.' }) {
-            require(!isPrivateOrLocal(InetAddress.getByName(canonicalHost))) { "Private/local network targets are blocked" }
-        }
-        return uri
-    }
-
-    fun validatePublicHttpsTarget(raw: String): ValidatedNetworkTarget {
-        val uri = validatePublicHttpsUrl(raw)
-        val host = checkNotNull(uri.host)
         val addresses = InetAddress.getAllByName(host).toList()
         require(addresses.isNotEmpty()) { "Host did not resolve" }
         require(addresses.none(::isPrivateOrLocal)) { "Private/local network targets are blocked" }

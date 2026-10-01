@@ -8,6 +8,8 @@ import kotlinx.coroutines.CoroutineScope
 // This does not alter Extensions UI metadata and never turns an unpromoted artifact into an installable package.
 
 
+
+
 class ManagedLanguageServerProvisioner(
     context: Context,
     private val scope: CoroutineScope,
@@ -52,6 +54,8 @@ class ManagedLanguageServerProvisioner(
     }
 
     // Opening/editing a file never downloads tools.
+
+
 
 
     suspend fun ensureAvailable(

@@ -29,26 +29,13 @@ import kotlinx.serialization.json.put
 // Never lives inside a project and never participates in Git/SAF sync.
 data class EditorSelectionSnapshot(val start: Int, val end: Int)
 
-class EditorRecoveryBuffer internal constructor(
-    val path: String,
-    internal val blobName: String,
-    internal val contentSha256: String?,
-    internal val owner: Any,
-    private val loader: suspend () -> String,
-) {
-    suspend fun readText(): String = loader()
-}
-
 data class EditorRecoverySnapshot(
     val openFiles: List<String>,
     val activeFile: String,
     val dirtyBuffers: Map<String, String>,
     val selections: Map<String, EditorSelectionSnapshot> = emptyMap(),
     val reviewFiles: Set<String> = emptySet(),
-    val deferredBuffers: Map<String, EditorRecoveryBuffer> = emptyMap(),
-) {
-    val dirtyPaths: Set<String> get() = dirtyBuffers.keys + deferredBuffers.keys
-}
+)
 
 class EditorStateStore(context: Context, projectId: String) {
     private val appFilesDir = context.applicationContext.filesDir
@@ -83,31 +70,29 @@ class EditorStateStore(context: Context, projectId: String) {
                 .filter(::validPath).distinct().take(MAX_OPEN_FILES)
             val active = (rootObj["active"] as? JsonPrimitive)?.contentOrNull?.takeIf(::validPath).orEmpty()
             val dirty = linkedMapOf<String, String>()
-            val deferred = linkedMapOf<String, EditorRecoveryBuffer>()
             val arr = rootObj["dirty"] as? JsonArray ?: JsonArray(emptyList())
             var total = 0L
             require(arr.size <= MAX_DIRTY_FILES) { "Too many recovery documents" }
             for (item in arr) {
                 val o = item as? JsonObject ?: error("Invalid recovery buffer entry")
                 val path = (o["path"] as? JsonPrimitive)?.contentOrNull ?: error("Missing recovery buffer path")
-                require(validPath(path) && path !in dirty && path !in deferred) { "Invalid or duplicated recovery buffer path" }
-                if (version == 4) {
+                require(validPath(path) && path !in dirty) { "Invalid or duplicated recovery buffer path" }
+                val content = if (version == 4) {
                     val id = (o["blob"] as? JsonPrimitive)?.contentOrNull
                     require(id != null && BLOB_NAME.matches(id)) { "Invalid recovery blob for $path" }
                     val blob = File(blobs, id)
                     require(blob.isFile && blob.length() in 1..MAX_ENCRYPTED_BUFFER_BYTES) { "Missing recovery buffer for $path" }
+                    cipher.decrypt(blob.readBytes(), blobAad(path)).toString(Charsets.UTF_8)
+                } else (o["content"] as? JsonPrimitive)?.contentOrNull ?: error("Missing legacy recovery buffer")
+                val bytes = content.toByteArray(Charsets.UTF_8).size
+                require(bytes <= MAX_BUFFER_BYTES) { "Recovery buffer too large for $path" }
+                if (version == 4) {
                     val hash = (o["sha256"] as? JsonPrimitive)?.contentOrNull
-                    require(hash == null || hash.matches(Regex("[0-9a-f]{64}"))) { "Invalid recovery checksum for $path" }
-                    deferred[path] = EditorRecoveryBuffer(path, id, hash, this@EditorStateStore) {
-                        mutex.withLock { withContext(Dispatchers.IO) { readBlob(path, id, hash) } }
-                    }
-                } else {
-                    val content = (o["content"] as? JsonPrimitive)?.contentOrNull ?: error("Missing legacy recovery buffer")
-                    val bytes = content.toByteArray(Charsets.UTF_8).size
-                    require(bytes <= MAX_BUFFER_BYTES && total + bytes <= MAX_TOTAL_BUFFER_BYTES) { "Legacy recovery exceeds safety limit" }
-                    dirty[path] = content
-                    total += bytes
+                    if (hash != null) require(hash == sha256(content)) { "Recovery buffer checksum failed for $path" }
                 }
+                require(version == 4 || total + bytes <= MAX_TOTAL_BUFFER_BYTES) { "Legacy recovery exceeds safety limit" }
+                dirty[path] = content
+                total += bytes
             }
             val selections = linkedMapOf<String, EditorSelectionSnapshot>()
             if (version >= 2) {
@@ -126,7 +111,7 @@ class EditorStateStore(context: Context, projectId: String) {
                     .mapNotNull { (it as? JsonPrimitive)?.contentOrNull }
                     .filter(::validPath).distinct().take(MAX_SNAPSHOT_ENTRIES).toSet()
             } else emptySet()
-            EditorRecoverySnapshot(open, active, dirty, selections, reviewFiles, deferred)
+            EditorRecoverySnapshot(open, active, dirty, selections, reviewFiles)
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Throwable) {
@@ -138,14 +123,13 @@ class EditorStateStore(context: Context, projectId: String) {
     suspend fun save(snapshot: EditorRecoverySnapshot) = mutex.withLock { withContext(Dispatchers.IO) {
         val open = snapshot.openFiles.filter(::validPath).distinct().take(MAX_OPEN_FILES)
         val active = snapshot.activeFile.takeIf(::validPath).orEmpty()
-        require(snapshot.dirtyPaths.size <= MAX_DIRTY_FILES) { "Too many unsaved documents to recover" }
+        require(snapshot.dirtyBuffers.size <= MAX_DIRTY_FILES) { "Too many unsaved documents to recover" }
         check(blobs.isDirectory || blobs.mkdirs()) { "Cannot create recovery buffer storage" }
         syncDirectory(root)
         val created = mutableListOf<File>()
         var committed = false
         try {
         val previous = if (file.isFile) {
-            require(file.length() in 1..MAX_FILE_BYTES) { "Existing editor recovery manifest is invalid" }
             val oldRoot = json.parseToJsonElement(cipher.decrypt(file.readBytes(), aad).toString(Charsets.UTF_8)) as JsonObject
             if ((oldRoot["version"] as? JsonPrimitive)?.contentOrNull == "4")
                 (oldRoot["dirty"] as? JsonArray).orEmpty().mapNotNull { item ->
@@ -179,17 +163,9 @@ class EditorStateStore(context: Context, projectId: String) {
                     put("sha256", hash)
                 })
             }
-            for ((path, reference) in snapshot.deferredBuffers) {
-                require(path !in snapshot.dirtyBuffers && validPath(path) && reference.path == path && reference.owner === this@EditorStateStore) { "Invalid deferred recovery ownership" }
-                val id = reference.blobName
-                require(BLOB_NAME.matches(id) && File(blobs, id).isFile && File(blobs, id).length() in 1..MAX_ENCRYPTED_BUFFER_BYTES) { "Missing deferred recovery buffer: $path" }
-                val hash = reference.contentSha256 ?: sha256(readBlob(path, id, null))
-                retained += id
-                add(buildJsonObject { put("path", path); put("blob", id); put("sha256", hash) })
-            }
         }
         val selections = buildJsonArray {
-            val relevant = (open + snapshot.dirtyPaths).toSet()
+            val relevant = (open + snapshot.dirtyBuffers.keys).toSet()
             snapshot.selections.entries.filter { validPath(it.key) && it.key in relevant }
                 .take(MAX_SNAPSHOT_ENTRIES).forEach { (path, selection) ->
                 add(buildJsonObject {
@@ -206,7 +182,7 @@ class EditorStateStore(context: Context, projectId: String) {
             put("dirty", dirty)
             put("selections", selections)
             put("review", buildJsonArray {
-                val relevant = (open + snapshot.dirtyPaths).toSet()
+                val relevant = (open + snapshot.dirtyBuffers.keys).toSet()
                 snapshot.reviewFiles.filter { validPath(it) && it in relevant }
                     .take(MAX_SNAPSHOT_ENTRIES).forEach { add(JsonPrimitive(it)) }
             })
@@ -235,16 +211,6 @@ class EditorStateStore(context: Context, projectId: String) {
         blobs.listFiles()?.forEach { it.delete() }
         blobs.delete()
     } }
-
-    private fun readBlob(path: String, id: String, expected: String?): String {
-        val blob = File(blobs, id)
-        require(BLOB_NAME.matches(id) && blob.isFile && blob.length() in 1..MAX_ENCRYPTED_BUFFER_BYTES) { "Invalid recovery blob: $path" }
-        val plain = cipher.decrypt(blob.readBytes(), blobAad(path))
-        require(plain.size <= MAX_BUFFER_BYTES) { "Recovery buffer too large: $path" }
-        val content = plain.toString(Charsets.UTF_8)
-        if (expected != null) require(sha256(content) == expected) { "Recovery buffer checksum failed: $path" }
-        return content
-    }
 
     private fun blobAad(path: String): ByteArray = (safeProjectId + "\u0000" + path).toByteArray(Charsets.UTF_8)
 

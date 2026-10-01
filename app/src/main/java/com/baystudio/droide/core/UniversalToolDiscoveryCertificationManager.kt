@@ -99,6 +99,11 @@ data class UniversalToolDiscoveryCertificationReport(
     }
 }
 
+// Presence discovery and semantic registration stay separate: finding a binary never guesses that it is an LSP, DAP, compiler, formatter, etc.
+
+
+
+
 
 class UniversalToolDiscoveryCertificationManager(
     context: Context,

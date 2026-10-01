@@ -5,6 +5,11 @@ import kotlinx.serialization.Serializable
 // The UI consumes ordered parts, never provider-specific SSE/JSON.
 
 
+
+
+
+
+
 @Serializable
 enum class AgentStreamPartKind { STEP, INPUT, TEXT, TOOL, COMPACTION, RETRY, STATUS }
 

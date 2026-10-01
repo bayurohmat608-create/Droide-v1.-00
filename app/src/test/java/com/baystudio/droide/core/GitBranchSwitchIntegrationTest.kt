@@ -34,11 +34,6 @@ class GitBranchSwitchIntegrationTest {
         git.commitStaged("initial")
 
         FileRepositoryBuilder().setGitDir(root.resolve(".git")).setWorkTree(root).build().use { repo ->
-            repo.config.apply {
-                setString("remote", "origin", "url", "https://example.invalid/owner/repo.git")
-                setString("remote", "origin", "fetch", "+refs/heads/*:refs/remotes/origin/*")
-                save()
-            }
             val head = repo.resolve(Constants.HEAD)
             repo.updateRef("refs/remotes/origin/feature").apply {
                 setNewObjectId(head)

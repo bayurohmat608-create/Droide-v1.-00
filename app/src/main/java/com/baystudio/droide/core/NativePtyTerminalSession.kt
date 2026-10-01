@@ -9,9 +9,6 @@ import android.os.Looper
 import com.termux.terminal.TerminalSession as TermuxSession
 import com.termux.terminal.TerminalSessionClient
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,6 +31,12 @@ internal object NativePtyThreadPolicy {
 }
 
 
+
+
+
+
+
+
 class NativePtyTerminalSession(
     private val context: Context,
     private val workDir: File,
@@ -52,9 +55,6 @@ class NativePtyTerminalSession(
     override val terminalTitle: StateFlow<String?> = _terminalTitle.asStateFlow()
     private val outputCap = 200_000
     private val execDelegate = TerminalSession(workDir, scope, launchSpec)
-    // Native PTYs cannot be wrapped in an extra setsid shell without risking loss of the
-    
-    private val processLease = RemoteProcessLease.createLocal("native-terminal")
     @Volatile private var screenUpdateListener: (() -> Unit)? = null
     @Volatile private var bellListener: (() -> Unit)? = null
     private val pendingCommandLock = Any()
@@ -75,9 +75,6 @@ class NativePtyTerminalSession(
             refreshTranscript(finishedSession)
             val status = runCatching { finishedSession.exitStatus }.getOrDefault(-1)
             appendLine("\n[process exited: $status]")
-            scope.launch(NonCancellable + Dispatchers.IO) {
-                runCatching { LocalExecutionSubstrate.terminateLease(processLease) }
-            }
         }
 
         override fun onCopyTextToClipboard(session: TermuxSession, text: String) {
@@ -122,10 +119,6 @@ class NativePtyTerminalSession(
      
     override fun start() {
         workDir.mkdirs()
-        // Debugger-created terminals must start even before a TerminalView is attached.
-        if (nativePtySession.emulator == null) nativePtySession.updateSize(80, 24)
-        nativePtySession.pid.takeIf { it > 0 }?.let(processLease::recordLocalPid)
-        flushPendingCommands()
     }
 
     override fun send(cmd: String) {
@@ -183,9 +176,6 @@ class NativePtyTerminalSession(
         }
         execDelegate.destroy()
         nativePtySession.finishIfRunning()
-        scope.launch(NonCancellable + Dispatchers.IO) {
-            runCatching { LocalExecutionSubstrate.terminateLease(processLease) }
-        }
     }
 
     private fun flushPendingCommands() {
@@ -222,10 +212,8 @@ class NativePtyTerminalSession(
             "LANG=en_US.UTF-8",
             "SHELL=/system/bin/sh",
         )
-        val leaseEnvironment = processLease.environment
-        val overridden = launchSpec.environment.keys + leaseEnvironment.keys
+        val overridden = launchSpec.environment.keys
         return base.filterNot { it.substringBefore('=') in overridden }.toTypedArray() +
-            launchSpec.environment.map { (key, value) -> "$key=$value" } +
-            leaseEnvironment.map { (key, value) -> "$key=$value" }
+            launchSpec.environment.map { (key, value) -> "$key=$value" }
     }
 }

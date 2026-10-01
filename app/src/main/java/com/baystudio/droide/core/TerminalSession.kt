@@ -110,10 +110,10 @@ class TerminalSession(
     }
 
     override suspend fun execOnce(cmd: String, timeoutMs: Long): ExecResult =
-        executeProcess(emptyList(), timeoutMs, shellText = cmd)
+        executeProcess(listOf(launchSpec.shell, "-c", cmd), timeoutMs) { }
 
     override suspend fun execStreaming(cmd: String, timeoutMs: Long, onOutput: (String) -> Unit): ExecResult =
-        executeProcess(emptyList(), timeoutMs, onOutput, shellText = cmd)
+        executeProcess(listOf(launchSpec.shell, "-c", cmd), timeoutMs, onOutput)
 
     override suspend fun execArgv(argv: List<String>, timeoutMs: Long): ExecResult =
         executeProcess(argv, timeoutMs)
@@ -122,7 +122,6 @@ class TerminalSession(
         payloadArgv: List<String>,
         timeoutMs: Long,
         onOutput: (String) -> Unit = { },
-        shellText: String? = null,
     ): ExecResult = withContext(Dispatchers.IO) {
         try {
             require(timeoutMs in 1..86_400_000L) { "Invalid process timeout" }
@@ -131,9 +130,10 @@ class TerminalSession(
             
 
 
-            val guestEnvironment = if (launchSpec.prefix.isEmpty()) emptyMap() else lease.environment
-            val targetArgv = if (shellText == null) launchSpec.command(payloadArgv, guestEnvironment)
-                else launchSpec.shellCommand(shellText, guestEnvironment)
+            val targetArgv = launchSpec.command(
+                payloadArgv,
+                if (launchSpec.prefix.isEmpty()) emptyMap() else lease.environment,
+            )
             val targetCommand = targetArgv.joinToString(" ", transform = LocalExecutionSubstrate::shellQuote)
             val result = LocalProcessSupervisor.capture(
                 argv = listOf(ownershipShell(), "-c", lease.wrap(targetCommand)),
@@ -143,7 +143,6 @@ class TerminalSession(
                 timeoutMs = timeoutMs,
                 cleanup = { LocalExecutionSubstrate.terminateLease(lease) },
                 onOutput = { chunk -> runCatching { onOutput(Ansi.strip(chunk)) } },
-                keepTail = true,
             )
             if (result.timedOut) {
                 ExecResult(

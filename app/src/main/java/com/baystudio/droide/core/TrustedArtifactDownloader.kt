@@ -5,7 +5,6 @@ import android.os.storage.StorageManager
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.net.URI
 import java.security.MessageDigest
 import java.util.Properties
 import java.util.concurrent.TimeUnit
@@ -31,55 +30,21 @@ data class TrustedArtifactDownloadProgress(
         get() = totalBytes?.takeIf { it > 0L }?.let { (bytesDownloaded.toDouble() / it.toDouble()).coerceIn(0.0, 1.0).toFloat() }
 }
 
-interface TrustedArtifactDescriptor {
-    val id: String
-    val url: String
-    val fileName: String
-    val maxBytes: Long
-    val expectedBytes: Long?
-    val digestAlgorithm: String
-    val digestHex: String
-
-    
-    fun validateStructure() {
+data class TrustedArtifactSpec(
+    val id: String,
+    val url: String,
+    val sha256: String,
+    val fileName: String,
+    val maxBytes: Long,
+    val expectedBytes: Long? = null,
+) {
+    fun validate() {
         require(id.matches(Regex("[A-Za-z0-9._-]{1,100}"))) { "Invalid artifact id" }
         require(fileName.matches(Regex("[A-Za-z0-9._+-]{1,180}"))) { "Invalid artifact filename" }
-        require(maxBytes in 1L..TrustedArtifactSpec.MAX_TRUSTED_ARTIFACT_BYTES) { "Invalid artifact size limit" }
-        expectedBytes?.let { require(it in 1L..maxBytes) { "Invalid expected artifact size" } }
-        val digestLength = when (digestAlgorithm) {
-            "SHA-256" -> 64
-            "SHA-512" -> 128
-            else -> error("Unsupported trusted-artifact digest algorithm")
-        }
-        require(digestHex.length == digestLength && digestHex.all { it in '0'..'9' || it.lowercaseChar() in 'a'..'f' }) {
-            "Invalid trusted-artifact digest"
-        }
-        val uri = runCatching { URI(url.trim()) }.getOrElse { error("Invalid trusted-artifact URL") }
-        require(!uri.isOpaque && uri.scheme.equals("https", ignoreCase = true)) { "Trusted artifact URL must use HTTPS" }
-        require(!uri.host.isNullOrBlank() && uri.userInfo == null && uri.fragment == null) { "Invalid trusted-artifact URL" }
-    }
-
-    
-    fun validateDescriptor() {
-        validateStructure()
-        NetworkSecurity.validatePublicHttpsTarget(url)
-    }
-}
-
-data class TrustedArtifactSpec(
-    override val id: String,
-    override val url: String,
-    val sha256: String,
-    override val fileName: String,
-    override val maxBytes: Long,
-    override val expectedBytes: Long? = null,
-) : TrustedArtifactDescriptor {
-    override val digestAlgorithm: String get() = "SHA-256"
-    override val digestHex: String get() = sha256
-
-    fun validate() {
-        validateDescriptor()
         require(sha256.matches(Regex("[0-9a-fA-F]{64}"))) { "Invalid artifact SHA-256" }
+        require(maxBytes in 1L..MAX_TRUSTED_ARTIFACT_BYTES) { "Invalid artifact size limit" }
+        expectedBytes?.let { require(it in 1L..maxBytes) { "Invalid expected artifact size" } }
+        NetworkSecurity.validatePublicHttpsTarget(url)
     }
 
     companion object {
@@ -87,25 +52,17 @@ data class TrustedArtifactSpec(
     }
 }
 
+// Security properties: - public HTTPS only, with DNS pinning on every hop; - no cookies/auth headers; - bounded redirect count and byte count.
 
-data class TrustedSha512ArtifactSpec(
-    override val id: String,
-    override val url: String,
-    val sha512: String,
-    override val fileName: String,
-    override val maxBytes: Long,
-    override val expectedBytes: Long? = null,
-) : TrustedArtifactDescriptor {
-    override val digestAlgorithm: String get() = "SHA-512"
-    override val digestHex: String get() = sha512
 
-    fun validate() {
-        validateDescriptor()
-        require(sha512.matches(Regex("[0-9a-fA-F]{128}"))) { "Invalid artifact SHA-512" }
-    }
-}
 
-// Keep untrusted input and output bounded.
+
+
+
+
+
+
+
 
 class TrustedArtifactDownloader(context: Context) {
     private val appContext = context.applicationContext
@@ -122,25 +79,17 @@ class TrustedArtifactDownloader(context: Context) {
     suspend fun download(
         spec: TrustedArtifactSpec,
         onProgress: (TrustedArtifactDownloadProgress) -> Unit = {},
-    ): File = downloadDescriptor(spec, onProgress)
-
-    suspend fun download(
-        spec: TrustedSha512ArtifactSpec,
-        onProgress: (TrustedArtifactDownloadProgress) -> Unit = {},
-    ): File = downloadDescriptor(spec, onProgress)
-
-    private suspend fun downloadDescriptor(
-        spec: TrustedArtifactDescriptor,
-        onProgress: (TrustedArtifactDownloadProgress) -> Unit,
     ): File = withContext(Dispatchers.IO) {
-        downloadMutex.withLock { downloadUnlocked(spec, onProgress) }
+        downloadMutex.withLock {
+            downloadUnlocked(spec, onProgress)
+        }
     }
 
     private suspend fun downloadUnlocked(
-        spec: TrustedArtifactDescriptor,
+        spec: TrustedArtifactSpec,
         onProgress: (TrustedArtifactDownloadProgress) -> Unit,
     ): File {
-        validate(spec)
+        spec.validate()
         cleanupStalePartials()
 
         val cacheName = cacheName(spec)
@@ -184,12 +133,13 @@ class TrustedArtifactDownloader(context: Context) {
                 if (publishIfTrusted(partial, metadataFile, finalFile, spec, onProgress)) return finalFile
                 clearPartial(partial, metadataFile)
                 if (resumedAttempt && !fullRestartUsed) {
+                    
 
                     resume = null
                     fullRestartUsed = true
                     continue
                 }
-                error("Artifact ${spec.digestAlgorithm} mismatch")
+                error("Artifact SHA-256 mismatch")
             } catch (t: Throwable) {
                 if (t is CancellationException || t is IOException) {
                     retainOnlyValidPartial(spec, partial, metadataFile)
@@ -202,7 +152,7 @@ class TrustedArtifactDownloader(context: Context) {
     }
 
     private suspend fun fetchOneRepresentation(
-        spec: TrustedArtifactDescriptor,
+        spec: TrustedArtifactSpec,
         partial: File,
         metadataFile: File,
         prior: PartialMetadata?,
@@ -314,7 +264,7 @@ class TrustedArtifactDownloader(context: Context) {
 
     private suspend fun streamResponse(
         response: Response,
-        spec: TrustedArtifactDescriptor,
+        spec: TrustedArtifactSpec,
         partial: File,
         metadataFile: File,
         append: Boolean,
@@ -338,8 +288,7 @@ class TrustedArtifactDownloader(context: Context) {
         writeResumeMetadata(
             metadataFile,
             PartialMetadata(
-                digestAlgorithm = spec.digestAlgorithm,
-                digestHex = spec.digestHex.lowercase(),
+                sha256 = spec.sha256.lowercase(),
                 url = spec.url,
                 expectedBytes = spec.expectedBytes,
                 maxBytes = spec.maxBytes,
@@ -374,11 +323,8 @@ class TrustedArtifactDownloader(context: Context) {
         return FetchResult(restartFromZero = false)
     }
 
-    suspend fun discard(spec: TrustedArtifactSpec) = discardDescriptor(spec)
-    suspend fun discard(spec: TrustedSha512ArtifactSpec) = discardDescriptor(spec)
-
-    private suspend fun discardDescriptor(spec: TrustedArtifactDescriptor) = withContext(Dispatchers.IO) {
-        validate(spec)
+    suspend fun discard(spec: TrustedArtifactSpec) = withContext(Dispatchers.IO) {
+        spec.validate()
         downloadMutex.withLock {
             val cacheName = cacheName(spec)
             val finalFile = File(cacheRoot, cacheName)
@@ -390,21 +336,19 @@ class TrustedArtifactDownloader(context: Context) {
         }
     }
 
-    suspend fun cached(spec: TrustedArtifactSpec): File? = cachedDescriptor(spec)
-    suspend fun cached(spec: TrustedSha512ArtifactSpec): File? = cachedDescriptor(spec)
-
-    private suspend fun cachedDescriptor(spec: TrustedArtifactDescriptor): File? = withContext(Dispatchers.IO) {
-        validate(spec)
+    suspend fun cached(spec: TrustedArtifactSpec): File? = withContext(Dispatchers.IO) {
+        spec.validate()
         downloadMutex.withLock {
             val file = File(cacheRoot, cacheName(spec))
             file.takeIf { isTrustedFinal(it, spec) }
         }
     }
 
-    private fun cacheName(spec: TrustedArtifactDescriptor): String =
-        "${if (spec.digestAlgorithm == "SHA-512") "s512" else "s256"}-${spec.digestHex.lowercase().take(CACHE_SHA_PREFIX_CHARS)}-${spec.fileName}"
 
-    private fun requireLocalHeadroom(spec: TrustedArtifactDescriptor, existingPartialBytes: Long) {
+    private fun cacheName(spec: TrustedArtifactSpec): String =
+        "${spec.sha256.lowercase().take(CACHE_SHA_PREFIX_CHARS)}-${spec.fileName}"
+
+    private fun requireLocalHeadroom(spec: TrustedArtifactSpec, existingPartialBytes: Long) {
         val targetBytes = spec.expectedBytes ?: spec.maxBytes
         val remainingBytes = Math.max(0L, Math.subtractExact(targetBytes, existingPartialBytes.coerceAtMost(targetBytes)))
         val requiredBytes = Math.addExact(remainingBytes, LOCAL_DOWNLOAD_RESERVE_BYTES)
@@ -415,6 +359,9 @@ class TrustedArtifactDownloader(context: Context) {
             "Not enough local storage for trusted artifact: need ${requiredBytes / (1024L * 1024L)} MiB including reserve, " +
                 "allocatable ${allocatableBytes / (1024L * 1024L)} MiB"
         }
+
+        
+
 
         if (existingPartialBytes == 0L && uuid != null && cacheRoot.usableSpace < requiredBytes) {
             runCatching { storageManager.allocateBytes(uuid, requiredBytes) }
@@ -427,7 +374,7 @@ class TrustedArtifactDownloader(context: Context) {
         }
     }
 
-    private fun expectedTotalForFull(response: Response, spec: TrustedArtifactDescriptor): Long? {
+    private fun expectedTotalForFull(response: Response, spec: TrustedArtifactSpec): Long? {
         val declared = response.body?.contentLength() ?: -1L
         return when {
             spec.expectedBytes != null -> spec.expectedBytes
@@ -436,14 +383,14 @@ class TrustedArtifactDownloader(context: Context) {
         }
     }
 
-    private fun isTrustedFinal(file: File, spec: TrustedArtifactDescriptor): Boolean {
+    private fun isTrustedFinal(file: File, spec: TrustedArtifactSpec): Boolean {
         if (!file.isFile) return false
         if (file.length() > spec.maxBytes) return false
         if (spec.expectedBytes != null && file.length() != spec.expectedBytes) return false
-        return digest(file, spec.digestAlgorithm).equals(spec.digestHex, ignoreCase = true)
+        return sha256(file).equals(spec.sha256, ignoreCase = true)
     }
 
-    private fun isPotentiallyComplete(partial: File, spec: TrustedArtifactDescriptor, metadata: PartialMetadata): Boolean {
+    private fun isPotentiallyComplete(partial: File, spec: TrustedArtifactSpec, metadata: PartialMetadata): Boolean {
         val length = partial.length()
         return when {
             spec.expectedBytes != null -> length == spec.expectedBytes
@@ -456,12 +403,12 @@ class TrustedArtifactDownloader(context: Context) {
         partial: File,
         metadataFile: File,
         finalFile: File,
-        spec: TrustedArtifactDescriptor,
+        spec: TrustedArtifactSpec,
         onProgress: (TrustedArtifactDownloadProgress) -> Unit,
     ): Boolean {
         if (!partial.isFile || partial.length() <= 0L || partial.length() > spec.maxBytes) return false
         if (spec.expectedBytes != null && partial.length() != spec.expectedBytes) return false
-        if (!digest(partial, spec.digestAlgorithm).equals(spec.digestHex, ignoreCase = true)) return false
+        if (!sha256(partial).equals(spec.sha256, ignoreCase = true)) return false
         if (finalFile.exists()) finalFile.delete()
         check(partial.renameTo(finalFile)) { "Could not atomically publish downloaded artifact" }
         finalFile.setLastModified(System.currentTimeMillis())
@@ -471,7 +418,7 @@ class TrustedArtifactDownloader(context: Context) {
         return true
     }
 
-    private fun loadResumeMetadata(spec: TrustedArtifactDescriptor, partial: File, metadataFile: File): PartialMetadata? {
+    private fun loadResumeMetadata(spec: TrustedArtifactSpec, partial: File, metadataFile: File): PartialMetadata? {
         if (!partial.isFile || partial.length() <= 0L) {
             clearPartial(partial, metadataFile)
             return null
@@ -484,16 +431,14 @@ class TrustedArtifactDownloader(context: Context) {
             val props = Properties().apply { metadataFile.inputStream().buffered().use { input -> load(input) } }
             check(props.getProperty("version") == METADATA_VERSION)
             val metadata = PartialMetadata(
-                digestAlgorithm = props.getProperty("digestAlgorithm") ?: error("Missing partial digest algorithm"),
-                digestHex = props.getProperty("digestHex") ?: error("Missing partial digest identity"),
+                sha256 = props.getProperty("sha256") ?: error("Missing partial SHA identity"),
                 url = props.getProperty("url") ?: error("Missing partial URL identity"),
                 expectedBytes = props.getProperty("expectedBytes")?.takeIf(String::isNotBlank)?.toLong(),
                 maxBytes = props.getProperty("maxBytes")?.toLong() ?: error("Missing partial maxBytes"),
                 strongEtag = props.getProperty("strongEtag")?.takeIf(String::isNotBlank)?.let(::strongEtag),
                 totalBytes = props.getProperty("totalBytes")?.takeIf(String::isNotBlank)?.toLong(),
             )
-            check(metadata.digestAlgorithm == spec.digestAlgorithm)
-            check(metadata.digestHex.equals(spec.digestHex, ignoreCase = true))
+            check(metadata.sha256.equals(spec.sha256, ignoreCase = true))
             check(metadata.url == spec.url)
             check(metadata.expectedBytes == spec.expectedBytes)
             check(metadata.maxBytes == spec.maxBytes)
@@ -505,7 +450,7 @@ class TrustedArtifactDownloader(context: Context) {
         }
     }
 
-    private fun retainOnlyValidPartial(spec: TrustedArtifactDescriptor, partial: File, metadataFile: File) {
+    private fun retainOnlyValidPartial(spec: TrustedArtifactSpec, partial: File, metadataFile: File) {
         if (!partial.isFile || partial.length() <= 0L || partial.length() > spec.maxBytes || !metadataFile.isFile) {
             clearPartial(partial, metadataFile)
             return
@@ -518,8 +463,7 @@ class TrustedArtifactDownloader(context: Context) {
         val temp = File(file.parentFile, file.name + ".tmp")
         val props = Properties().apply {
             setProperty("version", METADATA_VERSION)
-            setProperty("digestAlgorithm", metadata.digestAlgorithm)
-            setProperty("digestHex", metadata.digestHex)
+            setProperty("sha256", metadata.sha256)
             setProperty("url", metadata.url)
             setProperty("expectedBytes", metadata.expectedBytes?.toString().orEmpty())
             setProperty("maxBytes", metadata.maxBytes.toString())
@@ -552,6 +496,11 @@ class TrustedArtifactDownloader(context: Context) {
         }
     }
 
+    
+
+
+
+
     private fun pruneFinalCache(protectedNames: Set<String>) {
         val root = cacheRoot.canonicalFile
         val candidates = cacheRoot.listFiles().orEmpty()
@@ -580,6 +529,8 @@ class TrustedArtifactDownloader(context: Context) {
     }
 
     // This changes only re-download frequency, never extension availability.
+
+
 
     private fun finalCacheBudgetBytes(): Long {
         val uuid = runCatching { storageManager.getUuidForPath(cacheRoot) }.getOrNull()
@@ -618,20 +569,8 @@ class TrustedArtifactDownloader(context: Context) {
         return match.groupValues[1].toLongOrNull()?.takeIf { it >= 0L }
     }
 
-    private fun validate(spec: TrustedArtifactDescriptor) {
-        spec.validateDescriptor()
-        val expectedLength = when (spec.digestAlgorithm) {
-            "SHA-256" -> 64
-            "SHA-512" -> 128
-            else -> error("Unsupported trusted-artifact digest algorithm")
-        }
-        require(spec.digestHex.length == expectedLength && spec.digestHex.all { it in '0'..'9' || it.lowercaseChar() in 'a'..'f' }) {
-            "Invalid trusted-artifact digest"
-        }
-    }
-
-    private fun digest(file: File, algorithm: String): String {
-        val digest = MessageDigest.getInstance(algorithm)
+    private fun sha256(file: File): String {
+        val digest = MessageDigest.getInstance("SHA-256")
         file.inputStream().buffered(128 * 1024).use { input ->
             val buffer = ByteArray(128 * 1024)
             while (true) {
@@ -645,8 +584,7 @@ class TrustedArtifactDownloader(context: Context) {
     }
 
     private data class PartialMetadata(
-        val digestAlgorithm: String,
-        val digestHex: String,
+        val sha256: String,
         val url: String,
         val expectedBytes: Long?,
         val maxBytes: Long,
@@ -666,7 +604,7 @@ class TrustedArtifactDownloader(context: Context) {
         private const val PROGRESS_REPORT_BYTES = 512L * 1024L
         private const val PART_SUFFIX = ".part"
         private const val PART_METADATA_SUFFIX = ".part.properties"
-        private const val METADATA_VERSION = "2"
+        private const val METADATA_VERSION = "1"
         private const val MAX_METADATA_BYTES = 16L * 1024L
         private const val MAX_ETAG_CHARS = 512
         private const val PARTIAL_MAX_AGE_MS = 7L * 24L * 60L * 60L * 1000L

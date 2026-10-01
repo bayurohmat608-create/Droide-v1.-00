@@ -3,6 +3,12 @@ package com.baystudio.droide.core
 import kotlinx.serialization.Serializable
 
 
+
+
+
+
+
+
 @Serializable
 data class AgentIdeContextSnapshot(
     val activeDocument: AgentIdeDocumentContext? = null,
@@ -109,6 +115,7 @@ object AgentIdeProblemRelevance {
 }
 
 // Workspace-derived strings are explicitly marked as untrusted data, not model instructions.
+
 
 
 object AgentIdeContextProjection {

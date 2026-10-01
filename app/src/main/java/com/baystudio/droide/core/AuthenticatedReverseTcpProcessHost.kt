@@ -23,6 +23,13 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
 
+
+
+
+
+
+
+
 class AuthenticatedReverseTcpProcessHost(
     private val delegate: StdioProcessHost,
     private val scope: CoroutineScope,
@@ -71,7 +78,7 @@ class AuthenticatedReverseTcpProcessHost(
         try {
             acceptJob = scope.async(Dispatchers.IO) { listener.accept() }
             process = delegate.start(launchArgv, environment, resourceLimits)
-            // Drain process output early to prevent pipe deadlock.
+            // Drain ordinary process stdout from launch time so verbose startup diagnostics cannot fill a pipe and deadlock before the authenticated connection is.
 
 
             stdoutDrain = drainProcessStdout(process.stdout)

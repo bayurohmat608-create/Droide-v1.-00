@@ -14,37 +14,29 @@ object LocalProcessSupervisor {
         maxOutputBytes: Int = 1_048_576, timeoutMs: Long = 30_000,
         input: ((OutputStream) -> Unit)? = null, cleanup: (() -> Unit)? = null,
         onOutput: ((String) -> Unit)? = null,
-        keepTail: Boolean = false,
     ): ExecResult = withContext(Dispatchers.IO) {
         require(maxOutputBytes in 1..16_777_216 && timeoutMs in 1..86_400_000)
-        require(!keepTail || maxOutputBytes <= 4_000_000) { "Tail output limit exceeds 4 MB" }
         val process = ProcessBuilder(argv).directory(cwd).redirectErrorStream(true)
             .apply { environment().putAll(environment) }.start()
         val failure = AtomicReference<Throwable?>()
         val bytes = ByteArrayOutputStream()
-        val tail = if (keepTail) TailByteBuffer(maxOutputBytes) else null
         var truncated = false
         val reader = thread(name = "droide-process-output", isDaemon = true) {
             try {
                 process.inputStream.use { stream ->
                     val buffer = ByteArray(8192)
-                    val decoder = onOutput?.let { callback -> Utf8StreamDecoder { chunk -> runCatching { callback(chunk) } } }
                     while (true) {
                         val n = stream.read(buffer)
                         if (n < 0) break
                         synchronized(bytes) {
-                            if (tail != null) {
-                                tail.write(buffer, 0, n)
-                                truncated = tail.truncated
-                            } else {
-                                val keep = minOf(n, maxOutputBytes - bytes.size())
-                                if (keep > 0) bytes.write(buffer, 0, keep)
-                                if (keep < n) truncated = true
-                            }
+                            val keep = minOf(n, maxOutputBytes - bytes.size())
+                            if (keep > 0) bytes.write(buffer, 0, keep)
+                            if (keep < n) truncated = true
                         }
-                        decoder?.accept(buffer, n)
+                        if (onOutput != null) {
+                            runCatching { onOutput(String(buffer, 0, n, Charsets.UTF_8)) }
+                        }
                     }
-                    decoder?.finish()
                 }
             } catch (e: Throwable) { failure.compareAndSet(null, e) }
         }
@@ -62,9 +54,7 @@ object LocalProcessSupervisor {
                 delay(25)
             }
             if (!timedOut) failure.get()?.let { throw it }
-            val text = synchronized(bytes) {
-                (tail?.utf8() ?: bytes.toString("UTF-8")) + if (truncated) "\n[output truncated]\n" else ""
-            }
+            val text = synchronized(bytes) { bytes.toString("UTF-8") + if (truncated) "\n[output truncated]\n" else "" }
             ExecResult(if (timedOut) 124 else process.exitValue(), text, timedOut)
         } finally {
             withContext(NonCancellable + Dispatchers.IO) {

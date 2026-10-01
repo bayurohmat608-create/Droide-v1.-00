@@ -25,10 +25,7 @@ import com.baystudio.droide.R
 
 
 @DrawableRes
-fun providerLogoResource(providerId: String): Int {
-    val id = providerId.trim().lowercase()
-    providerCatalogLogo(id)?.let { return it }
-    return when (id) {
+fun providerLogoResource(providerId: String): Int = when (providerId.trim().lowercase()) {
     "openai" -> R.drawable.provider_openai
     "gemini" -> R.drawable.provider_gemini
     "groq" -> R.drawable.provider_groq
@@ -47,14 +44,13 @@ fun providerLogoResource(providerId: String): Int {
     "meta" -> R.drawable.provider_meta
     "ollama" -> R.drawable.provider_ollama
     "lmstudio" -> R.drawable.provider_lmstudio
-    "vllm" -> R.drawable.provider_generic
+    "vllm" -> R.drawable.provider_vllm
     "local.llama" -> R.drawable.provider_llamacpp
     "google" -> R.drawable.provider_google
     "cerebras" -> R.drawable.provider_cerebras
     "cohere" -> R.drawable.provider_cohere
     "qwen" -> R.drawable.provider_qwen
     else -> R.drawable.provider_generic
-    }
 }
 
 @DrawableRes
@@ -76,14 +72,11 @@ fun modelLogoResource(providerId: String, modelId: String): Int {
 }
 
  
-private fun brandColorFilter(@DrawableRes logo: Int, foreground: Color): ColorFilter? = when {
-    isMonochromeProviderCatalogLogo(logo) -> ColorFilter.tint(foreground)
-    else -> when (logo) {
+private fun brandColorFilter(@DrawableRes logo: Int, foreground: Color): ColorFilter? = when (logo) {
     R.drawable.provider_ollama, R.drawable.provider_llamacpp ->
         ColorFilter.tint(foreground)
     R.drawable.provider_cerebras -> ColorFilter.tint(Color(0xFFF15A29))
     else -> null
-    }
 }
 
 @Composable

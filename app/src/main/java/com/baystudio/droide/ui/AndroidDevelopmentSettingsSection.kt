@@ -89,8 +89,6 @@ fun AndroidDevelopmentSettingsSection(
     var confirmRemove by remember { mutableStateOf(false) }
     var confirmClearCaches by remember { mutableStateOf(false) }
     var storageUsage by remember { mutableStateOf<AndroidDevelopmentManager.RemoteStorageUsage?>(null) }
-    var workstationInfo by remember { mutableStateOf<AndroidDevelopmentManager.WorkstationInfo?>(null) }
-    var workstationInstalledVersion by remember { mutableStateOf<String?>(null) }
     val controlsBusy = busy || operation.running || managedInstallState.running || certificationState.running || candidateJob?.isActive == true
 
     fun formatBytes(bytes: Long): String {
@@ -153,7 +151,7 @@ fun AndroidDevelopmentSettingsSection(
         if (uri != null) {
             scope.launch {
                 val result = runSuspendCatching {
-                    context.contentResolver.openOutputStream(uri, "w")?.use { certificationManager.exportLatest(it) }
+                    context.contentResolver.openOutputStream(uri, "w")?.let { certificationManager.exportLatest(it) }
                         ?: error("Could not open certification report destination")
                 }
                 message = if (result.isSuccess) "Certification report exported." else "Report export failed: ${result.exceptionOrNull()?.message}"
@@ -182,32 +180,25 @@ fun AndroidDevelopmentSettingsSection(
             toolchainCatalogError = loaded.exceptionOrNull()?.message ?: "Toolchain catalog could not be loaded"
         }
     }
-    LaunchedEffect(bridgeState.connected, operation.phase) {
+    LaunchedEffect(bridgeState.connected) {
         if (bridgeState.connected != null) {
             runSuspendCatching { manager.remoteStorageUsage() }.onSuccess { storageUsage = it }
-            workstationInfo = runSuspendCatching { manager.workstationInfo() }.getOrNull()
-            workstationInstalledVersion = runSuspendCatching { manager.installedToolchainManifest()?.version }.getOrNull()
         } else {
             storageUsage = null
-            workstationInfo = null
-            workstationInstalledVersion = null
         }
     }
 
     HorizontalDivider()
     Text("Android Development", style = MaterialTheme.typography.labelLarge)
     Text(
-        "Build Android projects in local Ubuntu; Wireless Debugging is used for Device Workstation, install, run, and device debugging.",
+        "Build and run Android projects on this device over Wireless Debugging.",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     Text(devState.message, style = MaterialTheme.typography.bodySmall)
     if (!bridgeState.supported) {
-        Text(
-            "Android 10: Local Ubuntu build remains available when its JDK/SDK host tools are healthy. Device Workstation pairing, install/run, and device debugging require Android 11+.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Text("Android 10: editor, local terminal and Git are available. This release requires Android 11+ for Device Workstation, managed runtime/extensions, on-device Build/Run, and its LSP/DAP/MCP hosts.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+        return
     }
     devState.toolchainVersion?.let { Text("Toolchain $it", style = MaterialTheme.typography.bodySmall) }
     if (operation.message.isNotBlank()) {
@@ -225,18 +216,6 @@ fun AndroidDevelopmentSettingsSection(
         }
     }
     message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary) }
-
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(enabled = !controlsBusy, onClick = {
-            scope.launch {
-                busy = true
-                runSuspendCatching { manager.refresh() }
-                    .onSuccess { message = it.message }
-                    .onFailure { message = "Build environment verification failed: ${it.message}" }
-                busy = false
-            }
-        }) { Text("Verify build environment") }
-    }
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedButton(
@@ -335,24 +314,18 @@ fun AndroidDevelopmentSettingsSection(
         }
 
         HorizontalDivider()
-        Text("Device Workstation toolchain", style = MaterialTheme.typography.labelMedium)
-        workstationInfo?.let { info ->
-            Text("${info.version} · JDK ${info.javaVersion} · SDK ${info.sdkPlatforms.sorted().joinToString(",")}", style = MaterialTheme.typography.bodySmall)
-        }
+        Text("Android toolchain", style = MaterialTheme.typography.labelMedium)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(enabled = !controlsBusy, onClick = {
                 scope.launch {
                     busy = true
-                    runSuspendCatching { manager.workstationInfo() }
-                        .onSuccess { info ->
-                            workstationInfo = info
-                            message = if (info != null) "Device Workstation toolchain verified." else "No healthy Device Workstation toolchain is available."
-                        }
-                        .onFailure { message = "Device Workstation verification failed: ${it.message}" }
+                    runSuspendCatching { manager.refresh() }
+                        .onSuccess { message = it.message }
+                        .onFailure { message = "Toolchain verification failed: ${it.message}" }
                     busy = false
                 }
             }) { Text("Verify") }
-            if (workstationInstalledVersion != null && workstationInfo == null) {
+            if (devState.toolchainVersion != null && devState.readiness != AndroidDevelopmentManager.Readiness.READY) {
                 OutlinedButton(enabled = !controlsBusy, onClick = {
                     scope.launch {
                         runSuspendCatching { manager.repairToolchain() }
@@ -361,7 +334,7 @@ fun AndroidDevelopmentSettingsSection(
                     }
                 }) { Text("Repair") }
             }
-            if (workstationInstalledVersion != null) {
+            if (devState.toolchainVersion != null) {
                 TextButton(enabled = !controlsBusy, onClick = { confirmRemove = true }) { Text("Remove") }
             }
         }
@@ -454,7 +427,7 @@ fun AndroidDevelopmentSettingsSection(
             }
         }
 
-        if (workstationInfo != null) {
+        if (devState.toolchainVersion != null) {
             HorizontalDivider()
             Text("Toolchain certification", style = MaterialTheme.typography.labelMedium)
             Text(

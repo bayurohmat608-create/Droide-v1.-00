@@ -28,7 +28,13 @@ internal fun isMarkdownPreviewPath(path: String): Boolean {
     return lower.endsWith(".md") || lower.endsWith(".markdown") || lower.endsWith(".mdown") || lower.endsWith(".mkd")
 }
 
-// Keep this path fail-closed at the trust boundary.
+// Security contract: - no WebView / JavaScript / raw HTML execution; - links remain subject to AgentMarkdownParser's http(s)-only URL policy.
+
+
+
+
+
+
 
 
 @Composable

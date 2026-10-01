@@ -13,7 +13,11 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 
-// Keep untrusted input and output bounded.
+// Metadata hosts are fixed or narrowly allowlisted, redirects are disabled, responses are bounded and credentials are never persisted here.
+
+
+
+
 
 
 internal object ProviderDefaultCredentialSources {

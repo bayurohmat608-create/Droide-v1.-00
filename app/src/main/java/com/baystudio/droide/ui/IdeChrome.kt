@@ -142,6 +142,7 @@ fun droideWorkbenchLayout(
     
 
     val landscape = physicalLandscape
+    
 
 
     val sidebarWidth = when (profile.widthTier) {
@@ -203,6 +204,7 @@ fun droideWorkbenchLayout(
 }
 
 
+
 data class DroidePaneFit(
     val sidebarWidth: Dp,
     val agentWidth: Dp,
@@ -214,6 +216,12 @@ data class DroidePaneFit(
     val workbenchOverflowWidth: Dp,
     val editorUnderPressure: Boolean,
 )
+
+
+
+
+
+
 
 
 fun droidePaneFit(
@@ -231,6 +239,7 @@ fun droidePaneFit(
     val agentWidth = if (!agentVisible) 0.dp else requestedAgentWidth.coerceIn(layout.agentPanelMinWidth, layout.agentPanelMaxWidth)
     val agentResizeHandleWidth = if (agentVisible) 10.dp else 0.dp
     val editorAvailableWidth = (usable - sidebarWidth - sidebarDividerWidth - agentResizeHandleWidth - agentWidth).coerceAtLeast(0.dp)
+    
 
 
     val editorMinimumViewportWidth = minOf(layout.minimumEditorWidth, usable)
@@ -322,6 +331,10 @@ fun rememberDroideWorkbenchNavigation(
         seekFraction = seek,
     )
 }
+
+
+
+
 
 
 @Composable

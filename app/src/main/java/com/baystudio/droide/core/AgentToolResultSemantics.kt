@@ -1,9 +1,12 @@
 package com.baystudio.droide.core
 
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
+// The model must not collapse these states: - a callable tool was advertised; - an environment dependency exists; - an operation was started.
 
-// The model must not collapse these states: - a callable tool was advertised.
+
+
+
+
+
 
 
 internal enum class AgentToolEvidenceState {
@@ -44,10 +47,6 @@ internal data class AgentToolEvidence(
 }
 
 internal object AgentToolResultSemantics {
-    fun operationFor(tool: String, arguments: JsonObject): String? =
-        (arguments[if (tool == "ide") "operation" else "action"] as? JsonPrimitive)
-            ?.takeIf { it.isString }?.content?.trim()
-
     private val evidenceMarkerRegex = Regex(
         "^\\[DROIDE_TOOL_EVIDENCE\\s+tool=([^\\s\\]]+)\\s+state=(SUCCEEDED|STARTED|FAILED|DENIED|UNAVAILABLE)\\s+operation_started=(true|false)\\s+success=(true|false|unverified)\\][ \t]*(?:\\r?\\n)?",
         RegexOption.IGNORE_CASE,
@@ -83,12 +82,6 @@ internal object AgentToolResultSemantics {
         val text = raw.trimStart()
         if (text.startsWith("DENIED", ignoreCase = true)) {
             return AgentToolEvidence(AgentToolEvidenceState.DENIED, operationStarted = false, success = false, detail = "Policy or user denied execution")
-        }
-        if (tool == "ide") {
-            AgentIdeResult.evidence(text, operation)?.let { return it }
-            val missing = text.contains("manager unavailable", ignoreCase = true)
-            return AgentToolEvidence(if (missing) AgentToolEvidenceState.UNAVAILABLE else AgentToolEvidenceState.FAILED,
-                false, false, if (missing) "IDE manager is unavailable" else "IDE returned no valid execution evidence")
         }
         if (text.contains("BACKGROUND_JOB_STARTED")) {
             return AgentToolEvidence(AgentToolEvidenceState.STARTED, operationStarted = true, success = null, detail = "Background process started; terminal result not known yet")

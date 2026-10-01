@@ -24,7 +24,7 @@ class LspManagerTest {
     @Test fun pythonFallbackUsesLiteralArgvAndFallsBackToPyCompile() = runBlocking {
         val terminal = RecordingTerminal { argv ->
             when (argv.firstOrNull()) {
-                "/bin/sh" -> ExecResult(0, "python3", false)
+                "ruff" -> ExecResult(-1, "not installed", false)
                 "python3" -> ExecResult(0, "", false)
                 else -> ExecResult(1, "unexpected", false)
             }
@@ -32,9 +32,7 @@ class LspManagerTest {
         val lsp: LspManager = CliLspManager(terminal, FileRepository(root))
         val result = lsp.diagnose("main.py")
         assertTrue(result.startsWith("OK: main.py"))
-        assertEquals(listOf("/bin/sh", "-c"), terminal.argvCalls[0].take(2))
-        assertTrue(terminal.argvCalls[0][2].contains("command -v ruff"))
-        assertTrue(terminal.argvCalls[0][2].contains("command -v python3"))
+        assertEquals(listOf("ruff", "check", "main.py"), terminal.argvCalls[0])
         assertEquals(listOf("python3", "-m", "py_compile", "main.py"), terminal.argvCalls[1])
         assertTrue(terminal.shellCalls.isEmpty())
     }

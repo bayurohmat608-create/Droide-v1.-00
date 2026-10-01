@@ -93,6 +93,12 @@ private data class MarketplacePlanNode(
 )
 
 
+
+
+
+
+
+
 class ExtensionMarketplaceManager(context: Context) {
     private val client = OpenVsxRegistryClient(context.applicationContext)
     private val store = ExtensionMarketplaceStore(context.applicationContext)
@@ -245,6 +251,8 @@ class ExtensionMarketplaceManager(context: Context) {
                     }
                 }
 
+                
+
 
                 nodes.forEach { node ->
                     val existing = installedBefore[node.parsed.manifest.id]
@@ -294,7 +302,7 @@ class ExtensionMarketplaceManager(context: Context) {
                             }
                         }
                         restored.exceptionOrNull()?.let { rollbackFailure ->
-                            // Fail closed when required state cannot be verified.
+                            // Fail closed if the exact previous artifact cannot be restored: remove the newly installed state rather than leaving an uncommitted marketplace version active.
 
                             runCatching { onManifestRemoved?.invoke(id) }
                             runCatching { DeclarativeExtensionRuntime.uninstall(id) }

@@ -26,6 +26,7 @@ data class TaskResult(
 // Task definitions are literal argv arrays, never shell snippets.
 
 
+
 class TaskManager(private val root: File, private val terminals: TerminalManager? = null) {
     private val json = Json { ignoreUnknownKeys = true; isLenient = false }
 
@@ -40,7 +41,7 @@ class TaskManager(private val root: File, private val terminals: TerminalManager
         val relCwd = task.cwd.canonicalFile.relativeTo(root.canonicalFile).invariantSeparatorsPath.let { if (it == ".") "." else it }
         val started = System.nanoTime()
         val session = when (task.executionScope) {
-            // Ubuntu is a compatibility backend and shares the application UID; it is not a hostile-code sandbox.
+            // Never let them silently execute with Droide's application UID.
 
             TaskExecutionScope.AUTO -> terminals?.automatedExecutionSession(createIfMissing = true)
                 ?: error("Automatic project tasks require the local Linux backend; use explicit LOCAL only for code you trust")
@@ -83,43 +84,36 @@ class TaskManager(private val root: File, private val terminals: TerminalManager
         val array = parsed["tasks"] as? JsonArray ?: return emptyList()
         return array.take(100).mapNotNull { el ->
             val o = el as? JsonObject ?: return@mapNotNull null
-            fun string(key: String): String? = (o[key] as? JsonPrimitive)?.takeIf { it.isString }?.contentOrNull
-            val label = string("label")?.trim()?.takeIf { it.isNotEmpty() }?.take(160) ?: return@mapNotNull null
-            val rawArgv = o["command"] as? JsonArray ?: return@mapNotNull null
-            if (rawArgv.isEmpty() || rawArgv.size > 128) return@mapNotNull null
-            val argv = rawArgv.map { (it as? JsonPrimitive)?.takeIf { value -> value.isString }?.contentOrNull }
-            if (argv.any { it == null || it.length > 4_000 || '\u0000' in it } || argv.first().isNullOrBlank()) return@mapNotNull null
-            val safeArgv = argv.filterNotNull()
-            if (o["cwd"] != null && string("cwd") == null) return@mapNotNull null
-            val cwdRaw = string("cwd") ?: "."
+            val label = o["label"]?.jsonPrimitive?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() }?.take(160) ?: return@mapNotNull null
+            val argv = (o["command"] as? JsonArray)?.mapNotNull { it.jsonPrimitive.contentOrNull?.take(4_000) } ?: return@mapNotNull null
+            if (argv.isEmpty() || argv.size > 128) return@mapNotNull null
+            val cwdRaw = o["cwd"]?.jsonPrimitive?.contentOrNull ?: "."
             val cwd = runCatching { if (cwdRaw == ".") root.canonicalFile else PathSecurity.resolveWithin(root, cwdRaw) }.getOrNull() ?: return@mapNotNull null
             if (!cwd.isDirectory) return@mapNotNull null
-            if (o["group"] != null && string("group") == null) return@mapNotNull null
-            val group = string("group")?.take(80) ?: "task"
-            if (o["executionScope"] != null && string("executionScope") == null) return@mapNotNull null
-            val executionScope = when (string("executionScope")?.trim()?.lowercase()) {
+            val group = o["group"]?.jsonPrimitive?.contentOrNull?.take(80) ?: "task"
+            val executionScope = when (o["executionScope"]?.jsonPrimitive?.contentOrNull?.trim()?.lowercase()) {
                 null, "", "auto" -> TaskExecutionScope.AUTO
+                
+
                 "local" -> return@mapNotNull null
-                "local-linux-arm64", "device-workstation", "workstation", "remote" -> TaskExecutionScope.LOCAL_LINUX_ARM64
+                "device-workstation", "workstation", "remote" -> TaskExecutionScope.LOCAL_LINUX_ARM64
                 else -> return@mapNotNull null
             }
-            IdeTask(label, safeArgv, cwd, group, ".droide/tasks.json", executionScope)
+            IdeTask(label, argv, cwd, group, ".droide/tasks.json", executionScope)
         }
     }
 
-    private fun metadataPath(path: String): File? = runCatching { PathSecurity.resolveWithin(root, path) }.getOrNull()
-
     private fun detect(): List<IdeTask> {
         val out = mutableListOf<IdeTask>()
-        val gradlew = metadataPath("gradlew")
-        if (gradlew?.isFile == true) {
+        val gradlew = File(root, "gradlew")
+        if (gradlew.isFile) {
             
             out += IdeTask("Gradle: test", listOf("sh", "./gradlew", "test"), root, "test")
             out += IdeTask("Gradle: assembleDebug", listOf("sh", "./gradlew", "assembleDebug"), root, "build")
         }
 
-        val packageJson = metadataPath("package.json")
-        if (packageJson?.isFile == true && packageJson.length() <= 2_000_000) {
+        val packageJson = File(root, "package.json")
+        if (packageJson.isFile && packageJson.length() <= 2_000_000) {
             val scripts = runCatching {
                 val obj = json.parseToJsonElement(packageJson.readText()) as? JsonObject
                 (obj?.get("scripts") as? JsonObject)?.keys.orEmpty().take(40)
@@ -131,18 +125,18 @@ class TaskManager(private val root: File, private val terminals: TerminalManager
             }
         }
 
-        if ((metadataPath("Cargo.toml")?.isFile == true)) {
+        if (File(root, "Cargo.toml").isFile) {
             out += IdeTask("Cargo: check", listOf("cargo", "check"), root, "build")
             out += IdeTask("Cargo: test", listOf("cargo", "test"), root, "test")
         }
-        if ((metadataPath("go.mod")?.isFile == true)) {
+        if (File(root, "go.mod").isFile) {
             out += IdeTask("Go: test ./...", listOf("go", "test", "./..."), root, "test")
             out += IdeTask("Go: build ./...", listOf("go", "build", "./..."), root, "build")
         }
-        if ((metadataPath("pyproject.toml")?.isFile == true) || (metadataPath("pytest.ini")?.isFile == true) || (metadataPath("tests")?.isDirectory == true)) {
+        if (File(root, "pyproject.toml").isFile || File(root, "pytest.ini").isFile || File(root, "tests").isDirectory) {
             out += IdeTask("Pytest", listOf("pytest"), root, "test")
         }
-        if ((metadataPath("Makefile")?.isFile == true) || (metadataPath("makefile")?.isFile == true)) {
+        if (File(root, "Makefile").isFile || File(root, "makefile").isFile) {
             out += IdeTask("Make", listOf("make"), root, "build")
         }
         return out
