@@ -46,7 +46,7 @@ jobs:
         run: |
           set -euo pipefail
           java -XshowSettings:properties -version 2>&1 | tee android-ci-java-env.log
-          java_version="$(java -version 2>&1 | awk -F '"' '/version/ {print $2; exit}')"
+          java_version="$(java -version 2>&1 | awk -F '\"' '/version/ {print $2; exit}')"
           test "$java_version" = "17.0.20.1"
           java_vendor="$(java -XshowSettings:properties -version 2>&1 | sed -n 's/^ *java.vendor = //p' | head -1)"
           case "$java_vendor" in
@@ -74,11 +74,37 @@ jobs:
       - name: Runtime license closure
         run: python3 ./tools/verify_runtime_licenses.py
 
-      - name: Unit tests, lint, release APK and bundle
+      # Compose/Kotlin compilation for Droide is large enough to exhaust the default
+      # Gradle/Kotlin heap on hosted runners. Keep compilation in the Gradle process,
+      # cap workers, and run verification/build phases in fresh JVMs so peak memory is
+      # predictable instead of letting Gradle + Kotlin daemons compete for RAM.
+      - name: Unit tests
         shell: bash
         run: |
           set -euo pipefail
-          ./gradlew --no-daemon --stacktrace clean test lintRelease assembleRelease bundleRelease 2>&1 | tee android-ci-gradle.log
+          : > android-ci-gradle.log
+          ./gradlew --no-daemon --stacktrace --max-workers=2 \
+            '-Dorg.gradle.jvmargs=-Xmx5120m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8' \
+            -Pkotlin.compiler.execution.strategy=in-process \
+            clean test 2>&1 | tee -a android-ci-gradle.log
+
+      - name: Release lint
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon --stacktrace --max-workers=2 \
+            '-Dorg.gradle.jvmargs=-Xmx5120m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8' \
+            -Pkotlin.compiler.execution.strategy=in-process \
+            lintRelease 2>&1 | tee -a android-ci-gradle.log
+
+      - name: Release APK and bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon --stacktrace --max-workers=2 \
+            '-Dorg.gradle.jvmargs=-Xmx5120m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8' \
+            -Pkotlin.compiler.execution.strategy=in-process \
+            assembleRelease bundleRelease 2>&1 | tee -a android-ci-gradle.log
 
       - name: Verify release artifacts
         shell: bash
