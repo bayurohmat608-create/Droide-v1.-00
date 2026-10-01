@@ -43,7 +43,6 @@ object AgentToolPermissionPolicy {
     // Every returned requirement must be resolved immediately before the corresponding branch runs.
 
 
-
     fun runtimeRequirements(tool: String, args: JsonObject, sessionId: String?): List<AgentRuntimePermissionRequirement> = when (tool) {
         "background_job" -> listOf(AgentRuntimePermissionRequirement(
             "read",

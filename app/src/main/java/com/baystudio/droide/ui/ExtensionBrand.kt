@@ -32,12 +32,6 @@ import com.baystudio.droide.core.ExtensionCategory
 import com.baystudio.droide.core.ExtensionFamily
 import com.baystudio.droide.core.LanguageRegistry
 
-// Only capabilities without a distinct upstream brand fall back to a category glyph, never to the old one-letter avatar treatment.
-
-
-
-
-
 
 private data class ExtensionBrandAsset(@DrawableRes val resource: Int, val adaptiveMonochrome: Boolean = false)
 

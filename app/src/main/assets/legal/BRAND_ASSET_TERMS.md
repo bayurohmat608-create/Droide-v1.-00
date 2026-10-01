@@ -442,7 +442,7 @@ Official source: https://lmstudio.ai/brand . The bundled color app icon is downs
 
 ## vLLM
 
-Official compact logo: https://github.com/vllm-project/media-kit . The media kit recommends the compact logo at small sizes, preservation of shape/colors and clear space. The reviewed media kit does not supply a separate explicit software-style license for the logo; confirm brand-use permission before public distribution if needed.
+Droide does not redistribute the vLLM media-kit logo. The reviewed media kit does not currently publish an explicit license for the logo assets, so the vLLM provider uses Droide's neutral generic provider glyph. The provider name is used only to identify the compatible service/runtime.
 
 ## Ollama, Google, Cerebras, Cohere, Qwen, and other marks
 

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "closureStatus": "DIRECT_RUNTIME_COMPLETE_TRANSITIVE_BUILD_GRAPH_PENDING",
-  "closureNote": "Every directly declared app runtime dependency and every bundled native/rootfs runtime aggregate is mapped. The resolved Gradle transitive graph still requires dependency locking and verification metadata from the trusted online release build.",
+  "closureStatus": "DIRECT_RUNTIME_AND_RESOLVED_RELEASE_RUNTIME_COMPLETE",
+  "closureNote": "Every directly declared app runtime dependency maps exactly once in this catalog. Every Gradle module in releaseRuntimeClasspath is separately enumerated in legal/resolved_runtime_licenses.json and verified fail-closed. Native/rootfs aggregate licensing is tracked in legal/runtime_legal_inventory.json.",
   "entries": [
     {
       "id": "androidx-compose",
@@ -61,7 +61,7 @@
       "copyright": "Copyright Rosemoe and contributors",
       "licenseTextAsset": "legal/licenses/LGPL-2.1.txt",
       "source": "https://github.com/Rosemoe/sora-editor",
-      "notice": "Droide directly uses the editor and language-textmate AARs. Upstream grants LGPL version 2.1 or, at the recipient\u2019s option, any later version. Binary redistribution must preserve LGPL notices/source/relinkability obligations.",
+      "notice": "Droide directly uses the editor and language-textmate AARs. Upstream grants LGPL version 2.1 or, at the recipient’s option, any later version. Binary redistribution must preserve LGPL notices/source/relinkability obligations.",
       "dependencyKeys": [
         "io.github.rosemoe:editor:0.24.6",
         "io.github.rosemoe:language-textmate:0.24.6"
@@ -373,6 +373,126 @@
       "licenseTextAsset": "legal/licenses/Runtime-Aggregates-NOTICE.md",
       "source": "legal/runtime_legal_inventory.json",
       "notice": "The bundled Ubuntu Base archive contains 91 installed packages; exact binary/source package versions and source locators are recorded in the runtime inventory. Ubuntu trademark rights remain separate.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "models-dev-logos",
+      "name": "models.dev provider identity assets",
+      "version": "pinned source assets 2026-10-01",
+      "licenseName": "MIT License",
+      "spdx": "MIT",
+      "copyright": "Copyright (c) 2025 models.dev",
+      "licenseTextAsset": "legal/licenses/Models-dev-MIT.txt",
+      "source": "https://github.com/anomalyco/models.dev",
+      "notice": "Offline provider identity marks. Commit, original paths and asset hashes: third_party/models-dev-logos/manifest.json. Trademark rights remain with their owners.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "lobe-provider-logos",
+      "name": "LobeHub provider identity assets",
+      "version": "pinned source assets 2026-10-01",
+      "licenseName": "MIT License",
+      "spdx": "MIT",
+      "copyright": "Copyright (c) 2023 LobeHub",
+      "licenseTextAsset": "legal/licenses/LobeHub-Provider-MIT.txt",
+      "source": "https://github.com/lobehub/lobe-icons",
+      "notice": "Offline provider identity marks. Commit, original paths and asset hashes: third_party/models-dev-logos/manifest.json. Trademark rights remain with their owners.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "kotlin-runtime",
+      "name": "Kotlin runtime libraries",
+      "version": "resolved release graph",
+      "licenseName": "Apache License 2.0",
+      "spdx": "Apache-2.0",
+      "copyright": "Copyright JetBrains s.r.o. and Kotlin contributors",
+      "licenseTextAsset": "legal/licenses/APACHE-2.0.txt",
+      "source": "https://github.com/JetBrains/kotlin",
+      "notice": "Resolved Kotlin standard library and Android runtime artifacts are enumerated in legal/resolved_runtime_licenses.json.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "google-runtime-support",
+      "name": "Google runtime support libraries",
+      "version": "resolved release graph",
+      "licenseName": "Apache License 2.0",
+      "spdx": "Apache-2.0",
+      "copyright": "Copyright respective Google project contributors",
+      "licenseTextAsset": "legal/licenses/APACHE-2.0.txt",
+      "source": "legal/resolved_runtime_licenses.json",
+      "notice": "Covers resolved Gson, Accompanist, Error Prone annotations, Guava listenablefuture and JSpecify artifacts.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "commons-codec",
+      "name": "Apache Commons Codec",
+      "version": "1.17.0",
+      "licenseName": "Apache License 2.0",
+      "spdx": "Apache-2.0",
+      "copyright": "Copyright The Apache Software Foundation",
+      "licenseTextAsset": "legal/licenses/APACHE-2.0.txt",
+      "source": "https://commons.apache.org/proper/commons-codec/",
+      "notice": "Resolved transitive dependency of JGit.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "javaewah",
+      "name": "JavaEWAH",
+      "version": "1.2.3",
+      "licenseName": "Apache License 2.0",
+      "spdx": "Apache-2.0",
+      "copyright": "Copyright JavaEWAH contributors",
+      "licenseTextAsset": "legal/licenses/APACHE-2.0.txt",
+      "source": "https://github.com/lemire/javaewah",
+      "notice": "Resolved transitive dependency of JGit.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "eclipse-jdt-annotations",
+      "name": "Eclipse JDT annotations",
+      "version": "2.4.100",
+      "licenseName": "Eclipse Public License 2.0",
+      "spdx": "EPL-2.0",
+      "copyright": "Copyright Eclipse JDT contributors",
+      "licenseTextAsset": "legal/licenses/EPL-2.0.txt",
+      "source": "https://github.com/eclipse-jdt/eclipse.jdt.core",
+      "notice": "Resolved release runtime dependency. EPL source availability obligations remain with this component.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "jruby-regexp-runtime",
+      "name": "Joni and JCodings",
+      "version": "Joni 2.2.7 / JCodings 1.0.64",
+      "licenseName": "MIT License",
+      "spdx": "MIT",
+      "copyright": "JRuby project contributors",
+      "licenseTextAsset": "legal/licenses/MIT.txt",
+      "source": "https://github.com/jruby/joni",
+      "notice": "Resolved transitive runtime libraries used by Sora TextMate support.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "slf4j",
+      "name": "SLF4J API",
+      "version": "1.7.36",
+      "licenseName": "MIT License",
+      "spdx": "MIT",
+      "copyright": "Copyright QOS.ch and contributors",
+      "licenseTextAsset": "legal/licenses/MIT.txt",
+      "source": "https://www.slf4j.org/license.html",
+      "notice": "Resolved transitive dependency of JGit.",
+      "dependencyKeys": []
+    },
+    {
+      "id": "snakeyaml-engine",
+      "name": "SnakeYAML Engine",
+      "version": "3.0.1",
+      "licenseName": "Apache License 2.0",
+      "spdx": "Apache-2.0",
+      "copyright": "Copyright SnakeYAML contributors",
+      "licenseTextAsset": "legal/licenses/APACHE-2.0.txt",
+      "source": "https://github.com/snakeyaml/snakeyaml-engine",
+      "notice": "Resolved release runtime dependency.",
       "dependencyKeys": []
     }
   ]

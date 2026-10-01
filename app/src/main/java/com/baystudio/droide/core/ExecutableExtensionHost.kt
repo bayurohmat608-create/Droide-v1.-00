@@ -95,12 +95,6 @@ data class ExtensionHostSnapshot(
 // The host deliberately treats process separation and security isolation as different concepts.
 
 
-
-
-
-
-
-
 class ExecutableExtensionHost(
     private val scope: CoroutineScope,
     private val workDir: File,

@@ -6,7 +6,7 @@ runtime toolchain versions. It proves that a fresh build session knows exactly w
 inputs are required and which large/network inputs are expected to be provisioned on demand.
 """
 from __future__ import annotations
-import argparse, hashlib, json, os, re, subprocess
+import argparse, hashlib, json, os, re, subprocess, sys
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -129,6 +129,12 @@ def source_report() -> dict:
     require_file("third_party/ARTIFACTS_SHA256.txt")
     require_file("app/libs/terminal-emulator-v0.118.0.aar")
     require_file("app/libs/terminal-view-v0.118.0.aar")
+    trust = subprocess.run(
+        [sys.executable, str(require_file("tools/verify_dependency_trust.py"))],
+        text=True, capture_output=True, timeout=20,
+    )
+    if trust.returncode != 0:
+        raise ValueError(trust.stderr.strip() or "Dependency trust controls are incomplete")
 
     return {
         "schema": 1,
@@ -144,9 +150,12 @@ def source_report() -> dict:
         "dependencyLockPolicy": True,
         "dependencyLockSnapshotPresent": (ROOT / "app/gradle.lockfile").is_file() or (ROOT / "gradle.lockfile").is_file(),
         "dependencyVerificationMetadataPresent": (ROOT / "gradle/verification-metadata.xml").is_file(),
-        "firstNetworkResolutionExpected": not ((ROOT / "gradle/verification-metadata.xml").is_file()),
-        "heavyRuntimePayloadsBundled": False,
-        "heavyRuntimeProvisioning": "source-lock + checksum/provenance acquisition",
+        "dependencyTrustControlsReady": True,
+        "networkNeededForUncachedDependencies": True,
+        "heavyRuntimePayloadsBundled": True,
+        "heavyRuntimeProvisioning": "APK-packaged PRoot, Ubuntu/Alpine rootfs and QEMU engine pack; activation extracts on demand",
+        "developmentToolchainsBundled": False,
+        "bundledRuntimeIntegrityGate": "tools/verify_bundled_runtime.py",
     }
 
 

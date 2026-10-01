@@ -22,7 +22,6 @@ enum class ProcessExecutionScope { LOCAL_LINUX_ARM64, DEVICE_ADB }
 // It deliberately exposes byte streams, not shell strings, so protocol traffic cannot be reinterpreted by a command shell.
 
 
-
 interface HostedStdioProcess : Closeable {
     val stdin: OutputStream
     val stdout: InputStream
@@ -33,7 +32,6 @@ interface HostedStdioProcess : Closeable {
 }
 
 
- 
 data class ProcessResourceLimits(
     val cpuSeconds: Int = 120,
     val fileSizeKiB: Int = 64 * 1024,
@@ -65,9 +63,6 @@ interface StdioProcessHost {
     }
     suspend fun pathMapper(): WorkspacePathMapper? = null
 }
-
-
-
 
 
 class DeviceWorkstationProcessHost(

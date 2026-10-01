@@ -595,6 +595,7 @@ private fun ExtensionDetail(
         DetailLine("Install mode", when (item.version.installKind) {
             com.baystudio.droide.core.ExtensionInstallKind.BUILT_IN -> "Bundled Droide feature"
             com.baystudio.droide.core.ExtensionInstallKind.ANDROID_MANAGED_TOOLCHAIN -> "Managed Android pack · shared removal"
+            com.baystudio.droide.core.ExtensionInstallKind.ANDROID_LOCAL_COMPONENT -> "Reviewed Android SDK component · local Ubuntu"
             com.baystudio.droide.core.ExtensionInstallKind.MANAGED_PACKAGE,
             com.baystudio.droide.core.ExtensionInstallKind.GUEST_PACKAGE,
             com.baystudio.droide.core.ExtensionInstallKind.REVIEWED_RECIPE -> "Reviewed managed tool"
@@ -648,6 +649,7 @@ private fun ExtensionDetail(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick = onRefresh, enabled = installJob == null && !installState.running) { Text("Verify status") }
                     if (item.version.installKind in setOf(
+                            com.baystudio.droide.core.ExtensionInstallKind.ANDROID_LOCAL_COMPONENT,
                             com.baystudio.droide.core.ExtensionInstallKind.MANAGED_PACKAGE,
                             com.baystudio.droide.core.ExtensionInstallKind.GUEST_PACKAGE,
                             com.baystudio.droide.core.ExtensionInstallKind.REVIEWED_RECIPE,
@@ -669,6 +671,7 @@ private fun ExtensionDetail(
                     }
                 }
                 if (item.version.installKind in setOf(
+                        com.baystudio.droide.core.ExtensionInstallKind.ANDROID_LOCAL_COMPONENT,
                         com.baystudio.droide.core.ExtensionInstallKind.MANAGED_PACKAGE,
                         com.baystudio.droide.core.ExtensionInstallKind.GUEST_PACKAGE,
                         com.baystudio.droide.core.ExtensionInstallKind.REVIEWED_RECIPE,
@@ -683,7 +686,8 @@ private fun ExtensionDetail(
                                             manager.clearWorkspaceVersion(item.family.id)
                                             "Workspace override cleared."
                                         } else {
-                                            val result = manager.unifiedAuthority.activate(item.family.id, item.version.version, "current-workspace")
+                                            val result = manager.unifiedAuthority.activate(item.family.id, item.version.version, manager.workspaceId)
+                                            check(result.success) { result.message }
                                             result.message
                                         }
                                     }.onSuccess { installMessage = it; onRefresh() }
@@ -696,6 +700,7 @@ private fun ExtensionDetail(
                     ) { Text(if (workspaceSelected) "Use global default" else "Use in workspace") }
                 }
                 if (item.version.installKind in setOf(
+                        com.baystudio.droide.core.ExtensionInstallKind.ANDROID_LOCAL_COMPONENT,
                         com.baystudio.droide.core.ExtensionInstallKind.MANAGED_PACKAGE,
                         com.baystudio.droide.core.ExtensionInstallKind.GUEST_PACKAGE,
                         com.baystudio.droide.core.ExtensionInstallKind.REVIEWED_RECIPE,
@@ -708,7 +713,7 @@ private fun ExtensionDetail(
                             onClick = {
                                 installJob = scope.launch {
                                     try {
-                                        runSuspendCatching { manager.unifiedAuthority.repair(item.family.id) }
+                                        runSuspendCatching { manager.unifiedAuthority.repairVersion(item.family.id, item.version.version) }
                                             .onSuccess { txResult -> 
                                                 if (txResult.success) {
                                                     installMessage = txResult.message
@@ -782,6 +787,7 @@ private fun ExtensionDetail(
 
     plan?.let { currentPlan ->
         val androidPlan = currentPlan as? com.baystudio.droide.core.ExtensionInstallPlan.Android
+        val localAndroidPlan = currentPlan as? com.baystudio.droide.core.ExtensionInstallPlan.AndroidLocalComponent
         val packagePlan = currentPlan as? com.baystudio.droide.core.ExtensionInstallPlan.Package
         val recipePlan = currentPlan as? com.baystudio.droide.core.ExtensionInstallPlan.Recipe
         AlertDialog(
@@ -798,6 +804,19 @@ private fun ExtensionDetail(
                         HorizontalDivider()
                         if (ap.licenseAccepted) {
                             Text("Android SDK license accepted for this revision.", style = MaterialTheme.typography.bodySmall)
+                        } else {
+                            Text("Android SDK License", style = MaterialTheme.typography.labelLarge)
+                            Text(ap.license.text, style = MaterialTheme.typography.bodySmall)
+                            Text("SHA-256 ${ap.license.sha256}", style = MaterialTheme.typography.labelSmall, fontFamily = FontFamily.Monospace)
+                        }
+                    }
+                    localAndroidPlan?.let { ap ->
+                        Text("${ap.entry.kind.name.replace('_', ' ')} · SHA-256 ${ap.entry.sha256.take(16)}…", style = MaterialTheme.typography.labelSmall, fontFamily = FontFamily.Monospace)
+                        Text(ap.entry.provenance, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Ubuntu target: ${com.baystudio.droide.core.LocalAndroidSdkComponentEnvironment.GUEST_SDK_ROOT}/${ap.entry.guestTarget}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        HorizontalDivider()
+                        if (ap.licenseAccepted) {
+                            Text("Android SDK license accepted for this component install.", style = MaterialTheme.typography.bodySmall)
                         } else {
                             Text("Android SDK License", style = MaterialTheme.typography.labelLarge)
                             Text(ap.license.text, style = MaterialTheme.typography.bodySmall)
@@ -821,17 +840,28 @@ private fun ExtensionDetail(
                 }
             },
             confirmButton = {
-                val needsLicense = androidPlan != null && !androidPlan.licenseAccepted
+                val needsLicense = (androidPlan != null && !androidPlan.licenseAccepted) ||
+                    (localAndroidPlan != null && !localAndroidPlan.licenseAccepted)
                 Button(
                     enabled = installJob == null && !installState.running,
                     onClick = {
                         if (needsLicense) {
-                            val ap = androidPlan ?: return@Button
                             installJob = scope.launch {
                                 try {
-                                    val result = runSuspendCatching { manager.installer.acceptLicense(ap) }
-                                    result.onSuccess { plan = ap.copy(licenseAccepted = true) }
-                                        .onFailure { installMessage = it.message ?: "License acceptance failed" }
+                                    val result = runSuspendCatching {
+                                        when {
+                                            androidPlan != null -> manager.installer.acceptLicense(androidPlan)
+                                            localAndroidPlan != null -> manager.installer.acceptLicense(localAndroidPlan)
+                                            else -> error("No Android license plan is active")
+                                        }
+                                    }
+                                    result.onSuccess {
+                                        plan = when {
+                                            androidPlan != null -> androidPlan.copy(licenseAccepted = true)
+                                            localAndroidPlan != null -> localAndroidPlan.copy(licenseAccepted = true)
+                                            else -> currentPlan
+                                        }
+                                    }.onFailure { installMessage = it.message ?: "License acceptance failed" }
                                 } finally {
                                     installJob = null
                                 }
@@ -839,7 +869,7 @@ private fun ExtensionDetail(
                         } else {
                             installJob = scope.launch {
                                 try {
-                                    val result = runSuspendCatching { manager.unifiedAuthority.install(currentPlan.familyId, currentPlan.requestedVersion) }
+                                    val result = runSuspendCatching { manager.unifiedAuthority.installPrepared(currentPlan) }
                                     result.onSuccess { txResult ->
                                         if (txResult.success) {
                                             installMessage = txResult.message

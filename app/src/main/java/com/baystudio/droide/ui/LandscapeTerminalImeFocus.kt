@@ -29,10 +29,6 @@ internal data class LandscapeTerminalImeFocusState(
     val exit: () -> Unit,
 )
 
-// The mode is latched while the keyboard is visible so re-creating/resizing the native terminal view cannot immediately drop the presentation.
-
-
-
 
 @Composable
 internal fun rememberLandscapeTerminalImeFocus(

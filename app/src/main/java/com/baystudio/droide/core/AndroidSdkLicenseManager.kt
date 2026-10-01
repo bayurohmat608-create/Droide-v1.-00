@@ -25,12 +25,6 @@ data class AndroidSdkLicense(
 )
 
 
-
-
-
-
-
-
 class AndroidSdkLicenseManager(context: Context) {
     private val appContext = context.applicationContext
     private val client = OkHttpClient.Builder()

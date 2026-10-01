@@ -571,6 +571,16 @@ internal object SafeWholeTreeArchive {
                 return resolve(link.resolvedPath, chain + path)
             }
             symlinks.forEach { resolve(it.relativePath) }
+            val symlinkPaths = symlinks.mapTo(hashSetOf()) { it.relativePath }
+            knownPaths.forEach { path ->
+                var parent = path.substringBeforeLast('/', "")
+                while (parent.isNotEmpty()) {
+                    require(parent !in symlinkPaths) {
+                        "Whole-tree TAR cannot materialize an entry below a symlink: $path"
+                    }
+                    parent = parent.substringBeforeLast('/', "")
+                }
+            }
         }
         if (modePolicy == DeclarativeWholeTreeModePolicy.PINNED_ARCHIVE) {
             require(executableCount in 1..512) { "Pinned archive contains no executable payloads" }

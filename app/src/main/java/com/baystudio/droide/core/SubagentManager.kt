@@ -220,11 +220,6 @@ private class SubagentTaskStore(workDir: File) {
 // Fresh tasks create durable child sessions.
 
 
-
-
-
-
-
 class SubagentManager(
     private val files: FileRepository,
     private val terminal: ITerminalSession,

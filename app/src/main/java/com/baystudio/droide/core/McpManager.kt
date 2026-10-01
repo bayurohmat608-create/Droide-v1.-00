@@ -36,23 +36,7 @@ data class McpServer(
     val source: String = "Workspace",
 )
 
-// Security and lifecycle boundary: - configuration is argv-only, never shell text; - Agent permission checks happen before a server process is started.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Keep this path fail-closed at the trust boundary.
 
 
 class McpManager(
@@ -322,9 +306,6 @@ class McpManager(
         return ProtocolResolution(resolved, modernAlreadyProbed = modern)
     }
 
-    
-
-
 
     private suspend fun probeModernSibling(argv: List<String>): Boolean {
         val host = processHost ?: error("MCP execution host is not bound")
@@ -357,10 +338,6 @@ class McpManager(
 
     private fun fingerprint(argv: List<String>, protocol: McpProtocolPreference): String =
         sha256(listOf(protocol.name) + argv)
-
-    
-
-
 
 
     private fun localArgumentProvenance(argv: List<String>): List<String> = argv.drop(1).mapNotNull { arg ->

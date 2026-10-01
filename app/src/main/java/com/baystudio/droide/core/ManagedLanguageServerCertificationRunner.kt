@@ -18,9 +18,6 @@ data class ManagedPackageCertificationCheck(
 )
 
 
-
-
-
 @Serializable
 data class ManagedLanguageServerCertificationReport(
     val schema: Int = 1,
@@ -98,9 +95,6 @@ data class ManagedLanguageServerCertificationReport(
 }
 
 // The runner never mutates the production catalog.
-
-
-
 
 
 class ManagedLanguageServerCertificationRunner(

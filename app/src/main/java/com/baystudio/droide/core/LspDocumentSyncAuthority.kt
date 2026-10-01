@@ -7,10 +7,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 
-
-
-
-
 internal class LspDocumentSyncAuthority(
     private val rpc: JsonRpcProcess,
     private val policy: LspTextSyncPolicy,
@@ -30,7 +26,7 @@ internal class LspDocumentSyncAuthority(
         synchronizeLocked(uri, languageId, text)
         withContext(NonCancellable) {
             LspProtocolContract.save(rpc, policy, uri, languageId, text, versions, openUris)
-            // A successful save establishes the persisted snapshot even for servers that do not accept didChange and refresh their model from disk on didSave.
+            
 
             deliveredText[uri] = text
         }

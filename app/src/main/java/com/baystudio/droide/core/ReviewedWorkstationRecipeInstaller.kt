@@ -13,9 +13,6 @@ import kotlinx.serialization.json.Json
 // These are deliberately separate from ManagedPackageCatalog: npm resolves transitive packages at install time.
 
 
-
-
-
 data class WorkstationInstallRecipe(
     val familyId: String,
     val version: String,
@@ -74,15 +71,13 @@ object WorkstationInstallRecipeCatalog {
     )
 
     val entries: List<WorkstationInstallRecipe> = listOf(
-        recipe(
-            "plugin.opencode", "2.0.3", "@opencode/cli", "opencode", 20, "https://opencode.ai/docs/cli/",
+        recipe("plugin.opencode", "1.18.34", "opencode-ai", "opencode", 22, "https://opencode.ai/docs/cli/",
             allowLifecycleScripts = true,
-            lifecycleScriptReview = "Reviewed @opencode/cli 2.0.3 publish output requires its top-level postinstall.mjs to select/link the platform binary.",
-        ),
-        recipe("plugin.codex", "1.12.0", "@agentclientprotocol/codex-acp", "codex-acp", 20, "https://github.com/agentclientprotocol/codex-acp"),
-        recipe("plugin.claude-code", "0.79.0", "@agentclientprotocol/claude-agent-acp", "claude-agent-acp", 22, "https://github.com/agentclientprotocol/claude-agent-acp"),
-        recipe("plugin.gemini-cli", "0.60.0", "@google/gemini-cli", "gemini", 20, "https://github.com/google-gemini/gemini-cli"),
-        recipe("plugin.github-copilot-cli", "1.0.86", "@github/copilot", "copilot", 22, "https://docs.github.com/en/copilot/concepts/agents/about-copilot-cli"),
+            lifecycleScriptReview = "OpenCode official npm publisher selects its Linux ARM64 binary through its top-level postinstall selector. Only opencode-ai lifecycle scripts are enabled after the complete SHA-512 registry lock is validated; transitive scripts stay blocked. https://github.com/anomalyco/opencode/tree/v1.18.34/packages/opencode"),
+        recipe("plugin.codex", "2.1.0", "@agentclientprotocol/codex-acp", "codex-acp", 22, "https://github.com/agentclientprotocol/codex-acp"),
+        recipe("plugin.claude-code", "0.84.0", "@agentclientprotocol/claude-agent-acp", "claude-agent-acp", 22, "https://github.com/agentclientprotocol/claude-agent-acp"),
+        recipe("plugin.gemini-cli", "0.62.0", "@google/gemini-cli", "gemini", 22, "https://github.com/google-gemini/gemini-cli"),
+        recipe("plugin.github-copilot-cli", "1.0.90", "@github/copilot", "copilot", 22, "https://docs.github.com/en/copilot/reference/copilot-cli-reference/acp-server"),
     ).onEach(WorkstationInstallRecipe::validate)
 
     fun find(familyId: String, version: String): WorkstationInstallRecipe? =
@@ -290,7 +285,7 @@ class ReviewedWorkstationRecipeInstaller(
                 abi = "arm64-v8a",
             )
             packageInstaller.adoptReviewedRecord(record)
-            // Once registry/projection adoption succeeds, cleanup is a short commit tail and must not be interrupted into a state where a healthy install is reported.
+            
 
             withContext(NonCancellable) {
                 bridge.shell("rm -rf ${DeviceBridgeManager.shellQuote(previous)}")

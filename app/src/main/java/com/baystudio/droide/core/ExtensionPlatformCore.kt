@@ -448,7 +448,6 @@ data class ExtensionActivationPlan(
 // Authoritative in-memory contribution index.
 
 
-
 class ExtensionContributionRegistry(
     private val lifecycle: ExtensionLifecycleStore,
 ) {

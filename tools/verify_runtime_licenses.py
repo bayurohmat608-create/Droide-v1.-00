@@ -38,6 +38,7 @@ def main() -> None:
     for pkg in ubuntu:
         if not pkg.get("sourcePackage") or not pkg.get("sourceVersion"): fail(f"missing Ubuntu source identity: {pkg.get('name')}")
         if not str(pkg.get("sourcePage", "")).startswith("https://launchpad.net/ubuntu/+source/"): fail(f"missing Ubuntu source locator: {pkg.get('name')}")
+        if not str(pkg.get("copyrightNoticePath", "")).startswith("usr/share/doc/"): fail(f"missing embedded Ubuntu copyright notice: {pkg.get('name')}")
     print(
         "RUNTIME_LICENSE_OK "
         f"alpine={len(expected['aggregates']['alpineMinirootfs']['packages'])} "

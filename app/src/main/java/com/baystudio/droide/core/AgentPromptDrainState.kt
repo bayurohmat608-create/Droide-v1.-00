@@ -1,11 +1,5 @@
 package com.baystudio.droide.core
 
-// This class only defines lease-scoped lifecycle transitions so a stale run can never mark a newer run idle.
-
-
-
-
-
 
 internal enum class AgentPromptDrainPhase { IDLE, STARTING, READY }
 

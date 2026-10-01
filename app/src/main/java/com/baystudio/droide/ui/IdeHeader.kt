@@ -41,6 +41,8 @@ data class DroideIdeHeaderState(
     val workbenchCanScrollLeft: Boolean,
     val workbenchCanScrollRight: Boolean,
     val mcpHealth: List<com.baystudio.droide.core.McpHealthSnapshot>,
+    val terminalCreationAvailable: Boolean = true,
+    val linuxSetupBusy: Boolean = false,
 )
 
 class DroideIdeHeaderActions(
@@ -59,6 +61,8 @@ class DroideIdeHeaderActions(
     val onInstallRun: () -> Unit,
     val onLogcat: () -> Unit,
     val onDeviceWorkstation: () -> Unit,
+    val onLocalLinux: () -> Unit,
+    val onQemuTerminal: () -> Unit,
     val onAndroidDevelopment: () -> Unit,
     val onQuickOpen: () -> Unit,
     val onSearchFiles: () -> Unit,
@@ -145,7 +149,9 @@ fun DroideIdeHeader(
         DroideHeaderAction("Capability Health", Icons.Default.MonitorHeart, "Diagnostics", onClick = actions.onCapabilityHealth),
         DroideHeaderAction("Extensions", Icons.Default.Extension, "Workspace", onClick = actions.onExtensions),
         DroideHeaderAction("Agent Sessions", Icons.Default.History, "Agent", onClick = actions.onSessions),
-        DroideHeaderAction("Local Linux ARM64", Icons.Default.Terminal, "Android", state.deviceConnected, deviceDisabledHint, actions.onDeviceWorkstation),
+        DroideHeaderAction("Local Linux ARM64", Icons.Default.Terminal, "Runtime", state.terminalCreationAvailable && !state.linuxSetupBusy, if (state.linuxSetupBusy) "Linux setup is running" else if (!state.terminalCreationAvailable) "Close a terminal tab first" else null, actions.onLocalLinux),
+        DroideHeaderAction("QEMU (Alpine)", Icons.Default.Terminal, "Runtime", state.terminalCreationAvailable && !state.linuxSetupBusy, if (state.linuxSetupBusy) "Linux setup is running" else if (!state.terminalCreationAvailable) "Close a terminal tab first" else null, actions.onQemuTerminal),
+        DroideHeaderAction("Device Workstation (ADB)", Icons.Default.Terminal, "Android", state.deviceConnected && state.terminalCreationAvailable, if (!state.deviceConnected) deviceDisabledHint else if (!state.terminalCreationAvailable) "Close a terminal tab first" else null, actions.onDeviceWorkstation),
         DroideHeaderAction("Android SDK / Toolchain", Icons.Default.Settings, "Android", onClick = actions.onAndroidDevelopment),
     )
 

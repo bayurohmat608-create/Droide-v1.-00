@@ -12,17 +12,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 
-
-
-
-
-
-
-
-
-
-
-
 class PersistentLocalTerminalHost private constructor(
     private val appContext: Context,
 ) {
@@ -53,9 +42,6 @@ class PersistentLocalTerminalHost private constructor(
     @Synchronized
     fun activeId(projectKey: String): String? =
         activeLocalByProject[projectKey]?.takeIf { id -> tabsByProject[projectKey]?.containsKey(id) == true }
-
-    
-
 
 
     suspend fun reviveProject(projectKey: String, projectRoot: File): List<HostedTab> {

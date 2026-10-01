@@ -69,6 +69,15 @@ class GitManagerTest {
     }
     @Test fun commitRequiresExplicitIdentityAndUsesConfiguredAuthor() = runBlocking {
         git.init()
+        // A developer/CI machine may have global Git identity. This case needs an explicitly
+        // unconfigured effective identity without changing that machine's global configuration.
+        FileRepositoryBuilder().setGitDir(root.resolve(".git")).setWorkTree(root).build().use { repo ->
+            repo.config.apply {
+                setString("user", null, "name", "")
+                setString("user", null, "email", "")
+                save()
+            }
+        }
         assertNull(git.identity())
         root.resolve("README.md").writeText("hello\n")
         git.stage("README.md")
@@ -90,7 +99,7 @@ class GitManagerTest {
         }
     }
 
-    @Test fun identityValidationRejectsControlCharactersAndMalformedEmail() = runBlocking {
+    @Test fun identityValidationRejectsControlCharactersAndMalformedEmail(): Unit = runBlocking {
         git.init()
         assertThrows(IllegalArgumentException::class.java) {
             runBlocking { git.configureIdentity("Bad\nName", "bay@example.com") }
@@ -112,7 +121,7 @@ class GitManagerTest {
         assertFalse(result.contains("ghp_test_secret"))
     }
 
-    @Test fun githubPatCloneRejectsSshAndNonGithubBeforeNetwork() = runBlocking {
+    @Test fun githubPatCloneRejectsSshAndNonGithubBeforeNetwork(): Unit = runBlocking {
         assertThrows(IllegalArgumentException::class.java) {
             runBlocking { git.clone("https://example.com/owner/repo.git", token = "secret") }
         }

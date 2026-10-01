@@ -49,11 +49,20 @@ fun ProfessionalDiagnosticsSheet(
             }
             val debugConfigs = if (activeFile.isBlank()) emptyList() else runSuspendCatching { debugger.configurations(activeFile) }.getOrDefault(emptyList())
             val androidAttach = if (activeFile.isBlank()) false else runSuspendCatching { debugger.hasAndroidAttachProvider(activeFile) }.getOrDefault(false)
-            val extensionSnapshot = runSuspendCatching { extensions.refresh(activeFile.ifBlank { null }) }.getOrElse { extensions.snapshot.value }
+            val extensionResult = runSuspendCatching { extensions.refresh(activeFile.ifBlank { null }) }
+            val extensionSnapshot = extensionResult.getOrElse { extensions.snapshot.value }
+            val localLinux = if (extensionResult.isSuccess) LocalExecutionSubstrate.state.value
+                else LocalExecutionSubstrate.inspectLinuxState()
             rows = listOf(
                 CapabilityHealth("Android project", androidStatus.message, androidStatus.androidProject, Icons.Default.Android),
                 CapabilityHealth("Android toolchain", androidStatus.toolchainVersion?.let { "Toolchain $it" } ?: androidStatus.message, androidStatus.toolchainVersion != null, Icons.Default.Build),
-                CapabilityHealth("Local Linux ARM64", if (!deviceState.supported) "Android 10: editor, local terminal and Git available; managed runtime, Build/Run and workstation LSP/DAP/MCP require Android 11+" else deviceState.connected?.let { "Connected · ${it.host}:${it.port}" } ?: (deviceState.lastError ?: "Not connected"), deviceState.connected != null, Icons.Default.PhoneAndroid),
+                CapabilityHealth("Local Linux ARM64", when {
+                    localLinux.ready -> "Ubuntu health check passed; toolchains are installed separately"
+                    !localLinux.prootAvailable -> "Packaged PRoot is unavailable on this device"
+                    localLinux.ubuntuAvailable -> "Ubuntu is present but its health check failed; existing data is preserved"
+                    else -> "Open Terminal → + Linux to activate Ubuntu"
+                }, localLinux.ready, Icons.Default.Terminal),
+                CapabilityHealth("Device Workstation (ADB)", if (!deviceState.supported) "Wireless Debugging requires Android 11 or newer" else deviceState.connected?.let { "Connected · ${it.host}:${it.port}" } ?: (deviceState.lastError ?: "Not connected"), deviceState.connected != null, Icons.Default.PhoneAndroid),
                 CapabilityHealth("Source control", if (repository) "Git repository ready" else "Initialize repository from Source Control", repository, Icons.Default.Source),
                 CapabilityHealth("Tests", if (testTasks > 0) "$testTasks test task(s) discovered" else "No test tasks discovered", testTasks > 0, Icons.Default.Science),
                 CapabilityHealth("Debugger", if (debugConfigs.isNotEmpty()) "${debugConfigs.size} compatible configuration(s)" else "No compatible debug adapter for active file", debugConfigs.isNotEmpty(), Icons.Default.BugReport),

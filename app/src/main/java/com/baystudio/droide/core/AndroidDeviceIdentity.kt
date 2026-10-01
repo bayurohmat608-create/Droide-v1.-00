@@ -3,12 +3,6 @@ package com.baystudio.droide.core
 import java.security.MessageDigest
 import kotlinx.serialization.Serializable
 
-// It is intentionally strict enough to reject common emulator targets so physical-device certification cannot silently pass on an AVD while still preserving.
-
-
-
-
-
 
 @Serializable
 data class AndroidDeviceIdentitySnapshot(
@@ -64,9 +58,6 @@ data class AndroidDeviceIdentitySnapshot(
             bridgeEndpoint == other.bridgeEndpoint &&
             api == other.api &&
             abis == other.abis
-
-    
-
 
 
     fun samePhysicalIdentity(other: AndroidDeviceIdentitySnapshot): Boolean =

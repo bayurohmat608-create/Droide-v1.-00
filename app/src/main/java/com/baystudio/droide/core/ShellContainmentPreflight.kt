@@ -25,13 +25,6 @@ data class ShellContainmentResult(
             findings.any { it.kind.startsWith("dynamic_") || it.kind == "parse_ambiguity" || it.kind == "wrapper" }
 }
 
-// The scanner exists to force a separate external-directory / shell-escape decision before normal shell approval whenever static workspace containment cannot be.
-
-
-
-
-
-
 
 object ShellContainmentPreflight {
     private enum class TokenKind { WORD, OPERATOR }
@@ -83,7 +76,6 @@ object ShellContainmentPreflight {
 
         inspectCommandSemantics(lexed.tokens, findings).also { if (it) dynamic = true }
 
-        
 
         lexed.tokens.forEachIndexed { index, token ->
             if (token.kind != TokenKind.WORD || token.dynamic) return@forEachIndexed
@@ -211,10 +203,6 @@ object ShellContainmentPreflight {
         val normalized = dir.path.replace('\\', '/').trimEnd('/')
         return if (normalized.isEmpty()) "/*" else "$normalized/*"
     }
-
-    
-
-
 
 
     private fun lex(command: String): LexResult {

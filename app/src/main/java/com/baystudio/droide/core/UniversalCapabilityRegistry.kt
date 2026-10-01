@@ -76,13 +76,6 @@ data class WorkspaceCapabilityManifest(
 }
 
 
-
-
-
-
-
-
-
 class UniversalCapabilityRegistry(
     private val workspaceKey: String,
     private val root: File,
@@ -171,7 +164,6 @@ class UniversalCapabilityRegistry(
 
     @Synchronized
     fun resolveExecutable(command: String): ExecutableCapability? {
-        
 
 
         externalExecutables[command]?.let { path ->
@@ -261,9 +253,6 @@ class UniversalCapabilityRegistry(
         }
         return buildToolPlan(tool, relativePath)
     }
-
-    
-
 
 
     @Synchronized

@@ -4,9 +4,6 @@ import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
 
 
-
-
-
 enum class ProviderWireProtocol { OPENAI_CHAT_COMPLETIONS, ANTHROPIC_MESSAGES, GOOGLE_GENERATE_CONTENT }
 
 // compatibility marker: ProviderAuthScheme { NONE, BEARER, ANTHROPICXAPIKEY, GOOGLEAPIKEY, AZUREAPIKEY }
@@ -121,11 +118,6 @@ object ProviderRegistry {
             .toList()
         configured.set(safe)
     }
-
-
-    // They are intentionally separate from workspace configuration so a provider cannot survive after its backing process/forward has been torn down.
-
-
 
 
     internal fun installManagedRuntime(providers: Collection<AiProvider>) {

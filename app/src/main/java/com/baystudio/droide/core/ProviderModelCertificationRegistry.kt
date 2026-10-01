@@ -5,12 +5,6 @@ import java.util.concurrent.atomic.AtomicReference
 // Durable connection metadata intentionally stores only non-secret summary state.
 
 
-
-
-
-
-
-
 internal object ProviderModelCertificationRegistry {
     private const val MAX_MODELS = 1_000
 

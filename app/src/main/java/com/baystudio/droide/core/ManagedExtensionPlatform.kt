@@ -9,11 +9,7 @@ private data class ReviewedMarketplaceBinding(
     val grantedPermissions: Set<PluginPermission>,
 )
 
-// Package ownership and artifact verification remain delegated to the existing managed-package and marketplace trust layers.
-
-
-
-
+// Keep operation ownership explicit across lifecycle boundaries.
 
 
 class ManagedExtensionPlatform(
@@ -126,7 +122,6 @@ class ManagedExtensionPlatform(
         when (manifest.runtime) {
             ExtensionRuntimeKind.DECLARATIVE -> Unit
             ExtensionRuntimeKind.PROTOCOL -> {
-                
 
 
                 check(manifest.contributes.languageServers.isNotEmpty() || manifest.contributes.debuggers.isNotEmpty() || manifest.contributes.tools.isNotEmpty()) {

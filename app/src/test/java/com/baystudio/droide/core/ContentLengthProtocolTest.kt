@@ -19,6 +19,22 @@ class ContentLengthProtocolTest {
         assertNull(ContentLengthProtocol.readMessage(ByteArrayInputStream(byteArrayOf())))
     }
 
+    @Test fun malformedUtf8IsRejectedWithoutChangingProtocolIdentifiers() {
+        val input = ByteArrayInputStream("Content-Length: 2\r\n\r\n".toByteArray() + byteArrayOf(0xc3.toByte(), 0x28))
+        assertThrows(java.nio.charset.CharacterCodingException::class.java) { ContentLengthProtocol.readMessage(input) }
+    }
+
+    @Test fun zeroLengthBulkReadDoesNotSpinOrSkipPayloadBytes() {
+        val input = object : ByteArrayInputStream("Content-Length: 2\r\n\r\n{}".toByteArray()) {
+            var first = true
+            override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+                if (first) { first = false; return 0 }
+                return super.read(buffer, offset, length)
+            }
+        }
+        assertEquals("{}", ContentLengthProtocol.readMessage(input))
+    }
+
     @Test fun rejectsDuplicateOrOversizedHeaders() {
         val duplicate = "Content-Length: 2\r\nContent-Length: 2\r\n\r\n{}".toByteArray()
         assertThrows(IllegalArgumentException::class.java) {

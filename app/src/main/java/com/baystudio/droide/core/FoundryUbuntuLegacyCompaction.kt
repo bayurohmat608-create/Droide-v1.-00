@@ -13,11 +13,6 @@ internal data class LegacyUbuntuCompactionTransaction(
 )
 
 
-
-
-
-
-
 internal class FoundryUbuntuLegacyCompactor(
     
     private val finalRoot: String,
@@ -71,7 +66,6 @@ internal class FoundryUbuntuLegacyCompactor(
         try {
             markInstalled("manual", protected)
             // Original ownership marks are persisted for rollback.
-
 
 
             markInstalled("auto", candidates)

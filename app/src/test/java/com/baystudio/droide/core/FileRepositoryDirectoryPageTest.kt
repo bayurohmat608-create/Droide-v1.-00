@@ -28,7 +28,7 @@ class FileRepositoryDirectoryPageTest {
         } finally { PathSecurity.deleteTreeNoFollow(root) }
     }
 
-    @Test fun cursorIsFolderBoundAndDirectoriesSortBeforeFiles() = runBlocking {
+    @Test fun cursorIsFolderBoundAndDirectoriesSortBeforeFiles(): Unit = runBlocking {
         val root = Files.createTempDirectory("droide-directory-order-").toFile()
         try {
             root.resolve("z.txt").writeText("x")

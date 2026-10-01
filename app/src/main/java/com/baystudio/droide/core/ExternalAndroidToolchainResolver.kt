@@ -3,13 +3,6 @@ package com.baystudio.droide.core
 import kotlinx.serialization.json.Json
 
 
-
-
-
-
-
-
-
 internal class ExternalAndroidToolchainResolver(
     private val bridge: DeviceBridgeManager,
 ) {
@@ -24,9 +17,6 @@ internal class ExternalAndroidToolchainResolver(
     suspend fun read(): Candidate? = readAll().firstOrNull()
 
     // The legacy marker is first for compatibility.
-
-
-
 
 
     suspend fun readAll(): List<Candidate> {

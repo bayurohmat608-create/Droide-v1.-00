@@ -72,6 +72,9 @@ jobs:
       - name: Dependency policy
         run: python3 ./tools/verify_dependency_policy.py
 
+      - name: Resolved runtime license closure
+        run: python3 ./tools/verify_resolved_runtime_licenses.py
+
       - name: Runtime license closure
         run: python3 ./tools/verify_runtime_licenses.py
 

@@ -2,6 +2,9 @@ package com.baystudio.droide.core
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
@@ -41,7 +44,7 @@ class LocalLlamaToolCapabilityPolicyTest {
     }
 
     @Test fun exactToolCallIsAcceptedAndWrongNonceRejected() {
-        val response = """{"choices":[{"finish_reason":"tool_calls","message":{"role":"assistant","content":null,"tool_calls":[{"id":"call_123","type":"function","function":{"name":"droide_echo_probe","arguments":"{\\\"nonce\\\":\\\"nonce-1\\\"}"}}]}}]}"""
+        val response = """{"choices":[{"finish_reason":"tool_calls","message":{"role":"assistant","content":null,"tool_calls":[{"id":"call_123","type":"function","function":{"name":"droide_echo_probe","arguments":"{\"nonce\":\"nonce-1\"}"}}]}}]}"""
         val call = LocalLlamaToolCapabilityPolicy.requireSingleToolCall(response, "nonce-1")
         assertEquals("call_123", call.id)
         assertEquals("droide_echo_probe", call.name)
@@ -67,7 +70,10 @@ class LocalLlamaToolCapabilityPolicyTest {
         )
         val body = LocalLlamaToolCapabilityPolicy.continuationProbeBody(modelId, "n", call, "result-x")
         assertTrue(body.contains("\"tool_call_id\":\"call_abc\""))
-        assertTrue(body.contains("\"result\":\"result-x\""))
+        val toolResult = json.parseToJsonElement(body).jsonObject.getValue("messages").jsonArray
+            .single { it.jsonObject["role"]?.jsonPrimitive?.content == "tool" }.jsonObject
+        assertEquals("result-x", json.parseToJsonElement(toolResult.getValue("content").jsonPrimitive.content)
+            .jsonObject.getValue("result").jsonPrimitive.content)
         assertTrue(body.contains("\"parallel_tool_calls\":false"))
         assertFalse(body.contains("droide_result_abc"))
     }

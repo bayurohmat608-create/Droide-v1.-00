@@ -12,11 +12,6 @@ import java.util.UUID
 // Durable busy-session prompt admission inbox.
 
 
-
-
-
-
-
 class AgentPromptInbox(private val sessions: SessionManager) {
     data class Promoted(val input: AgentPendingInput, val runtimeConfig: AgentConfig?)
 
@@ -104,10 +99,6 @@ class AgentPromptInbox(private val sessions: SessionManager) {
         removeSelected(selected)
     }
 
-    
-
-
-
 
     suspend fun takeForIdle(runLease: Long, activeConfig: AgentConfig): List<Promoted> = mutex.withLock {
         if (!drain.isReady(runLease)) return@withLock emptyList()
@@ -128,7 +119,7 @@ class AgentPromptInbox(private val sessions: SessionManager) {
         val before = _inputs.value
         if (before.none { it.id == id }) return@withLock false
         val next = before.filterNot { it.id == id }
-        // A failed disk write must not make the in-memory inbox disagree with the durable session that will be restored after process death.
+        // Persist enough state to recover safely after process death.
 
         sessions.savePendingInputs(sessionId, next)
         runtimeConfigs.remove(id)

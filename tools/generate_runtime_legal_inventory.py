@@ -103,21 +103,42 @@ def qemu_packages() -> tuple[dict, list[dict]]:
 
 def ubuntu_packages() -> list[dict]:
     path = ASSETS / "ubuntu-base-24.04.5-base-arm64.tar.xz"
-    raw = tar_text(path, ["var/lib/dpkg/status", "./var/lib/dpkg/status"])
-    out = []
-    for r in parse_records(raw):
-        if "Package" not in r or r.get("Status") != "install ok installed":
-            continue
-        source = r.get("Source", r["Package"])
-        m = re.fullmatch(r"([^\s(]+)(?:\s*\(([^)]+)\))?", source)
-        source_name = m.group(1) if m else source.split()[0]
-        source_version = (m.group(2) if m and m.group(2) else r.get("Version", ""))
-        launchpad = f"https://launchpad.net/ubuntu/+source/{quote(source_name)}/{quote(source_version, safe=':+~.-')}"
-        out.append({
-            "name": r["Package"], "version": r.get("Version", ""), "architecture": r.get("Architecture", ""),
-            "sourcePackage": source_name, "sourceVersion": source_version, "sourcePage": launchpad,
-            "license": "SEE_SOURCE_PACKAGE_DEBIAN_COPYRIGHT",
-        })
+    with tarfile.open(path, "r:*") as tf:
+        names = set(tf.getnames())
+        raw = None
+        for candidate in ("var/lib/dpkg/status", "./var/lib/dpkg/status"):
+            if candidate in names:
+                raw = tf.extractfile(candidate).read().decode("utf-8", "replace")
+                break
+        if raw is None:
+            raise RuntimeError("Ubuntu dpkg status missing")
+        out = []
+        for r in parse_records(raw):
+            if "Package" not in r or r.get("Status") != "install ok installed":
+                continue
+            package = r["Package"]
+            source = r.get("Source", package)
+            m = re.fullmatch(r"([^\s(]+)(?:\s*\(([^)]+)\))?", source)
+            source_name = m.group(1) if m else source.split()[0]
+            source_version = (m.group(2) if m and m.group(2) else r.get("Version", ""))
+            launchpad = f"https://launchpad.net/ubuntu/+source/{quote(source_name)}/{quote(source_version, safe=':+~.-')}"
+            doc = f"usr/share/doc/{package}"
+            notice = f"{doc}/copyright"
+            notice_target = notice if notice in names else ""
+            if not notice_target and doc in names:
+                member = tf.getmember(doc)
+                if member.issym() or member.islnk():
+                    target = member.linkname.strip("/")
+                    candidate = f"usr/share/doc/{target}/copyright"
+                    if candidate in names:
+                        notice_target = candidate
+            if not notice_target:
+                raise RuntimeError(f"Ubuntu package copyright notice missing from rootfs: {package}")
+            out.append({
+                "name": package, "version": r.get("Version", ""), "architecture": r.get("Architecture", ""),
+                "sourcePackage": source_name, "sourceVersion": source_version, "sourcePage": launchpad,
+                "license": "SEE_EMBEDDED_DEBIAN_COPYRIGHT", "copyrightNoticePath": notice_target,
+            })
     return sorted(out, key=lambda x: x["name"])
 
 

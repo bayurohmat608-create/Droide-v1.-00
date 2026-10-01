@@ -46,7 +46,6 @@ internal object ManagedLanguageServerProbePolicy {
 // A version command alone is not enough: the exact package-owned executable must complete LSP init.
 
 
-
 class ManagedLanguageServerRuntimeProbe(
     private val scope: CoroutineScope,
     private val workDir: File,

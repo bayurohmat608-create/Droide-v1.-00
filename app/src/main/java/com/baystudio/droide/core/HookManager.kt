@@ -47,9 +47,6 @@ data class HookDispatchResult(
     val log: String = "",
 )
 
-// Project source never gains authority merely by defining a hook: every command still passes containment and permission/approval before execution.
-
-
 
 class HookManager(
     private val workDir: File,

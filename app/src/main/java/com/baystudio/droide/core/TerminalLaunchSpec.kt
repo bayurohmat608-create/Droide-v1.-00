@@ -16,9 +16,10 @@ data class TerminalLaunchSpec(
     val interactiveArgv: List<String> get() = prefix + shell + interactiveArgs
 
     fun shellCommand(shellText: String, injectedEnvironment: Map<String, String> = emptyMap()): List<String> {
-        require('\u0000' !in shellText) { "Shell command contains NUL" }
+        require(shellText.length <= 32_000 && '\u0000' !in shellText) { "Shell command is too large or contains NUL" }
         ProcessSecurityPolicy.validateEnvironment(injectedEnvironment)
-        return command(listOf(shell, "-c", shellText), injectedEnvironment)
+        val guestEnvironment = if (prefix.isEmpty()) emptyList() else injectedEnvironment.map { (key, value) -> "$key=$value" }
+        return prefix + guestEnvironment + listOf(shell, "-c", shellText)
     }
 
     fun command(argv: List<String>, injectedEnvironment: Map<String, String> = emptyMap()): List<String> {

@@ -7,7 +7,6 @@ import java.io.File
 // Process-wide projection of integrity-verified, data-only extensions.
 
 
-
 object DeclarativeExtensionRuntime {
     private const val URI_COPY_BUFFER = 64 * 1024
     private var store: DeclarativeExtensionStore? = null

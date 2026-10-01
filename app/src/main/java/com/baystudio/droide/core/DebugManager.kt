@@ -51,11 +51,6 @@ data class DebugConfiguration(
 data class AndroidDebugProcess(val pid: Int, val processName: String?)
 
 
-
-
-
-
-
 class DebugManager(
     private val scope: CoroutineScope,
     private val files: FileRepository,
@@ -146,11 +141,6 @@ class DebugManager(
             }.toMap()
         pids.map { AndroidDebugProcess(it, names[it]) }
     }
-
-    
-
-
-
 
 
     suspend fun hasAndroidAttachProvider(activeFile: String): Boolean =
@@ -291,7 +281,15 @@ class DebugManager(
         try {
             process.start()
             dap = process
-            eventJob = scope.launch { process.events.collect(::handleEvent) }
+            eventJob = scope.launch {
+                try { process.events.collect(::handleEvent) }
+                catch (cancelled: CancellationException) { throw cancelled }
+                catch (failure: Exception) {
+                    _state.value = DebugState.ERROR
+                    _status.value = "Debug event failed: ${failure.message ?: failure::class.java.simpleName}"
+                    process.close()
+                }
+            }
             val initResponse = process.request("initialize", buildJsonObject {
                 put("clientID", "droide")
                 put("clientName", "Droide")
@@ -389,14 +387,15 @@ class DebugManager(
         refreshStack(threadId)
     }
 
-    suspend fun refreshStack(threadId: Int = _selectedThread.value ?: error("No thread selected")): List<DebugFrame> {
+    suspend fun refreshStack(threadId: Int = _selectedThread.value ?: error("No thread selected"), startFrame: Int = 0, levels: Int = 200): List<DebugFrame> {
+        require(startFrame >= 0 && levels in 1..500) { "Invalid stack paging" }
         val response = request("stackTrace", buildJsonObject {
             put("threadId", threadId)
-            put("startFrame", 0)
-            put("levels", 200)
+            put("startFrame", startFrame)
+            put("levels", levels)
         })
         val items = ((response["body"] as? JsonObject)?.get("stackFrames") as? JsonArray).orEmpty()
-        val parsed = items.take(200).mapNotNull { el ->
+        val parsed = items.take(levels).mapNotNull { el ->
             val o = el as? JsonObject ?: return@mapNotNull null
             val id = o["id"]?.jsonPrimitive?.intOrNull ?: return@mapNotNull null
             val source = o["source"] as? JsonObject
@@ -673,7 +672,7 @@ class DebugManager(
                         "Debugger requested terminal outside workspace"
                     }
                     val shellCommand = buildString {
-                        append("cd -- ").append(LocalExecutionSubstrate.shellQuote(target)).append(" && ")
+                        append("cd -- ").append(LocalExecutionSubstrate.shellQuote(target)).append(" || exit; ")
                         environment.forEach { (key, value) ->
                             if (value == null) append("unset ").append(key).append("; ")
                             else append("export ").append(key).append('=').append(LocalExecutionSubstrate.shellQuote(value)).append("; ")

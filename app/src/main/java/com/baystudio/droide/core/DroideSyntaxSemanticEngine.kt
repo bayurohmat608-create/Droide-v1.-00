@@ -25,7 +25,6 @@ data class DroideHighlightResult(
 // This is deliberately conservative: malformed or oversized input becomes plain text, never a hot loop.
 
 
-
 object DroideSyntaxSemanticEngine {
     const val MAX_HIGHLIGHT_CHARS = 1_048_576
     const val MAX_HIGHLIGHT_SPANS = 20_000

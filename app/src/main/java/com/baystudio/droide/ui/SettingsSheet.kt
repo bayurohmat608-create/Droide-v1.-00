@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -19,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.baystudio.droide.BuildConfig
@@ -38,7 +41,7 @@ private enum class SettingsCategory(
     EDITOR("Editor", "Editing, formatting and text behavior", Icons.Default.Edit, "editor word wrap formatter autocomplete smart typing"),
     LANGUAGES("Languages & LSP", "Language intelligence and diagnostics", Icons.Default.Code, "language lsp diagnostics formatter tree sitter textmate"),
     FILES("Files & Workspace", "Workspace scope and file behavior", Icons.Default.Folder, "files workspace encoding exclude watcher"),
-    TERMINAL("Terminal", "Terminal interaction and input", Icons.Default.Terminal, "terminal shell accessory keys"),
+    TERMINAL("Terminal", "Terminal interaction and input", Icons.Default.Terminal, "terminal shell accessory keys keyboard number row autocorrect corrections suggestions compact"),
     GIT("Git & Source Control", "Repository behavior and source control", Icons.Default.AccountTree, "git source control diff commit fetch"),
     RUN("Run, Build & Debug", "Android toolchain and device execution", Icons.Default.PlayArrow, "run build debug gradle sdk ndk adb device"),
     AI("AI & Agents", "Agent context and runtime behavior", Icons.Default.AutoAwesome, "ai agent context reasoning subagent checkpoint"),
@@ -46,7 +49,7 @@ private enum class SettingsCategory(
     PERMISSIONS("Agent Permissions", "Allow, ask or deny agent capabilities", Icons.Default.AdminPanelSettings, "permission allow ask deny shell files web mcp"),
     TOOLS("Tools & MCP", "Tool and MCP integration", Icons.Default.Build, "tools mcp server integration"),
     PLUGINS("Plugins", "Installed extensions and capabilities", Icons.Default.Extension, "plugin extension marketplace"),
-    KEYBOARD("Keyboard & Input", "Mobile accessory keys and hardware keyboard", Icons.Default.Keyboard, "keyboard input shortcuts keys"),
+    KEYBOARD("Keyboard & Input", "Coding keyboard, accessory keys and shortcuts", Icons.Default.Keyboard, "keyboard input shortcuts keys number row autocorrect corrections suggestions compact"),
     SECURITY("Security & Privacy", "Trust, credentials and privacy boundaries", Icons.Default.Security, "security privacy credentials secret trust telemetry"),
     PERFORMANCE("Performance & Storage", "Runtime resource and local storage behavior", Icons.Default.Speed, "performance storage cache indexing memory"),
     NOTIFICATIONS("Notifications", "Build and agent notification behavior", Icons.Default.Notifications, "notifications alerts build agent"),
@@ -64,6 +67,7 @@ fun SettingsScreen(
     wordwrap: Boolean,
     hardwareShortcuts: Boolean,
     accessoryKeysComfortable: Boolean,
+    codingKeyboardMode: CodingKeyboardMode,
     codeStyleDefaults: CodeStyleDefaults,
     androidDevelopment: AndroidDevelopmentManager,
     deviceBridge: DeviceBridgeManager,
@@ -73,6 +77,7 @@ fun SettingsScreen(
     onWordwrap: (Boolean) -> Unit,
     onHardwareShortcuts: (Boolean) -> Unit,
     onAccessoryKeysComfortable: (Boolean) -> Unit,
+    onCodingKeyboardMode: suspend (CodingKeyboardMode) -> Unit,
     onDetectIndentation: (Boolean) -> Unit,
     onIndentStyle: (IndentStyle) -> Unit,
     onTabWidth: (Int) -> Unit,
@@ -108,6 +113,29 @@ fun SettingsScreen(
     var selectedLicenseId by rememberSaveable { mutableStateOf<String?>(null) }
     var permissionPolicy by remember(projectName) { mutableStateOf(initialPermissionPolicy) }
     var fmt by remember(formatters) { mutableStateOf(formatters.isEnabled()) }
+    var formatterSaving by remember(formatters) { mutableStateOf(false) }
+    var keyboardModeSaving by remember { mutableStateOf(false) }
+    fun changeCodingKeyboardMode(mode: CodingKeyboardMode) {
+        if (keyboardModeSaving || mode == codingKeyboardMode) return
+        keyboardModeSaving = true
+        scope.launchUiCatching(onError = {
+            snackbar.showSnackbar("Could not save keyboard setting: ${it.message ?: "unknown error"}")
+        }) {
+            try {
+                onCodingKeyboardMode(mode)
+            } finally { keyboardModeSaving = false }
+        }
+    }
+    fun changeFormatter(enabled: Boolean) {
+        if (formatterSaving) return
+        formatterSaving = true
+        scope.launchUiCatching(onError = { snackbar.showSnackbar("Could not save formatter setting: ${it.message}") }) {
+            try {
+                formatters.setEnabled(enabled)
+                fmt = formatters.isEnabled()
+            } finally { formatterSaving = false }
+        }
+    }
     val agentPrefs by AgentPreferences.observe(context).collectAsState(
         initial = AgentPreferences.Snapshot("pollinations", "", ProviderRegistry.byId("pollinations").model, null),
     )
@@ -238,6 +266,8 @@ fun SettingsScreen(
                         wordwrap = wordwrap,
                         hardwareShortcuts = hardwareShortcuts,
                         accessoryKeysComfortable = accessoryKeysComfortable,
+                        codingKeyboardMode = codingKeyboardMode,
+                        keyboardModeSaving = keyboardModeSaving,
                         codeStyleDefaults = codeStyleDefaults,
                         androidDevelopment = androidDevelopment,
                         deviceBridge = deviceBridge,
@@ -249,10 +279,11 @@ fun SettingsScreen(
                         selectedLicenseId = selectedLicenseId,
                         licenseManifest = licenseManifest,
                         showNestedBack = twoPane,
-                        onFormatter = { enabled -> fmt = enabled; formatters.setEnabled(enabled) },
+                        onFormatter = ::changeFormatter,
                         onWordwrap = onWordwrap,
                         onHardwareShortcuts = onHardwareShortcuts,
                         onAccessoryKeysComfortable = onAccessoryKeysComfortable,
+                        onCodingKeyboardMode = ::changeCodingKeyboardMode,
                         onDetectIndentation = onDetectIndentation,
                         onIndentStyle = onIndentStyle,
                         onTabWidth = onTabWidth,
@@ -307,6 +338,8 @@ fun SettingsScreen(
                     wordwrap = wordwrap,
                     hardwareShortcuts = hardwareShortcuts,
                     accessoryKeysComfortable = accessoryKeysComfortable,
+                    codingKeyboardMode = codingKeyboardMode,
+                    keyboardModeSaving = keyboardModeSaving,
                     codeStyleDefaults = codeStyleDefaults,
                     androidDevelopment = androidDevelopment,
                     deviceBridge = deviceBridge,
@@ -318,10 +351,11 @@ fun SettingsScreen(
                     selectedLicenseId = selectedLicenseId,
                     licenseManifest = licenseManifest,
                     showNestedBack = twoPane,
-                    onFormatter = { enabled -> fmt = enabled; formatters.setEnabled(enabled) },
+                    onFormatter = ::changeFormatter,
                     onWordwrap = onWordwrap,
                     onHardwareShortcuts = onHardwareShortcuts,
                     onAccessoryKeysComfortable = onAccessoryKeysComfortable,
+                    onCodingKeyboardMode = ::changeCodingKeyboardMode,
                     onDetectIndentation = onDetectIndentation,
                     onIndentStyle = onIndentStyle,
                     onTabWidth = onTabWidth,
@@ -405,6 +439,8 @@ private fun SettingsDetail(
     wordwrap: Boolean,
     hardwareShortcuts: Boolean,
     accessoryKeysComfortable: Boolean,
+    codingKeyboardMode: CodingKeyboardMode,
+    keyboardModeSaving: Boolean,
     codeStyleDefaults: CodeStyleDefaults,
     androidDevelopment: AndroidDevelopmentManager,
     deviceBridge: DeviceBridgeManager,
@@ -420,6 +456,7 @@ private fun SettingsDetail(
     onWordwrap: (Boolean) -> Unit,
     onHardwareShortcuts: (Boolean) -> Unit,
     onAccessoryKeysComfortable: (Boolean) -> Unit,
+    onCodingKeyboardMode: (CodingKeyboardMode) -> Unit,
     onDetectIndentation: (Boolean) -> Unit,
     onIndentStyle: (IndentStyle) -> Unit,
     onTabWidth: (Int) -> Unit,
@@ -513,6 +550,7 @@ private fun SettingsDetail(
             SettingsCategory.TERMINAL -> {
                 SectionTitle("Input")
                 if (settingsScope == SettingsScope.USER) {
+                    CodingKeyboardSettings(codingKeyboardMode, !keyboardModeSaving, onCodingKeyboardMode)
                     ComfortableAccessoryKeysRow(accessoryKeysComfortable, onAccessoryKeysComfortable)
                     SwitchRow("Hardware keyboard shortcuts", "Enable Droide's IDE keyboard shortcut routing", hardwareShortcuts, onHardwareShortcuts)
                 } else ActionRow("Switch to User settings", "Applies across workspaces", { onSettingsScopeChange(SettingsScope.USER) })
@@ -577,6 +615,7 @@ private fun SettingsDetail(
             SettingsCategory.KEYBOARD -> {
                 SectionTitle("Keyboard")
                 if (settingsScope == SettingsScope.USER) {
+                    CodingKeyboardSettings(codingKeyboardMode, !keyboardModeSaving, onCodingKeyboardMode)
                     SwitchRow("Hardware keyboard shortcuts", "Enable IDE shortcuts for hardware keyboards", hardwareShortcuts, onHardwareShortcuts)
                     ComfortableAccessoryKeysRow(accessoryKeysComfortable, onAccessoryKeysComfortable)
                 } else ActionRow("Switch to User settings", "Keyboard and input preferences apply across workspaces", { onSettingsScopeChange(SettingsScope.USER) })
@@ -874,6 +913,50 @@ private fun LegalPageTitle(title: String, onBack: () -> Unit, showBackHeader: Bo
         trailingContent = { Switch(checked = checked, onCheckedChange = null) },
         colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier.clickable { onChecked(!checked) },
+    )
+    HorizontalDivider()
+}
+
+@Composable private fun CodingKeyboardSettings(
+    mode: CodingKeyboardMode,
+    enabled: Boolean,
+    onMode: (CodingKeyboardMode) -> Unit,
+) {
+    SectionTitle("Editor & terminal keyboard")
+    Column(Modifier.selectableGroup()) {
+        CodingKeyboardMode.values().forEach { candidate ->
+            val (title, description) = when (candidate) {
+                CodingKeyboardMode.COMPACT -> "Compact (default)" to
+                    "Requests no extra number row, suggestions or word corrections."
+                CodingKeyboardMode.NO_CORRECTIONS -> "No corrections" to
+                    "Keeps language input without word suggestions or corrections."
+                CodingKeyboardMode.NORMAL -> "Normal" to
+                    "Allows your keyboard's word suggestions and corrections."
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                    .selectable(
+                        selected = mode == candidate,
+                        enabled = enabled,
+                        role = Role.RadioButton,
+                        onClick = { onMode(candidate) },
+                    ).padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                RadioButton(selected = mode == candidate, onClick = null, enabled = enabled)
+                Column(Modifier.weight(1f).padding(start = 8.dp)) {
+                    Text(title, style = MaterialTheme.typography.bodyLarge)
+                    Text(description, style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+    }
+    Text(
+        "The keyboard app controls its number row. If Compact affects language input, choose No corrections.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(vertical = 8.dp),
     )
     HorizontalDivider()
 }

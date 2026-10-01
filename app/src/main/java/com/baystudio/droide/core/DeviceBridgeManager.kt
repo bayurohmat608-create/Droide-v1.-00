@@ -44,10 +44,6 @@ import okio.ForwardingSource
 import okio.source
 
 
-
-
-
-
 class DeviceBridgeManager(
     context: Context,
     private val scope: kotlinx.coroutines.CoroutineScope,
@@ -140,7 +136,6 @@ class DeviceBridgeManager(
             _state.value = _state.value.copy(connected = null)
         }
 
-        
 
         val next = Kadb.create(endpoint.host, endpoint.port, connectTimeout = 8_000, socketTimeout = 0)
         try {
@@ -179,9 +174,6 @@ class DeviceBridgeManager(
     // Pairing is never performed here: the user must explicitly pair once from the Device Workstation flow.
 
 
-
-
-
     suspend fun ensurePackageBackend(): String = connectionMutex.withLock {
         if (Build.VERSION.SDK_INT < 30) error("Wireless Debugging package backend requires Android 11 or newer")
         if (_state.value.connected != null && client != null) {
@@ -212,11 +204,6 @@ class DeviceBridgeManager(
             discovery.stop()
         }
     }
-
-    
-
-
-
 
 
     suspend fun ensureHealthyConnection(): String = connectionMutex.withLock {
@@ -263,10 +250,7 @@ class DeviceBridgeManager(
         }
     }
 
-    // Callers that intentionally expect larger output must use shellBounded() explicitly and handle its truncated bit as part of their protocol.
-
-
-
+    // Keep untrusted input and output bounded.
 
 
     suspend fun shell(command: String): BridgeShellResult {
@@ -335,7 +319,6 @@ class DeviceBridgeManager(
     // The callback is observational only: callback failures are ignored and never corrupt the build.
 
 
-
     suspend fun shellStreaming(
         command: String,
         maxOutputBytes: Int = 1_500_000,
@@ -394,9 +377,6 @@ class DeviceBridgeManager(
         }
     }
 
-    
-
-
 
     suspend fun shellBounded(command: String, maxOutputBytes: Int = 1_500_000): BridgeShellResult =
         shellStreaming(command, maxOutputBytes) { _, _ -> }
@@ -411,10 +391,6 @@ class DeviceBridgeManager(
             requireClient().push(source, remotePath, mode = mode, lastModifiedMs = attrs.lastModifiedTime().toMillis())
         }
     }
-
-    
-
-
 
 
     suspend fun pushCancellable(

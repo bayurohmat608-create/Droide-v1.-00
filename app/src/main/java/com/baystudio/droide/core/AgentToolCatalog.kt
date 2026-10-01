@@ -63,13 +63,30 @@ internal object AgentToolCatalog {
                 })
                 put("include_path", buildJsonObject { put("type", "boolean") })
             }))
-        add(tool("ide", "Run IDE-owned project verification through Droide's Build/Run/Test coordinator instead of guessing shell commands",
+        add(tool("ide", "Compile/build/test/lint, run files or Android APKs, and inspect/control the IDE debugger. Android run/debug requires a paired Device Bridge; debug requires a compatible installed adapter. Debug start confirms a session, not program completion.",
             buildJsonObject {
                 put("operation", buildJsonObject {
                     put("type", "string")
-                    put("enum", buildJsonArray { add("status"); add("build_debug"); add("test"); add("lint"); add("run_file"); add("cancel") })
+                    put("enum", buildJsonArray { AgentIdeRequest.OPERATIONS.forEach { add(it) } })
                 })
-                put("path", buildJsonObject { put("type", "string"); put("description", "Required only for run_file") })
+                put("path", buildJsonObject { put("type", "string"); put("description", "Workspace-relative source file for run/debug/configurations/breakpoints") })
+                put("task", buildJsonObject { put("type", "string"); put("description", "One Gradle task for gradle_task, e.g. :app:compileDebugKotlin. Optional module-qualified assembleDebug task for install_run/debug_android.") })
+                put("configuration", buildJsonObject { put("type", "string"); put("description", "Exact debug configuration name; query debug_configurations first") })
+                listOf("line", "thread_id", "frame_id", "reference", "start", "count").forEach { name ->
+                    put(name, buildJsonObject {
+                        put("type", "integer")
+                        put("minimum", if (name in setOf("frame_id", "start")) 0 else 1)
+                        if (name == "count") put("maximum", 500)
+                        when (name) {
+                            "start", "count" -> put("description", "Paging for debug_configurations/threads/stack/variables. Follow next_start when present; may_have_more means the next adapter page can be empty.")
+                            "frame_id" -> put("description", "Frame returned by debug_stack; used for variables/evaluate")
+                            "reference" -> put("description", "Child variables reference; choose this or frame_id")
+                            "line" -> put("description", "1-based line for breakpoint add/remove")
+                            "thread_id" -> put("description", "Thread for stack inspection or continue/pause/step")
+                        }
+                    })
+                }
+                put("expression", buildJsonObject { put("type", "string"); put("description", "Expression evaluated in the stopped debuggee; evaluation can execute target code") })
             }, listOf("operation")))
         add(tool("undo_agent_edit", "Undo the most recent tracked Agent edit/patch transaction", buildJsonObject {}))
         add(tool("git_status", "Show git status", buildJsonObject {}))

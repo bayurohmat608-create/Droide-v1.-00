@@ -34,6 +34,7 @@ enum class ExecutionScope {
 enum class ExtensionInstallKind {
     BUILT_IN,
     ANDROID_MANAGED_TOOLCHAIN,
+    ANDROID_LOCAL_COMPONENT,
     MANAGED_PACKAGE,
      
     GUEST_PACKAGE,
@@ -80,12 +81,6 @@ data class ExtensionVersionState(
     val state: ExtensionState,
     val detail: String,
 )
-
-
-
-
-
-
 
 
 object DevelopmentExtensionCatalog {
@@ -313,35 +308,35 @@ object DevelopmentExtensionCatalog {
             "plugin.opencode", "OpenCode", ExtensionCategory.PLUGINS,
             "Open-source coding agent with ACP editor integration and a structured headless fallback.",
             "brand:opencode", "OpenCode",
-            listOf(ExtensionVersion("2.0.3", channel = "stable", recommended = true, installKind = ExtensionInstallKind.REVIEWED_RECIPE, provides = setOf("opencode"), requires = setOf("node", "npm"), note = "Installs OpenCode CLI with a compatible Node.js runtime.")),
-            "ai", "agent", "acp", "mcp", "@opencode/cli",
+            listOf(ExtensionVersion("1.18.34", channel = "stable", recommended = true, installKind = ExtensionInstallKind.REVIEWED_RECIPE, provides = setOf("opencode"), requires = setOf("node", "npm"), note = "Installs official opencode-ai in local Ubuntu. User-installed Node.js 22+ and npm 10+ required.")),
+            "ai", "agent", "acp", "mcp", "opencode-ai",
         ),
         family(
             "plugin.codex", "OpenAI Codex CLI", ExtensionCategory.PLUGINS,
-            "OpenAI coding agent through the official ACP adapter.",
+            "OpenAI coding agent through the ACP community adapter for the original CLI.",
             "brand:codex", "OpenAI",
-            listOf(ExtensionVersion("1.12.0", channel = "stable", recommended = true, installKind = ExtensionInstallKind.REVIEWED_RECIPE, provides = setOf("codex-acp"), requires = setOf("node", "npm"), note = "Installs the official Codex ACP adapter.")),
+            listOf(ExtensionVersion("2.1.0", channel = "stable", recommended = true, installKind = ExtensionInstallKind.REVIEWED_RECIPE, provides = setOf("codex-acp", "codex"), requires = setOf("node", "npm"), note = "Installs the Codex ACP adapter and the original @openai/codex CLI in local Ubuntu. Node.js 22+ and npm 10+ must be installed by the user.")),
             "openai", "ai", "agent", "codex", "@openai/codex",
         ),
         family(
             "plugin.claude-code", "Claude Code", ExtensionCategory.PLUGINS,
             "Anthropic coding agent through ACP.",
             "brand:anthropic", "Anthropic",
-            listOf(ExtensionVersion("0.79.0", channel = "stable", recommended = true, installKind = ExtensionInstallKind.REVIEWED_RECIPE, provides = setOf("claude-agent-acp"), requires = setOf("node", "npm"), note = "Installs the Claude Agent ACP adapter. Requires Node.js 22+.")),
+            listOf(ExtensionVersion("0.84.0", channel = "stable", recommended = true, installKind = ExtensionInstallKind.REVIEWED_RECIPE, provides = setOf("claude-agent-acp", "claude"), requires = setOf("node", "npm"), note = "Installs Claude Agent SDK and ACP adapter; claude launches the bundled original CLI. User-installed Node.js 22+ and npm 10+ required.")),
             "claude", "ai", "agent", "anthropic", "@anthropic-ai/claude-code",
         ),
         family(
             "plugin.gemini-cli", "Gemini CLI", ExtensionCategory.PLUGINS,
             "Google coding agent integrated through Gemini CLI ACP inside the active Droide workspace.",
             "brand:gemini", "Google",
-            listOf(ExtensionVersion("0.60.0", channel = "stable", recommended = true, installKind = ExtensionInstallKind.REVIEWED_RECIPE, provides = setOf("gemini"), requires = setOf("node", "npm"), note = "Reviewed npm recipe installs @google/gemini-cli 0.60.0. Requires Node.js 20+.")),
+            listOf(ExtensionVersion("0.62.0", channel = "stable", recommended = true, installKind = ExtensionInstallKind.REVIEWED_RECIPE, provides = setOf("gemini"), requires = setOf("node", "npm"), note = "Reviewed npm recipe installs @google/gemini-cli 0.62.0. Requires Node.js 22+.")),
             "gemini", "ai", "agent", "mcp", "@google/gemini-cli",
         ),
         family(
             "plugin.github-copilot-cli", "GitHub Copilot CLI", ExtensionCategory.PLUGINS,
             "GitHub coding agent through Copilot CLI ACP.",
             "brand:github-copilot", "GitHub",
-            listOf(ExtensionVersion("1.0.86", channel = "stable", recommended = true, installKind = ExtensionInstallKind.REVIEWED_RECIPE, provides = setOf("copilot"), requires = setOf("node", "npm"), note = "Reviewed npm recipe installs @github/copilot 1.0.86. Requires Node.js 22+.")),
+            listOf(ExtensionVersion("1.0.90", channel = "stable", recommended = true, installKind = ExtensionInstallKind.REVIEWED_RECIPE, provides = setOf("copilot"), requires = setOf("node", "npm"), note = "Reviewed npm recipe installs @github/copilot 1.0.90. Requires Node.js 22+.")),
             "github", "copilot", "ai", "agent", "mcp", "@github/copilot",
         ),
     )

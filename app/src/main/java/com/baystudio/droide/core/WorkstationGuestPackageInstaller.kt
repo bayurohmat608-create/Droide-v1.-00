@@ -22,10 +22,6 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 
 
-
-
-
-
 internal object AlpineGuestMutationGate { val mutex = Mutex() }
 
 internal const val WORKSTATION_GUEST_ADMISSION_CONTRACT_KEY = "guest.admission-contract.sha256"
@@ -95,7 +91,6 @@ class WorkstationGuestEnvironmentManager(
             )
         }
 
-        
 
         DeviceWorkstationStorageGuard.requireHeadroom(
             
@@ -148,7 +143,7 @@ class WorkstationGuestEnvironmentManager(
             }
             return finalRoot
         } catch (failure: Throwable) {
-            // Current/previous guests are recovery state and are never deleted or swapped merely because activation/health verification failed.
+            
 
             withContext(NonCancellable) { LocalExecutionSubstrate.shell("rm -rf ${q(stage)}") }
             throw failure
@@ -353,12 +348,8 @@ data class WorkstationGuestPackageRecipe(
             "Guest admission probe ids must be unique and bounded"
         }
         admissionProbes.forEach(WorkstationGuestAdmissionProbe::validate)
-        NetworkSecurity.validatePublicHttpsTarget(provenanceUrl)
+        NetworkSecurity.validatePublicHttpsUrl(provenanceUrl)
     }
-
-    // Stored records may come from an older Droide build, so callers must use this contract as the authority instead of trusting only the health checks serialized at.
-
-
 
 
     fun requiredManagedHealthChecks(): List<ManagedPackageHealthCheck> = buildList {
@@ -770,7 +761,7 @@ exec /system/bin/sh ${hostQ(environment.launcherPath())} ${hostQ(target)}$prefix
     suspend fun uninstall(recipe: WorkstationGuestPackageRecipe, record: ManagedPackageRecord): String = withContext(Dispatchers.IO) {
         guestCleanupGate.withLock {
             requireBackend(recipe.familyId)
-            // A crash after receipt removal cannot silently orphan the apk virtual package, and a failed receipt removal preserves its existing ownership.
+            // Keep operation ownership explicit across lifecycle boundaries.
 
             val installedVirtual = installedVirtualPackage(recipe, record)
             val pending = writeCleanupIntent(record, installedVirtual)

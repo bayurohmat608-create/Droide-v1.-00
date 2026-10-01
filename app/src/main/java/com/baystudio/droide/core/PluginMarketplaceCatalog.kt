@@ -78,7 +78,6 @@ data class PluginMarketplaceCatalogDocument(
 // Hash-pinned catalog parser.
 
 
-
 object PluginMarketplaceCatalog {
     private const val MAX_CATALOG_BYTES = 4 * 1024 * 1024
     private val json = Json { ignoreUnknownKeys = false }

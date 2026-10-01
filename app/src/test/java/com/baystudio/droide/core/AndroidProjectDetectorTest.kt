@@ -26,6 +26,26 @@ class AndroidProjectDetectorTest {
         }
     }
 
+    @Test fun detectsDirectAndroidGradlePluginVersionWithoutReadingComments() {
+        val root = Files.createTempDirectory("droide-android-agp-").toFile()
+        try {
+            root.resolve("settings.gradle.kts").writeText("rootProject.name=\"sample\"")
+            root.resolve("gradlew").writeText("#!/bin/sh\n")
+            root.resolve("build.gradle.kts").writeText(
+                "// id(\"com.android.application\") version \"7.0.0\"\n" +
+                    "plugins { id(\"com.android.application\") version \"8.13.2\" apply false }\n"
+            )
+            root.resolve("app").mkdirs()
+            root.resolve("app/build.gradle.kts").writeText(
+                "plugins { id(\"com.android.application\") }; android { compileSdk = 36 }"
+            )
+            val model = AndroidProjectDetector.detect(root)!!
+            assertEquals(setOf("8.13.2"), model.androidGradlePluginVersions)
+        } finally {
+            PathSecurity.deleteTreeNoFollow(root)
+        }
+    }
+
     @Test fun doesNotFollowDirectorySymlinkOutsideWorkspace() {
         val root = Files.createTempDirectory("droide-android-detect-").toFile()
         val outside = Files.createTempDirectory("droide-android-outside-").toFile()

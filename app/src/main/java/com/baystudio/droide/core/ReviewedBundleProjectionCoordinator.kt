@@ -4,6 +4,19 @@ package com.baystudio.droide.core
 
 
 
+sealed interface ReviewedBundlePrimaryRecipe {
+    val version: String
+    val sha256: String
+    data class GitHub(val recipe: GitHubReleaseInstallRecipe) : ReviewedBundlePrimaryRecipe {
+        override val version: String get() = recipe.version
+        override val sha256: String get() = recipe.assetSha256
+    }
+    data class Vendor(val recipe: VendorArtifactInstallRecipe) : ReviewedBundlePrimaryRecipe {
+        override val version: String get() = recipe.version
+        override val sha256: String get() = recipe.assetSha256
+    }
+}
+
 internal class ReviewedBundleProjectionCoordinator(
     private val sourceCatalog: PackageSourceCatalog,
     private val sourceResolver: PackageSourceResolver,
@@ -12,7 +25,7 @@ internal class ReviewedBundleProjectionCoordinator(
     private val reviewedArtifactBackend: ReviewedArtifactBackendRouter,
     private val bundleProjectionInstaller: ReviewedBundleProjectionInstaller,
 ) {
-    fun prepare(item: ExtensionVersionState): ExtensionInstallPlan.BundleProjection? {
+    suspend fun prepare(item: ExtensionVersionState): ExtensionInstallPlan.BundleProjection? {
         val manifest = sourceCatalog.manifest(item.family.id) ?: return null
         val bundle = manifest.bundle ?: return null
         if (bundle.primaryFamilyId == item.family.id) return null
@@ -24,6 +37,15 @@ internal class ReviewedBundleProjectionCoordinator(
         require(follower.bundleId == bundle.id && follower.bundlePrimaryFamilyId == bundle.primaryFamilyId) {
             "Bundle follower authority is inconsistent for ${item.family.id}"
         }
+        val primaryRecipe = when (primary.source) {
+            PackageSourceKind.VENDOR_OFFICIAL -> ReviewedBundlePrimaryRecipe.Vendor(
+                sourceResolver.resolveReviewedVendorOfficial(primary.familyId, item.version.version),
+            )
+            PackageSourceKind.GITHUB_RELEASE -> ReviewedBundlePrimaryRecipe.GitHub(
+                sourceResolver.resolveReviewedGitHubRelease(primary.familyId, item.version.version),
+            )
+            else -> error("Unsupported shared-bundle primary provider: ${primary.source.label}")
+        }
         return ExtensionInstallPlan.BundleProjection(
             familyId = item.family.id,
             familyName = item.family.name,
@@ -31,12 +53,15 @@ internal class ReviewedBundleProjectionCoordinator(
             bundleId = bundle.id,
             primaryFamilyId = bundle.primaryFamilyId,
             primarySource = primary,
+            primaryRecipe = primaryRecipe,
             command = follower.command,
             healthArgs = follower.healthArgs,
             provenanceUrl = follower.provenanceUrl,
             components = listOf(
                 "Shared bundle: ${bundle.id}",
                 "Primary owner: ${bundle.primaryFamilyId}",
+                "Resolved version: ${primaryRecipe.version}",
+                "Primary SHA-256: ${primaryRecipe.sha256}",
                 "No duplicate SDK download",
                 "Exact dependency edge + independent projection uninstall",
             ),
@@ -48,7 +73,7 @@ internal class ReviewedBundleProjectionCoordinator(
         ensureInterpreter: suspend (String, String) -> GitHubArtifactInterpreterDependency,
     ): ManagedPackageRecord {
         reviewedArtifactBackend.requireBackend()
-        val primary = ensurePrimary(plan.primarySource, plan.requestedVersion, ensureInterpreter)
+        val primary = ensurePrimary(plan.primarySource, plan.primaryRecipe, ensureInterpreter)
         return bundleProjectionInstaller.install(
             BundleProjectionRecipe(
                 familyId = plan.familyId,
@@ -65,21 +90,21 @@ internal class ReviewedBundleProjectionCoordinator(
 
     private suspend fun ensurePrimary(
         source: PackageSourceDefinition,
-        requestedVersion: String,
+        pinned: ReviewedBundlePrimaryRecipe,
         ensureInterpreter: suspend (String, String) -> GitHubArtifactInterpreterDependency,
     ): ManagedPackageRecord {
         require(source.installerReady) { "Bundle primary is not owned by a certified installer" }
-        val recipe = when (source.source) {
-            PackageSourceKind.VENDOR_OFFICIAL -> sourceResolver.resolveReviewedVendorOfficial(source.familyId, requestedVersion)
-            PackageSourceKind.GITHUB_RELEASE -> sourceResolver.resolveReviewedGitHubRelease(source.familyId, requestedVersion)
-            else -> error("Bundle projection primary provider ${source.source.label} is not supported by the reviewed shared-bundle engine")
+        val recipe = when (pinned) {
+            is ReviewedBundlePrimaryRecipe.Vendor -> pinned.recipe.also {
+                require(source.source == PackageSourceKind.VENDOR_OFFICIAL && it.familyId == source.familyId)
+            }
+            is ReviewedBundlePrimaryRecipe.GitHub -> pinned.recipe.also {
+                require(source.source == PackageSourceKind.GITHUB_RELEASE && it.familyId == source.familyId)
+            }
         }
-        val resolvedVersion = when (recipe) {
-            is VendorArtifactInstallRecipe -> recipe.version
-            is GitHubReleaseInstallRecipe -> recipe.version
-            else -> error("Unsupported shared-bundle primary recipe")
+        return registry.find(source.familyId, pinned.version)?.takeIf {
+            it.artifactSha256 == pinned.sha256 && packageInstaller.verify(it)
         }
-        return registry.find(source.familyId, resolvedVersion)?.takeIf { packageInstaller.verify(it) }
             ?: installPrimary(recipe, ensureInterpreter)
     }
 

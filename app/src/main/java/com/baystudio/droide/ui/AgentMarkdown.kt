@@ -45,13 +45,6 @@ internal fun AgentMarkdownContent(
 }
 
 
-
-
-
-
-
-
-
 @Composable
 internal fun AgentStreamingMarkdownContent(
     markdown: String,

@@ -8,7 +8,6 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.os.Build
-import android.text.InputType
 import android.util.AttributeSet
 import android.view.ActionMode
 import android.view.GestureDetector
@@ -26,6 +25,7 @@ import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import com.baystudio.droide.core.DevicePtySessionHandle
+import com.baystudio.droide.core.CodingKeyboardMode
 import com.baystudio.droide.core.DeviceTerminalEmulator
 import com.baystudio.droide.core.DroideTerminalPalette
 import com.termux.terminal.KeyHandler
@@ -62,6 +62,9 @@ class DeviceTerminalView @JvmOverloads constructor(
     @Volatile private var screenGeneration = 0
     private var terminalBackgroundColor = Color.BLACK
     internal var accessoryModifiers: AccessoryModifierController? = null
+    private val codingKeyboard = CodingKeyboardController()
+
+    fun applyKeyboardMode(mode: CodingKeyboardMode) = codingKeyboard.applyMode(this, mode)
 
     private val clipboard: ClipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     private val inputMethodManager: InputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -239,15 +242,7 @@ class DeviceTerminalView @JvmOverloads constructor(
     override fun onCheckIsTextEditor(): Boolean = true
 
     override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection {
-        outAttrs.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-        
-
-
-
-
-        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN or
-            EditorInfo.IME_FLAG_NO_EXTRACT_UI
-        return object : BaseInputConnection(this, true) {
+        val connection = object : BaseInputConnection(this, true) {
             override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
                 super.commitText(text, newCursorPosition)
                 flushImeEditable()
@@ -289,6 +284,8 @@ class DeviceTerminalView @JvmOverloads constructor(
                 }
             }
         }
+        codingKeyboard.configure(connection, outAttrs, multiline = false)
+        return connection
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {

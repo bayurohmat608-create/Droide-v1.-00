@@ -12,8 +12,6 @@ import kotlinx.serialization.json.Json
 // Only catalog-reviewed entry points receive executable permission.
 
 
-
-
 internal class ReviewedVendorWholeTreeInstaller(
     private val bridge: DeviceBridgeManager,
     private val packageInstaller: ManagedPackageInstaller,

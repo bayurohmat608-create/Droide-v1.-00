@@ -15,9 +15,6 @@ import kotlinx.serialization.json.jsonPrimitive
 // Plugin schemas are model-facing contracts and a runtime security boundary.
 
 
-
-
-
 object AgentPluginJsonSchema {
     private const val MAX_DEPTH = 16
     private const val MAX_PATTERN_CHARS = 256

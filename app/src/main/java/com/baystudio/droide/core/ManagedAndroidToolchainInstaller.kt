@@ -10,7 +10,7 @@ class ManagedAndroidToolchainInstaller(
     context: Context,
     private val manager: AndroidDevelopmentManager,
     private val licenseManager: AndroidSdkLicenseManager,
-    private val downloader: TrustedArtifactDownloader = TrustedArtifactDownloader(context.applicationContext),
+    private val downloader: UserInitiatedArtifactTransfer = UserInitiatedArtifactTransfer(context.applicationContext),
 ) {
     enum class Phase { IDLE, DOWNLOADING, PROVISIONING, READY, CANCELED, FAILED }
 

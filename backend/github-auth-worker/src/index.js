@@ -1,4 +1,5 @@
 const MAX_FORM_BYTES = 8 * 1024;
+const MAX_UPSTREAM_BYTES = 64 * 1024;
 const DEFAULT_CALLBACK_URI = "com.baystudio.droide.oauth://github/callback";
 const GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token";
 const GITHUB_API_VERSION = "2026-03-10";
@@ -49,9 +50,37 @@ function basicAuth(clientId, clientSecret) {
   return `Basic ${btoa(`${clientId}:${clientSecret}`)}`;
 }
 
+async function readBoundedUtf8(message, limit) {
+  if (!message.body) return "";
+  const reader = message.body.getReader();
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  const chunks = [];
+  let bytes = 0;
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > limit) {
+        const error = new Error("body exceeds limit");
+        error.code = "BODY_TOO_LARGE";
+        throw error;
+      }
+      chunks.push(decoder.decode(value, { stream: true }));
+    }
+    chunks.push(decoder.decode());
+    return chunks.join("");
+  } catch (error) {
+    try { await reader.cancel(); } catch {}
+    throw error;
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 async function readForm(request) {
   const type = request.headers.get("content-type") || "";
-  if (!type.toLowerCase().startsWith("application/x-www-form-urlencoded")) {
+  if (type.split(";", 1)[0].trim().toLowerCase() !== "application/x-www-form-urlencoded") {
     return { error: responseJson(415, { error: "unsupported_media_type" }) };
   }
   const declaredLength = Number(request.headers.get("content-length") || "0");
@@ -59,13 +88,15 @@ async function readForm(request) {
     return { error: responseJson(413, { error: "request_too_large" }) };
   }
   try {
-    const text = await request.text();
+    const text = await readBoundedUtf8(request, MAX_FORM_BYTES);
     if (new TextEncoder().encode(text).byteLength > MAX_FORM_BYTES) {
       return { error: responseJson(413, { error: "request_too_large" }) };
     }
     return { form: new URLSearchParams(text) };
-  } catch {
-    return { error: responseJson(400, { error: "invalid_request" }) };
+  } catch (error) {
+    return { error: responseJson(error?.code === "BODY_TOO_LARGE" ? 413 : 400, {
+      error: error?.code === "BODY_TOO_LARGE" ? "request_too_large" : "invalid_request",
+    }) };
   }
 }
 
@@ -103,7 +134,7 @@ async function tokenRequest(upstreamBody) {
 
   let payload;
   try {
-    payload = await upstream.json();
+    payload = JSON.parse(await readBoundedUtf8(upstream, MAX_UPSTREAM_BYTES));
   } catch {
     return responseJson(502, { error: "invalid_github_response" });
   }

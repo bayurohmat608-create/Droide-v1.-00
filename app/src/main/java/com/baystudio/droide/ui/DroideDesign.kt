@@ -61,7 +61,7 @@ object DroideColors {
 
 object DroideDimensions {
     val TopBar = 52.dp
-    val EditorTabBar = 44.dp
+    val EditorTabBar = 40.dp
     val ActivityRail = 52.dp
     val Sidebar = 246.dp
     val WideSidebar = 320.dp

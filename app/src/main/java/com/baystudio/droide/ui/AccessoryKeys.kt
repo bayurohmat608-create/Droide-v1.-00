@@ -51,16 +51,11 @@ internal fun AccessoryInputTarget.keyProfile(): AccessoryKeyProfile? = when (thi
 }
 
 
-
-
-
-
 internal class AccessoryInputFocusOwner internal constructor(
     val target: AccessoryInputTarget,
 )
 
 // One authoritative focus owner for the whole workbench accessory surface.
-
 
 
 @Stable
@@ -91,9 +86,6 @@ internal class AccessoryInputFocusController {
 
     fun owns(owner: AccessoryInputFocusOwner): Boolean = activeOwner === owner
 }
-
-
-
 
 
 @Stable
@@ -228,10 +220,6 @@ private val editorTrailingKeys = listOf(
 )
 
 
-
-
-
-
 private val terminalPortraitKeys = listOf(
     
     AccessoryControlKey("Esc", KeyEvent.KEYCODE_ESCAPE, contentDescription = "Escape"),
@@ -288,8 +276,6 @@ private const val AccessoryMotionMillis = 160
 // Portrait uses a fixed 2x7 two-bar deck so fourteen high-frequency keys never require horizontal scrolling.
 
 
-
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun AccessoryKeysScaffold(
@@ -323,8 +309,6 @@ internal fun AccessoryKeysScaffold(
         animationSpec = tween(AccessoryMotionMillis),
         label = "AccessoryKeysAlpha",
     )
-
-    
 
 
     val accessoryImeInsetModifier =
@@ -449,10 +433,6 @@ private sealed interface EditorFastEntry {
     data class Action(val action: EditorAccessoryAction) : EditorFastEntry
     data class Text(val text: String) : EditorFastEntry
 }
-
-
-
-
 
 
 private fun editorPortraitEntries(languageId: String?): List<EditorFastEntry> {

@@ -125,9 +125,6 @@ data class AndroidStabilityEvaluation(
 // Callers must supply a reviewed StabilityPolicy.
 
 
-
-
-
 class AndroidStabilityRunner(
     private val inspection: AndroidInspectionManager,
     private val deviceIdentity: AndroidDeviceIdentityCollector,

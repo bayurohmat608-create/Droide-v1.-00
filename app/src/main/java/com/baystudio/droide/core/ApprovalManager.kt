@@ -28,12 +28,6 @@ data class ApprovalRequest(
 sealed interface ApprovalDecision { data object Approved : ApprovalDecision; data object Denied : ApprovalDecision }
 enum class ApprovalResolution { DENY, ALLOW_ONCE, ALLOW_SESSION }
 
-// Grants are exact, in-memory, session-bound, and never override the authoritative PermissionEngine/access-mode DENY checks.
-
-
-
-
-
 
 class ApprovalManager {
     private data class SessionGrant(

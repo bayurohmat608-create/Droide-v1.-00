@@ -32,8 +32,6 @@ private data class GradleReadOnlyDependencyCacheMarker(
 // Project files can never nominate an executable or dependency-cache path.
 
 
-
-
 internal class GradleReadOnlyDependencyCacheResolver(
     private val shell: suspend (String, Int) -> BridgeShellResult,
 ) {
@@ -179,9 +177,6 @@ object GradleProjectConfigurationFingerprint {
     private val GRADLE_METADATA_EXTENSIONS = setOf("toml", "xml", "properties", "lockfile", "keys")
     private val BUILD_LOGIC_SOURCE_EXTENSIONS = setOf("kt", "java", "groovy", "properties", "toml", "xml", "json", "yaml", "yml")
 }
-
-
-
 
 
 internal class GradleDependencyRuntimeProbe internal constructor(

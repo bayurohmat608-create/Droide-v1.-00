@@ -22,7 +22,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class JsonRpcCancellationTest {
-    @Test fun transmittedLspRequestEmitsProtocolCancellation() = runBlocking {
+    @Test(timeout = 10_000) fun transmittedLspRequestEmitsProtocolCancellation() = runBlocking {
         val host = PipeProcessHost()
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val rpc = JsonRpcProcess(

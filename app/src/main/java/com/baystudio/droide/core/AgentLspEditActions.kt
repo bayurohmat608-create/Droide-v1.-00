@@ -8,10 +8,6 @@ import java.security.MessageDigest
 // The language server may propose edits, but it never receives mutation authority.
 
 
-
-
-
-
 class AgentLspEditActions(
     private val files: FileRepository,
     private val lsp: LspManager,

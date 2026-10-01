@@ -152,9 +152,6 @@ class FileRepository(
         readUtf8Bounded(f, maxBytes, rel, largeFileException = false)
     }
 
-    // It stops after the requested range instead of scanning a multi-GB file to EOF, and caps each displayed line so a single pathological line cannot exhaust memory.
-
-
 
     suspend fun readRange(rel: String, start: Int = 1, end: Int = 200): String = withContext(Dispatchers.IO) {
         val f = resolve(rel)
@@ -345,8 +342,7 @@ class FileRepository(
                     copyBounded(source, out, MAX_STREAM_WRITE_BYTES, root, expected, onProgress)
                 }
 
-                // This prevents activity/navigation cancellation from leaving the local file committed while its external mirror was never updated.
-
+                // Recheck state around cancellation-sensitive boundaries.
 
 
                 currentCoroutineContext().ensureActive()
@@ -829,7 +825,6 @@ class FileRepository(
         private const val MAX_GLOB_RESULTS = 500
         private const val MAX_SEARCH_RESULTS = 500
         private const val MAX_TEXT_WRITE_BYTES = 5L * 1024L * 1024L
-        
 
 
         private const val MAX_STREAM_WRITE_BYTES = 4L * 1024 * 1024 * 1024

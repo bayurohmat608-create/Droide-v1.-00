@@ -57,7 +57,7 @@ internal class AndroidBuildArtifactCollector internal constructor(
             }
             return pulled
         } catch (error: Throwable) {
-            // Never leave or expose a partial set after one pull fails; a two-APK build must not degrade into a false single-APK result.
+            // Never leave or expose a partial set after one pull fails.
 
             PathSecurity.deleteTreeNoFollow(outDir)
             throw error

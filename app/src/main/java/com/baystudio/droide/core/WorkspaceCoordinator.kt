@@ -41,6 +41,7 @@ data class WorkspaceRuntime(
     val pluginRuntime: ManagedPluginRuntime,
     val extensionPlatform: ManagedExtensionPlatform,
     val execution: BuildRunDebugCoordinator,
+    val qemuVm: QemuVmManager,
     val safMirror: SafMirror? = null,
 ) {
     suspend fun reconcileSaf(): String? {
@@ -56,12 +57,13 @@ data class WorkspaceRuntime(
     }
 
     suspend fun shutdownGracefully() = withContext(NonCancellable) {
-        
+        extensions.close()
 
 
         try { agent.shutdown() } catch (_: Exception) {}
         try { agentPlugins.close() } catch (_: Exception) {}
         try { extensionPlatform.close() } catch (_: Exception) {}
+        runSuspendCatching { qemuVm.shutdown() }
         runSuspendCatching { debugger.shutdown() }
         runSuspendCatching { lsp.shutdown() }
         try { capabilities.close() } catch (_: Exception) {}
@@ -73,9 +75,11 @@ data class WorkspaceRuntime(
 
      
     fun close(preserveLocalTerminals: Boolean = false) {
+        extensions.close()
         agent.shutdown()
         agentPlugins.close()
         extensionPlatform.close()
+        qemuVm.closeNow()
         debugger.close()
         lsp.close()
         capabilities.close()
@@ -140,6 +144,7 @@ class WorkspaceCoordinator(
             LocalExecutionSubstrate.init(context.applicationContext)
             stage(WorkspaceStartupPhase.RUNTIME_REGISTRIES, WorkspaceStartupPolicy.RUNTIME_REGISTRIES_TIMEOUT_MS) {
                 withContext(Dispatchers.IO) {
+                    LocalExecutionSubstrate.reconcileStaleLocalProcesses()
                     DeclarativeExtensionRuntime.initialize(context.applicationContext)
                     AgentPluginRuntime.initialize(context.applicationContext)
                 }
@@ -187,6 +192,11 @@ class WorkspaceCoordinator(
                 projectId = prepared.project.id,
                 detail = recoveredFrom?.let { "Recovered from ${it::class.java.simpleName}: ${it.message.orEmpty().take(240)}" },
             )
+            scope.launch(Dispatchers.IO) {
+                runSuspendCatching { projects.collectStartupGarbage() }
+                    .onSuccess { failed -> if (failed.isNotEmpty()) Log.w("DroideWorkspace", "Deferred cleanup retained ${failed.size} source trees") }
+                    .onFailure { Log.w("DroideWorkspace", "Deferred cleanup interrupted; source is preserved", it) }
+            }
         } catch (cancelled: kotlinx.coroutines.CancellationException) {
             throw cancelled
         } catch (failure: Throwable) {
@@ -241,10 +251,6 @@ class WorkspaceCoordinator(
         swap(prepared)
         project
     }
-
-    // A template is never left registered if its runtime cannot be constructed, and old-runtime cleanup cannot invalidate a successfully committed new project.
-
-
 
 
     suspend fun createProjectFromTemplateAndSwitch(name: String, templateId: String): Pair<DroideProject, String?> =
@@ -412,7 +418,8 @@ class WorkspaceCoordinator(
             )
             DeclarativeExtensionRuntime.manifests().forEach(extensionPlatform::registerManifest)
             extensions.marketplace.bindExtensionPlatform(extensionPlatform)
-            val execution = BuildRunDebugCoordinator(root, terminals, androidDevelopment, debugger, capabilityRegistry)
+            val execution = BuildRunDebugCoordinator(context.applicationContext, root, terminals, androidDevelopment, debugger, capabilityRegistry, scope)
+            val qemuVm = QemuVmManager(context.applicationContext, project.id)
             val universalToolDiscoveryCertification = UniversalToolDiscoveryCertificationManager(
                 context = context.applicationContext,
                 projectId = project.id,
@@ -429,7 +436,7 @@ class WorkspaceCoordinator(
             val agent = AgentService(
                 files, agentTerminal, git, approvals, lsp = lsp, perms = permissionEngine,
                 agentPluginSource = AgentPluginRuntime, documentAuthority = documentAuthority,
-                ideActions = AgentIdeActions(execution),
+                ideActions = AgentIdeActions(execution, debugger),
                 toolchainActions = agentToolchains,
                 capabilityActions = agentCapabilities,
                 browserController = agentBrowser,
@@ -440,7 +447,7 @@ class WorkspaceCoordinator(
                 cacheDir = context.cacheDir,
                 files = files,
                 
-                processHost = DeviceWorkstationProcessHost(deviceBridge, androidDevelopment, root, scope),
+                processHost = LocalAgentWorkspaceProcessHost(root, context.cacheDir, scope),
                 androidDevelopment = androidDevelopment,
                 bridge = deviceBridge,
                 approvals = approvals,
@@ -474,11 +481,12 @@ class WorkspaceCoordinator(
                 pluginRuntime = pluginRuntime,
                 extensionPlatform = extensionPlatform,
                 execution = execution,
+                qemuVm = qemuVm,
                 safMirror = mirror,
             )
         } catch (t: Throwable) {
             terminals?.let { manager ->
-                // TerminalSession/Handler/native PTY ownership is main-thread-bound even when the surrounding runtime construction happens on Dispatchers.IO.
+                // Keep operation ownership explicit across lifecycle boundaries.
 
                 withContext(NonCancellable + Dispatchers.Main.immediate) {
                     try { manager.dispose(preserveLocalSessions = false) } catch (_: Exception) {}

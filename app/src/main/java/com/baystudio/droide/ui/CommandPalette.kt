@@ -14,7 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.baystudio.droide.core.CommandManager
+import com.baystudio.droide.core.DroideCommand
 import com.baystudio.droide.core.FileRepository
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 
 
@@ -28,8 +32,16 @@ fun CommandPalette(
     onDismiss: () -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    val all = remember(commands) { commands.list() }
-    val filtered = remember(commands, query) {
+    var all by remember(commands) { mutableStateOf<List<DroideCommand>>(emptyList()) }
+    var loading by remember(commands) { mutableStateOf(true) }
+    var error by remember(commands) { mutableStateOf<String?>(null) }
+    LaunchedEffect(commands) {
+        try { all = withContext(Dispatchers.IO) { commands.list() } }
+        catch (cancelled: CancellationException) { throw cancelled }
+        catch (failure: Exception) { error = failure.message ?: "Could not load commands" }
+        finally { loading = false }
+    }
+    val filtered = remember(all, query) {
         if (query.isBlank()) all else all.filter { it.name.contains(query.trimStart('/'), true) || it.description.contains(query, true) }
     }
     AlertDialog(
@@ -44,6 +56,8 @@ fun CommandPalette(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth(),
                     placeholder = { Text("Search commands…") }, singleLine = true)
+                if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
+                error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 LazyColumn(Modifier.heightIn(max = 260.dp)) {
                     items(filtered.take(12)) { c ->
                         ListItem(

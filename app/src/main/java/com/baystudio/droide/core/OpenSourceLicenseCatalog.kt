@@ -29,7 +29,6 @@ data class OpenSourceLicenseManifest(
 // Keep this fail-closed: malformed or missing legal data must never be silently hidden.
 
 
-
 object OpenSourceLicenseCatalog {
     private val json = Json { ignoreUnknownKeys = false }
 

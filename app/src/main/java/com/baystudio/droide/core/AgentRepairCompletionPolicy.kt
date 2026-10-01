@@ -10,6 +10,9 @@ object AgentRepairCompletionPolicy {
 
     fun toolchainMutates(operation: String): Boolean = operation in setOf("install", "repair", "use_workspace")
 
+    fun browserPermissionTarget(operation: String, requestedUrl: String?, currentUrl: String): String =
+        if (operation in setOf("open", "navigate")) requestedUrl.orEmpty() else currentUrl
+
     fun browserInteracts(operation: String): Boolean = operation in setOf("click", "type")
 
     fun classifyBrowserTarget(raw: String): BrowserTargetClass = runCatching {

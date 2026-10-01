@@ -30,16 +30,7 @@ private data class SafManifestFile(
     val entries: Map<String, String> = emptyMap(),
 )
 
-// The live local mirror is swapped only after the complete scan and conflict resolution succeeds, with a same-filesystem rollback directory.
-
-
-
-
-
-
-
-
-
+// Use same-filesystem replacement for atomic activation.
 
 
 class SafMirror(private val context: Context, treeUri: String, private val localRoot: File) {
@@ -98,16 +89,12 @@ class SafMirror(private val context: Context, treeUri: String, private val local
                 // Observe a startup/watchdog cancellation immediately before entering the atomic commit section.
 
 
-
                 currentCoroutineContext().ensureActive()
                 report(SafMirrorProgress(SafMirrorPhase.APPLYING, external.files, external.bytes))
                 currentCoroutineContext().ensureActive()
                 withContext(NonCancellable) {
                     applyLocalWinnersToExternal(resolution.localWinners, local.entries, external.entries)
                     applyLocalWinnersToStage(stage, resolution.localWinners, local.entries)
-
-                    // Do not hash the entire staging tree again: external files were already hashed while they streamed in, and local winners were already hashed by scanLocal().
-
 
 
                     val desired = resolvedEntries(external.entries, local.entries, resolution.localWinners)
@@ -182,9 +169,7 @@ class SafMirror(private val context: Context, treeUri: String, private val local
         }
     }
 
-    // This closes the race between full refreshes: Droide refuses to overwrite a concurrently modified external path and asks for a full three-way refresh instead.
-
-
+    // Recheck authoritative state at commit boundaries to avoid stale writes.
 
 
     private fun assertExternalUnchanged(path: String, known: Map<String, String>, includeTree: Boolean, checkCancelled: () -> Unit = {}) {

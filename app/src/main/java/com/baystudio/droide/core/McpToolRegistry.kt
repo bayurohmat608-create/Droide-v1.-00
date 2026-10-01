@@ -7,13 +7,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 
-// Function names include a short runtime/schema identity so a stale provider tool call cannot silently target a different server configuration or tool schema.
-
-
-
-
-
-
 
 data class McpAgentTool(
     val functionName: String,
@@ -37,7 +30,7 @@ class McpToolRegistry(
         for (server in manager.list()) {
             if (out.size >= MAX_AGENT_TOOLS) break
             val identity = manager.permissionResource(server.name)
-            // Starting a configured server for tools/list is process execution, so discovery only happens after durable/session MCP trust is ALLOW.
+            
 
             if (permissions.decide("mcp", identity, permissionScope) != PermEffect.ALLOW) {
                 val permission = permissions.decide("mcp", identity, permissionScope)

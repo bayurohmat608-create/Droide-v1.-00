@@ -8,11 +8,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WorkstationGuestPackageCatalogTest {
-    private fun requiredRecipe(familyId: String): WorkstationGuestPackageRecipe =
-        requireNotNull(WorkstationGuestPackageCatalog.find(familyId, WorkstationGuestEnvironmentSpec.VERSION)) {
-            "Missing workstation guest recipe: $familyId"
-        }
-
     @Test fun recipesAreUniqueValidatedAndArm64GuestScoped() {
         val entries = WorkstationGuestPackageCatalog.entries
         assertTrue(entries.size >= 50)
@@ -29,7 +24,8 @@ class WorkstationGuestPackageCatalogTest {
     }
 
     @Test fun coreRuntimeRecipesExposeExpectedCommands() {
-        val python = requiredRecipe("runtime.python")
+        val python = requireNotNull(WorkstationGuestPackageCatalog.find("runtime.python", WorkstationGuestEnvironmentSpec.VERSION))
+        assertNotNull(python)
         assertEquals("/usr/bin/python3", python.commands["python3"])
         assertEquals("/usr/bin/python3", python.commands["python"])
         val pythonHealth = python.requiredManagedHealthChecks()
@@ -42,18 +38,22 @@ class WorkstationGuestPackageCatalogTest {
         })
         assertTrue(pythonHealth.any { it.executable == "bin/pip3" && it.args == listOf("--version") })
 
-        val node = requiredRecipe("runtime.node")
+        val node = requireNotNull(WorkstationGuestPackageCatalog.find("runtime.node", WorkstationGuestEnvironmentSpec.VERSION))
+        assertNotNull(node)
         assertTrue(setOf("node", "npm").all { it in node.commands })
         assertFalse("npx must not be projected as a managed executable", "npx" in node.commands)
 
-        val npm = requiredRecipe("package.npm")
+        val npm = requireNotNull(WorkstationGuestPackageCatalog.find("package.npm", WorkstationGuestEnvironmentSpec.VERSION))
+        assertNotNull(npm)
         assertEquals(setOf("npm"), npm.commands.keys)
 
-        val pnpm = requiredRecipe("package.pnpm")
+        val pnpm = requireNotNull(WorkstationGuestPackageCatalog.find("package.pnpm", WorkstationGuestEnvironmentSpec.VERSION))
+        assertNotNull(pnpm)
         assertEquals(setOf("pnpm"), pnpm.commands.keys)
 
-        requiredRecipe("toolchain.go")
-        val rust = requiredRecipe("toolchain.rust")
+        assertNotNull(WorkstationGuestPackageCatalog.find("toolchain.go", WorkstationGuestEnvironmentSpec.VERSION))
+        val rust = requireNotNull(WorkstationGuestPackageCatalog.find("toolchain.rust", WorkstationGuestEnvironmentSpec.VERSION))
+        assertNotNull(rust)
         assertTrue(setOf("rust", "cargo", "rustfmt", "build-base", "ca-certificates-bundle").all { it in rust.packages })
         assertTrue(setOf("rustc", "cargo", "rustfmt").all { it in rust.commands })
         val rustHealth = rust.requiredManagedHealthChecks()
@@ -69,36 +69,44 @@ class WorkstationGuestPackageCatalogTest {
         assertTrue(rustAdmission.shellCommand.contains("ca-certificates.crt"))
         assertTrue(rust.admissionContractSha256()?.matches(Regex("[0-9a-f]{64}")) == true)
 
-        val cargo = requiredRecipe("package.cargo")
+        val cargo = requireNotNull(WorkstationGuestPackageCatalog.find("package.cargo", WorkstationGuestEnvironmentSpec.VERSION))
+        assertNotNull(cargo)
         assertTrue(setOf("build-base", "ca-certificates-bundle").all { it in cargo.packages })
         assertEquals(rustAdmission, cargo.admissionProbes.single())
         assertEquals(rust.admissionContractSha256(), cargo.admissionContractSha256())
 
-        val cargoTest = requiredRecipe("test.cargo")
+        val cargoTest = requireNotNull(WorkstationGuestPackageCatalog.find("test.cargo", WorkstationGuestEnvironmentSpec.VERSION))
+        assertNotNull(cargoTest)
         assertEquals(rustAdmission, cargoTest.admissionProbes.single())
 
-        requiredRecipe("toolchain.llvm")
+        assertNotNull(WorkstationGuestPackageCatalog.find("toolchain.llvm", WorkstationGuestEnvironmentSpec.VERSION))
 
-        val clippy = requiredRecipe("quality.clippy")
+        val clippy = requireNotNull(WorkstationGuestPackageCatalog.find("quality.clippy", WorkstationGuestEnvironmentSpec.VERSION))
+        assertNotNull(clippy)
         assertEquals(setOf("rust", "cargo", "rust-clippy"), clippy.packages.toSet())
         assertEquals("/usr/bin/cargo-clippy", clippy.commands["cargo-clippy"])
         assertEquals("/usr/bin/clippy-driver", clippy.commands["clippy-driver"])
 
-        val leiningen = requiredRecipe("package.leiningen")
+        val leiningen = requireNotNull(WorkstationGuestPackageCatalog.find("package.leiningen", WorkstationGuestEnvironmentSpec.VERSION))
+        assertNotNull(leiningen)
         assertTrue(setOf("bash", "openjdk21-jdk", "leiningen").all { it in leiningen.packages })
         assertEquals("/usr/bin/lein", leiningen.commands["lein"])
 
-        val adb = requiredRecipe("cli.adb")
+        val adb = requireNotNull(WorkstationGuestPackageCatalog.find("cli.adb", WorkstationGuestEnvironmentSpec.VERSION))
+        assertNotNull(adb)
         assertEquals(listOf("android-tools-adb"), adb.packages)
         assertEquals("/usr/bin/adb", adb.commands["adb"])
 
-        val fastboot = requiredRecipe("cli.fastboot")
+        val fastboot = requireNotNull(WorkstationGuestPackageCatalog.find("cli.fastboot", WorkstationGuestEnvironmentSpec.VERSION))
+        assertNotNull(fastboot)
         assertEquals(listOf("android-tools-fastboot"), fastboot.packages)
 
-        val docker = requiredRecipe("cli.docker")
+        val docker = requireNotNull(WorkstationGuestPackageCatalog.find("cli.docker", WorkstationGuestEnvironmentSpec.VERSION))
+        assertNotNull(docker)
         assertEquals(listOf("docker-cli"), docker.packages)
 
-        val nuget = requiredRecipe("package.nuget")
+        val nuget = requireNotNull(WorkstationGuestPackageCatalog.find("package.nuget", WorkstationGuestEnvironmentSpec.VERSION))
+        assertNotNull(nuget)
         assertEquals("/usr/bin/dotnet", nuget.commands["nuget"])
         assertEquals(listOf("nuget"), nuget.commandArgs["nuget"])
     }
@@ -118,9 +126,10 @@ class WorkstationGuestPackageCatalogTest {
         }
     }
 
-    @Test fun bootstrapRootfsIsExactSizeAndShaPinned() {
+    @Test fun rootfsArtifactIsExactSizeAndShaPinned() {
+        // PRoot is now packaged in APK native libraries and covered by the release integrity gate.
         val spec = WorkstationGuestEnvironmentSpec.rootfsArtifact
-        spec.validate()
+        spec.validateStructure()
         assertNotNull(spec.expectedBytes)
         assertEquals(spec.expectedBytes, spec.maxBytes)
         assertTrue(spec.sha256.matches(Regex("[0-9a-f]{64}")))

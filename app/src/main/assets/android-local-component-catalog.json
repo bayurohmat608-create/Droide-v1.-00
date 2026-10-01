@@ -1,0 +1,66 @@
+{
+  "schema": 2,
+  "revision": "2026-09-30-sdk36-buildtools36-arm64",
+  "entries": [
+    {
+      "id": "google-sdk-platform-36-r02",
+      "familyId": "sdk.android",
+      "version": "36",
+      "kind": "SDK_PLATFORM",
+      "downloadUrl": "https://dl.google.com/android/repository/platform-36_r02.zip",
+      "fileName": "platform-36_r02.zip",
+      "sizeBytes": 65878410,
+      "sha256": "37607369a28c5b640b3a7998868d45898ebcb777565a0e85f9acf36f29631d2e",
+      "upstreamSha1": "2c1a80dd4d9f7d0e6dd336ec603d9b5c55a6f576",
+      "archiveRoot": "android-36",
+      "guestTarget": "platforms/android-36",
+      "maxFiles": 2048,
+      "maxUnpackedBytes": 268435456,
+      "provenance": "Google Android SDK repository package platforms;android-36 revision 2. Upstream repository metadata publishes the exact archive name, byte size, and SHA-1; Droide additionally pins the byte-exact SHA-256.",
+      "provenanceUrl": "https://dl.google.com/android/repository/repository2-3.xml"
+    },
+    {
+      "id": "android-build-tools-36.0.0-linux-arm64",
+      "familyId": "build.android-tools",
+      "version": "36.0.0",
+      "kind": "BUILD_TOOLS_ARM64",
+      "downloadUrl": "https://dl.google.com/android/repository/build-tools_r36_linux.zip",
+      "fileName": "build-tools_r36_linux.zip",
+      "sizeBytes": 63737259,
+      "sha256": "5d9ac77fb6ff43d9da518a337b4fcf8f9097113df531d99ccefe80ef7ce8250b",
+      "upstreamSha1": "b0b6376977657e8ad9b969bacf4093601da2c6fb",
+      "archiveRoot": "android-16",
+      "guestTarget": "build-tools/36.0.0",
+      "maxFiles": 4096,
+      "maxUnpackedBytes": 536870912,
+      "provenance": "Google Build Tools 36.0.0 supplies architecture-neutral Java jars and metadata. The four native tools used by the normal AGP path are replaced with pinned linux-glibc-arm64 builds from Commit451/android-arm-build-tools release platform-tools-36.0.0, built from the corresponding public AOSP source tag.",
+      "provenanceUrl": "https://dl.google.com/android/repository/repository2-3.xml",
+      "nativeTools": [
+        {
+          "name": "aapt2",
+          "downloadUrl": "https://github.com/Commit451/android-arm-build-tools/releases/download/platform-tools-36.0.0/aapt2",
+          "sizeBytes": 6661672,
+          "sha256": "7512ff7e381bea6fd310b6f6e347422c8fda21e07c6e3f0162742e95eb9d7f98"
+        },
+        {
+          "name": "aidl",
+          "downloadUrl": "https://github.com/Commit451/android-arm-build-tools/releases/download/platform-tools-36.0.0/aidl",
+          "sizeBytes": 2234776,
+          "sha256": "8c97356b8bba8f7aad44cfd408e3ee24c66a1258244b5d08af1c9249f50dd659"
+        },
+        {
+          "name": "zipalign",
+          "downloadUrl": "https://github.com/Commit451/android-arm-build-tools/releases/download/platform-tools-36.0.0/zipalign",
+          "sizeBytes": 199824,
+          "sha256": "e8856fb24b10095eb6e940c577ce96d89ddbfc45aa0f7eeaef1597ef68f11a12"
+        },
+        {
+          "name": "split-select",
+          "downloadUrl": "https://github.com/Commit451/android-arm-build-tools/releases/download/platform-tools-36.0.0/split-select",
+          "sizeBytes": 1707816,
+          "sha256": "fb7f0c3c87dbd4243d7e1277ba64ded2399389244058b6a4c969cc615360766c"
+        }
+      ]
+    }
+  ]
+}

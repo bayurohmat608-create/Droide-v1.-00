@@ -4,10 +4,10 @@ import java.io.EOFException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets
+import java.nio.ByteBuffer
+import java.nio.charset.CodingErrorAction
 
-// The parser is intentionally dependency-free and bounded so malformed adapters cannot make the IDE allocate unbounded headers or payloads.
-
-
+// Keep untrusted input and output bounded.
 
 
 object ContentLengthProtocol {
@@ -39,13 +39,20 @@ object ContentLengthProtocol {
         while (offset < length) {
             val n = input.read(payload, offset, length - offset)
             if (n < 0) throw EOFException("Unexpected EOF while reading framed payload")
-            offset += n
+            if (n == 0) {
+                val single = input.read()
+                if (single < 0) throw EOFException("Unexpected EOF while reading framed payload")
+                payload[offset++] = single.toByte()
+            } else offset += n
         }
-        return payload.toString(StandardCharsets.UTF_8)
+        return StandardCharsets.UTF_8.newDecoder()
+            .onMalformedInput(CodingErrorAction.REPORT)
+            .onUnmappableCharacter(CodingErrorAction.REPORT)
+            .decode(ByteBuffer.wrap(payload)).toString()
     }
 
-    @Synchronized
     fun writeMessage(output: OutputStream, message: String, maxMessageBytes: Int = MAX_MESSAGE_BYTES) {
+        require(maxMessageBytes in 1..MAX_MESSAGE_BYTES) { "Invalid protocol message limit" }
         val bytes = message.toByteArray(StandardCharsets.UTF_8)
         require(bytes.size <= maxMessageBytes) { "Protocol payload exceeds limit: ${bytes.size}" }
         val header = "Content-Length: ${bytes.size}\r\nContent-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n"

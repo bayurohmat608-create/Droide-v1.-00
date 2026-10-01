@@ -36,13 +36,14 @@ internal object WorkspaceAgentSessionBootstrap {
         scope: CoroutineScope,
         resumeSessionId: String?,
         onEvent: (WorkspaceAgentEvent) -> Unit,
+        workspaceIo: AgentWorkspaceIo = BridgeAgentWorkspaceIo(bridge),
     ): WorkspaceAgentBootstrapResult {
         val executable = processHost.resolveExecutable(spec.command)
-            ?: error("${spec.displayName} is not installed or not executable in Device Workstation")
+            ?: error("${spec.displayName} is not installed or not executable in the active Linux environment")
         onEvent(WorkspaceAgentEvent.Status("Starting ${spec.displayName} ACP session…"))
         val mapper = requireNotNull(processHost.pathMapper()) { "Linux workspace mapper is unavailable" }
         val process = processHost.start(listOf(executable) + spec.args)
-        val rpc = AcpNdjsonConnection(process, files, mapper, processHost, bridge, approvals, permissions, scope)
+        val rpc = AcpNdjsonConnection(process, files, mapper, processHost, bridge, approvals, permissions, scope, workspaceIo)
         try {
             val init = rpc.request(
                 "initialize",

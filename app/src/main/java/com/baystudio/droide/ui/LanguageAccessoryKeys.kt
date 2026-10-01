@@ -1,12 +1,6 @@
 package com.baystudio.droide.ui
 
 
-
-
-
-
-
-
 internal sealed interface EditorAccessoryAction {
     val label: String
     val contentDescription: String

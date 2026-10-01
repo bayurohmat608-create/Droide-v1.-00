@@ -6,10 +6,6 @@ import kotlinx.coroutines.channels.Channel
 // Only the newest pending geometry should cross a remote PTY boundary, and one consumer must apply those updates serially.
 
 
-
-
-
-
 internal class TerminalResizeAuthority(
     columns: Int = DEFAULT_COLUMNS,
     rows: Int = DEFAULT_ROWS,

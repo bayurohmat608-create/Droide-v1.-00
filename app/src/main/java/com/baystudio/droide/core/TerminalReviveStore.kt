@@ -34,10 +34,6 @@ internal data class TerminalReviveSnapshot(
 // After process death Droide relaunches a fresh shell; it never pretends that the killed process survived.
 
 
-
-
-
-
 internal class TerminalReviveStore(
     appFilesDir: File,
 ) {

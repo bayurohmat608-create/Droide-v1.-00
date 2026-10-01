@@ -27,11 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.baystudio.droide.core.DevicePtySessionHandle
+import com.baystudio.droide.core.CodingKeyboardMode
 import com.baystudio.droide.core.ITerminalSession
 import com.baystudio.droide.core.DroideThemeSnapshot
 import com.baystudio.droide.core.TerminalThemeAuthority
 import com.baystudio.droide.core.NativePtySessionHandle
-import com.termux.view.TerminalView
 import kotlinx.coroutines.launch
 
  
@@ -43,12 +43,13 @@ internal fun TerminalPane(
     accessoryInputFocus: AccessoryInputFocusController,
     accessoryKeysExpanded: Boolean,
     typingFocusMode: Boolean = false,
+    codingKeyboardMode: CodingKeyboardMode = CodingKeyboardMode.DEFAULT,
     onAccessoryKeysExpandedChange: (Boolean) -> Unit,
 ) {
     when (session) {
-        is NativePtySessionHandle -> NativePtyTerminalPane(session, theme, accessoryKeysComfortable, accessoryInputFocus, accessoryKeysExpanded, typingFocusMode, onAccessoryKeysExpandedChange)
-        is DevicePtySessionHandle -> DevicePtyTerminalPane(session, theme, accessoryKeysComfortable, accessoryInputFocus, accessoryKeysExpanded, typingFocusMode, onAccessoryKeysExpandedChange)
-        else -> PipeTerminalPane(session, accessoryKeysComfortable, accessoryInputFocus, accessoryKeysExpanded, typingFocusMode, onAccessoryKeysExpandedChange)
+        is NativePtySessionHandle -> NativePtyTerminalPane(session, theme, accessoryKeysComfortable, accessoryInputFocus, accessoryKeysExpanded, typingFocusMode, codingKeyboardMode, onAccessoryKeysExpandedChange)
+        is DevicePtySessionHandle -> DevicePtyTerminalPane(session, theme, accessoryKeysComfortable, accessoryInputFocus, accessoryKeysExpanded, typingFocusMode, codingKeyboardMode, onAccessoryKeysExpandedChange)
+        else -> PipeTerminalPane(session, accessoryKeysComfortable, accessoryInputFocus, accessoryKeysExpanded, typingFocusMode, codingKeyboardMode, onAccessoryKeysExpandedChange)
     }
 }
 
@@ -60,9 +61,10 @@ private fun NativePtyTerminalPane(
     accessoryInputFocus: AccessoryInputFocusController,
     accessoryKeysExpanded: Boolean,
     typingFocusMode: Boolean,
+    codingKeyboardMode: CodingKeyboardMode,
     onAccessoryKeysExpandedChange: (Boolean) -> Unit,
 ) {
-    var viewRef by remember(session) { mutableStateOf<TerminalView?>(null) }
+    var viewRef by remember(session) { mutableStateOf<DroideNativeTerminalView?>(null) }
     val accessoryModifiers = remember(session) { AccessoryModifierController() }
     val accessoryFocusOwner = remember(session) { accessoryInputFocus.owner(AccessoryInputTarget.TERMINAL_NATIVE) }
     DisposableEffect(session) {
@@ -133,9 +135,10 @@ private fun NativePtyTerminalPane(
         AndroidView(
             modifier = Modifier.weight(1f).fillMaxWidth().background(theme.ui.background),
             factory = { context ->
-                lateinit var view: TerminalView
+                lateinit var view: DroideNativeTerminalView
                 val viewClient = DroideTerminalViewClient(context, { viewRef }, 14, accessoryModifiers)
-                view = TerminalView(context, null).apply {
+                view = DroideNativeTerminalView(context).apply {
+                    applyKeyboardMode(codingKeyboardMode)
                     setTerminalViewClient(viewClient)
                     setTextSize(14)
                     setTerminalCursorBlinkerRate(600)
@@ -154,6 +157,7 @@ private fun NativePtyTerminalPane(
             },
             update = { view ->
                 viewRef = view
+                view.applyKeyboardMode(codingKeyboardMode)
                 TerminalThemeAuthority.apply(session, theme.terminal)
                 if (view.currentSession !== session.nativePtySession) view.attachSession(session.nativePtySession)
                 view.invalidate()
@@ -172,6 +176,7 @@ private fun DevicePtyTerminalPane(
     accessoryInputFocus: AccessoryInputFocusController,
     accessoryKeysExpanded: Boolean,
     typingFocusMode: Boolean,
+    codingKeyboardMode: CodingKeyboardMode,
     onAccessoryKeysExpandedChange: (Boolean) -> Unit,
 ) {
     val status by session.status.collectAsState()
@@ -216,6 +221,7 @@ private fun DevicePtyTerminalPane(
             modifier = Modifier.weight(1f).fillMaxWidth().background(theme.ui.background),
             factory = { context ->
                 DeviceTerminalView(context).apply {
+                    applyKeyboardMode(codingKeyboardMode)
                     TerminalThemeAuthority.apply(session, theme.terminal)
                     applyTheme(theme.terminal)
                     attachSession(session)
@@ -231,6 +237,7 @@ private fun DevicePtyTerminalPane(
                 }
             },
             update = { view ->
+                view.applyKeyboardMode(codingKeyboardMode)
                 TerminalThemeAuthority.apply(session, theme.terminal)
                 view.applyTheme(theme.terminal)
                 view.attachSession(session)
@@ -250,6 +257,7 @@ private fun PipeTerminalPane(
     accessoryInputFocus: AccessoryInputFocusController,
     accessoryKeysExpanded: Boolean,
     typingFocusMode: Boolean,
+    codingKeyboardMode: CodingKeyboardMode,
     onAccessoryKeysExpandedChange: (Boolean) -> Unit,
 ) {
     val output by session.output.collectAsState()
@@ -341,22 +349,24 @@ private fun PipeTerminalPane(
                 fontSize = 12.sp,
             )
         }
-        Row(Modifier.padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                value = cmd,
-                onValueChange = { cmd = it },
-                modifier = Modifier.weight(1f).onFocusChanged { inputFocused = it.isFocused },
-                placeholder = { Text("command") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Ascii,
-                    imeAction = ImeAction.Send,
-                    autoCorrectEnabled = false,
-                ),
-                keyboardActions = KeyboardActions(onSend = { submit() }),
-                textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-            )
-            IconButton(onClick = { submit() }) { Icon(Icons.Default.Send, "Run") }
+        CodingKeyboardInput(codingKeyboardMode) {
+            Row(Modifier.padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = cmd,
+                    onValueChange = { cmd = it },
+                    modifier = Modifier.weight(1f).onFocusChanged { inputFocused = it.isFocused },
+                    placeholder = { Text("command") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Send,
+                        autoCorrectEnabled = codingKeyboardMode.allowsWordCorrections(),
+                    ),
+                    keyboardActions = KeyboardActions(onSend = { submit() }),
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                )
+                IconButton(onClick = { submit() }) { Icon(Icons.Default.Send, "Run") }
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddLink
@@ -33,13 +34,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 private const val PICKER_QUERY_MAX_CHARS = 256
-
-
-
-
-
-
-
 
 
 @Composable
@@ -210,8 +204,8 @@ fun AgentModelPickerMenu(
                     color = DroideColors.Muted,
                 )
             }
-            LazyColumn(Modifier.fillMaxWidth().heightIn(max = if (landscape) 190.dp else 245.dp)) {
-                items(visibleLocalModels,  ) { local ->
+            ModelPickerMenuList(menuWidth, if (landscape) 190.dp else 245.dp) {
+                items(visibleLocalModels, key = { it.id }) { local ->
                     val selected = currentProviderId == LocalLlamaServerPolicy.PROVIDER_ID && currentModel == local.id
                     DropdownMenuItem(
                         enabled = !localState.busy,
@@ -258,8 +252,8 @@ fun AgentModelPickerMenu(
                 singleLine = true,
                 textStyle = MaterialTheme.typography.bodySmall,
             )
-            LazyColumn(Modifier.fillMaxWidth().heightIn(max = if (landscape) 185.dp else 235.dp)) {
-                items(visibleProviders,  ) { provider ->
+            ModelPickerMenuList(menuWidth, if (landscape) 185.dp else 235.dp) {
+                items(visibleProviders, key = { it.id }) { provider ->
                     val connected = connectedProviders[provider.id] == true
                     DropdownMenuItem(
                         text = {
@@ -315,8 +309,8 @@ fun AgentModelPickerMenu(
             if (!loading && error == null && visibleModels.isEmpty()) {
                 Text("No matching model returned by this provider.", Modifier.padding(10.dp), style = MaterialTheme.typography.labelSmall, color = DroideColors.Muted)
             }
-            LazyColumn(Modifier.fillMaxWidth().heightIn(max = if (landscape) 175.dp else 225.dp)) {
-                items(visibleModels,  ) { model ->
+            ModelPickerMenuList(menuWidth, if (landscape) 175.dp else 225.dp) {
+                items(visibleModels, key = { it }) { model ->
                     val selected = selectedProvider.id == currentProviderId && model == currentModel
                     DropdownMenuItem(
                         text = { ModelPickerRow(selectedProvider, model) },
@@ -342,6 +336,15 @@ fun AgentModelPickerMenu(
                 onClick = { onConnectProvider(selectedProvider.id) },
             )
         }
+    }
+}
+
+@Composable
+internal fun ModelPickerMenuList(width: androidx.compose.ui.unit.Dp, height: androidx.compose.ui.unit.Dp, content: LazyListScope.() -> Unit) {
+    // DropdownMenu uses intrinsic width and a scrolling Column. This viewport answers intrinsic
+    // measurements and bounds the lazy list before either reaches its unsupported measurement path.
+    Box(Modifier.width(width).height(height)) {
+        LazyColumn(Modifier.fillMaxSize(), content = content)
     }
 }
 

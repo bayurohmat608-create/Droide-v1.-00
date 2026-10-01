@@ -17,10 +17,12 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import java.io.File
 import java.io.FileOutputStream
-import java.net.InetAddress
 import java.net.URI
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -29,13 +31,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.coroutines.resume
-
-
-
-
-
-
-
 
 
 class AgentBrowserController(
@@ -62,6 +57,7 @@ class AgentBrowserController(
     private var status = Status()
     private val consoleLines = ArrayDeque<String>()
     @Volatile private var allowLoopbackRequests = false
+    private val executeMutex = Mutex()
 
     fun bindOpenRequest(open: () -> Unit): Binding = synchronized(lock) {
         openGeneration += 1L
@@ -139,7 +135,7 @@ class AgentBrowserController(
                 val url = request.url.toString()
                 // POST/XHR/fetch must not become a private-network escape hatch just because only GET was preflighted.
 
-                return if (networkRequestAllowed(url, allowLoopbackRequests)) {
+                return if (networkRequestAllowed(url, allowLoopbackRequests, request.isForMainFrame)) {
                     null
                 } else {
                     WebResourceResponse("text/plain", "utf-8", 403, "Blocked by Droide", emptyMap(), java.io.ByteArrayInputStream(ByteArray(0)))
@@ -173,11 +169,19 @@ class AgentBrowserController(
         submit: Boolean = false,
         waitMs: Long = 500,
         allowLoopback: Boolean = false,
-    ): String {
+        expectedCurrentUrl: String? = null,
+    ): String = executeMutex.withLock {
         requestSurface()
         val view = awaitView()
         allowLoopbackRequests = allowLoopback
-        return when (operation) {
+        if (operation !in setOf("open", "navigate")) {
+            val actual = onMainResult { view.url.orEmpty() }
+            if (expectedCurrentUrl != null) require(actual == expectedCurrentUrl) {
+                "Browser page changed after permission review; retry on the active page"
+            }
+            if (operation != "status") validateTopLevel(actual, allowLoopback)
+        }
+        when (operation) {
             "status" -> renderStatus()
             "open", "navigate" -> {
                 val raw = requireNotNull(url?.trim()?.takeIf { it.isNotEmpty() }) { "browser open requires url" }
@@ -242,12 +246,13 @@ class AgentBrowserController(
     }
 
     private suspend fun readPage(view: WebView): String {
+        validateTopLevel(onMainResult { view.url.orEmpty() }, allowLoopbackRequests)
         val payload = eval(view, DOM_SNAPSHOT_JS)
         val stat = synchronized(lock) { status }
         return buildString {
             append("BROWSER_PAGE\n")
-            append("url=").append(stat.url.ifBlank { view.url.orEmpty() }).append('\n')
-            append("title=").append(stat.title.ifBlank { view.title.orEmpty() }).append('\n')
+            append("url=").append(stat.url).append('\n')
+            append("title=").append(stat.title).append('\n')
             append("loading=").append(stat.loading).append('\n')
             stat.lastError?.let { append("last_error=").append(it.take(600)).append('\n') }
             append("snapshot=").append(payload.take(20_000))
@@ -259,25 +264,26 @@ class AgentBrowserController(
     }
 
     private suspend fun screenshot(view: WebView): String {
+        validateTopLevel(onMainResult { view.url.orEmpty() }, allowLoopbackRequests)
         val bitmap = onMainResult {
-            val width = view.width.coerceAtLeast(1)
-            val height = view.height.coerceAtLeast(1)
-            val out = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-            view.draw(Canvas(out))
-            out
+            val out = Bitmap.createBitmap(view.width.coerceAtLeast(1), view.height.coerceAtLeast(1), Bitmap.Config.ARGB_8888)
+            try { view.draw(Canvas(out)); out } catch (failure: Throwable) { out.recycle(); throw failure }
         }
-        val dir = PathSecurity.resolveWithin(projectRoot, ".droide/browser")
-        withContext(Dispatchers.IO) { if (!dir.isDirectory) check(dir.mkdirs() || dir.isDirectory) }
-        val file = File(dir, "agent-browser-${System.currentTimeMillis()}.png")
-        withContext(Dispatchers.IO) {
-            FileOutputStream(file).use { out -> check(bitmap.compress(Bitmap.CompressFormat.PNG, 92, out)) }
-            bitmap.recycle()
-        }
-        val rel = projectRoot.toPath().relativize(file.toPath()).toString().replace(File.separatorChar, '/')
-        return "BROWSER_SCREENSHOT path=$rel width=${view.width} height=${view.height} note=Screenshot captures the visible Android WebView viewport. DOM/accessibility text remains the model-readable verification channel unless the selected provider supports image input."
+        try {
+            val width = bitmap.width
+            val height = bitmap.height
+            val dir = PathSecurity.resolveWithin(projectRoot, ".droide/browser")
+            val file = File(dir, "agent-browser-${System.currentTimeMillis()}.png")
+            withContext(Dispatchers.IO) {
+                if (!dir.isDirectory) check(dir.mkdirs() || dir.isDirectory)
+                FileOutputStream(file).use { out -> check(bitmap.compress(Bitmap.CompressFormat.PNG, 92, out)) }
+            }
+            val rel = projectRoot.toPath().relativize(file.toPath()).toString().replace(File.separatorChar, '/')
+            return "BROWSER_SCREENSHOT path=$rel width=$width height=$height note=Visible Android WebView viewport; DOM/accessibility text remains the model-readable verification channel."
+        } finally { bitmap.recycle() }
     }
 
-    fun currentUrl(): String = synchronized(lock) { status.url.ifBlank { webView?.url.orEmpty() } }
+    fun currentUrl(): String = synchronized(lock) { status.url }
 
     private fun renderStatus(): String {
         val s = synchronized(lock) { status }
@@ -286,6 +292,7 @@ class AgentBrowserController(
 
     private suspend fun validateTopLevel(raw: String, allowLoopback: Boolean) {
         val uri = URI(raw)
+        require(uri.userInfo == null && uri.host != null && uri.port in -1..65535) { "Invalid browser URL" }
         if (isLoopback(uri.host)) {
             require(allowLoopback) { "Loopback browser navigation requires explicit browser_local permission" }
             require(uri.scheme.equals("http", true) || uri.scheme.equals("https", true)) { "Loopback browser requires HTTP(S)" }
@@ -303,19 +310,16 @@ class AgentBrowserController(
         } else uri.scheme.equals("https", true) && uri.userInfo == null && uri.host != null
     }.getOrDefault(false)
 
-    private fun networkRequestAllowed(raw: String, allowLoopback: Boolean): Boolean = runCatching {
+    private fun networkRequestAllowed(raw: String, allowLoopback: Boolean, topLevel: Boolean = false): Boolean = runCatching {
         val uri = URI(raw)
         val host = uri.host ?: return@runCatching false
-        if (isLoopback(host)) return@runCatching allowLoopback && (uri.scheme.equals("http", true) || uri.scheme.equals("https", true))
+        if (isLoopback(host)) return@runCatching allowLoopback && (topLevel || isLoopback(URI(currentUrl()).host)) && uri.userInfo == null && (uri.scheme.equals("http", true) || uri.scheme.equals("https", true))
         if (!uri.scheme.equals("https", true)) return@runCatching false
         NetworkSecurity.validatePublicHttpsTarget(raw)
         true
     }.getOrDefault(false)
 
-    private fun isLoopback(host: String?): Boolean = host != null && (
-        host.equals("localhost", true) || host == "127.0.0.1" || host == "::1" || host == "[::1]" ||
-            runCatching { InetAddress.getByName(host).isLoopbackAddress }.getOrDefault(false)
-        )
+    private fun isLoopback(host: String?): Boolean = AgentRepairCompletionPolicy.isLiteralLoopback(host)
 
     private fun recordConsole(line: String) = synchronized(lock) {
         consoleLines.addLast(line.take(1_000))
@@ -327,8 +331,9 @@ class AgentBrowserController(
         status = status.copy(lastError = message.take(1_000), loading = false)
     }
 
-    private suspend fun eval(view: WebView, script: String): String = suspendCancellableCoroutine { cont ->
+    private suspend fun eval(view: WebView, script: String): String = withTimeout(10_000) { suspendCancellableCoroutine { cont ->
         main.post {
+            if (!cont.isActive) return@post
             runCatching {
                 view.evaluateJavascript(script) { raw ->
                     if (!cont.isActive) return@evaluateJavascript
@@ -338,27 +343,29 @@ class AgentBrowserController(
                     }.getOrDefault(raw ?: "null")
                     cont.resume(unwrapped)
                 }
-            }.onFailure { if (cont.isActive) cont.resume("ERROR: ${it.message}") }
+            }.onFailure { if (cont.isActive) cont.resumeWith(Result.failure(it)) }
         }
-    }
+    } }
 
-    private suspend fun onMain(block: () -> Unit) = suspendCancellableCoroutine { cont ->
+    private suspend fun onMain(block: () -> Unit) = withTimeout(10_000) { suspendCancellableCoroutine { cont ->
         main.post {
+            if (!cont.isActive) return@post
             runCatching(block).fold(
                 onSuccess = { if (cont.isActive) cont.resume(Unit) },
                 onFailure = { if (cont.isActive) cont.resumeWith(Result.failure(it)) },
             )
         }
-    }
+    } }
 
-    private suspend fun <T> onMainResult(block: () -> T): T = suspendCancellableCoroutine { cont ->
+    private suspend fun <T> onMainResult(block: () -> T): T = withTimeout(10_000) { suspendCancellableCoroutine { cont ->
         main.post {
+            if (!cont.isActive) return@post
             runCatching(block).fold(
                 onSuccess = { if (cont.isActive) cont.resume(it) },
                 onFailure = { if (cont.isActive) cont.resumeWith(Result.failure(it)) },
             )
         }
-    }
+    } }
 
     private fun interactionScript(operation: String, target: String, text: String?, submit: Boolean): String {
         val targetJson = JsonPrimitive(target).toString()

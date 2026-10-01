@@ -12,7 +12,8 @@ class WorkspaceToolchainPreferences(
     projectRoot: File,
 ) {
     private val prefs = context.applicationContext.getSharedPreferences("droide_workspace_toolchains", Context.MODE_PRIVATE)
-    private val workspaceKey = "workspace_" + AndroidDevelopmentManager.stableProjectId(projectRoot)
+    val workspaceId = AndroidDevelopmentManager.stableProjectId(projectRoot)
+    private val workspaceKey = "workspace_" + workspaceId
     private val json = Json { ignoreUnknownKeys = false }
     private val serializer = MapSerializer(String.serializer(), String.serializer())
 

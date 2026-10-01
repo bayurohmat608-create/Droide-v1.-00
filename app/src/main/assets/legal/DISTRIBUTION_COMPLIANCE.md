@@ -1,46 +1,43 @@
 # Droide distribution compliance status
 
 **Current version:** Droide v1.00 (`versionCode 29`)  
-**Third-party runtime inventory:** **CLOSED / VERIFIED FOR THE BUNDLED TREE**  
-**Public binary release:** **FAIL-CLOSED UNTIL RELEASE-BUILD CLOSURE IS GENERATED**
+**Third-party license status:** **CLEARED BY RELEASE-SOURCE GATES**  
+**Overall binary release status:** **FAIL-CLOSED UNTIL NON-LICENSE RELEASE CHECKS PASS**
 
-Droide now maps every directly declared app runtime dependency and every bundled native/rootfs runtime aggregate to legal metadata. The runtime inventory is generated from the exact binary archives shipped in the tree, not from a hand-maintained approximation.
+The third-party license layer is complete for the source tree and bundled runtime represented by this release. This statement is an engineering compliance status, not legal advice and not a substitute for jurisdiction-specific trademark/privacy/store review.
 
-## Direct application dependencies
+## First-party license
 
-`tools/verify_dependency_policy.py` requires every `implementation(...)` dependency, including local JAR/AAR files, to map exactly once to `legal/open_source_licenses.json`. A new or stale mapping fails the release gate. XZ for Java 1.12 is explicitly mapped as 0BSD, and the exact Termux local AAR filenames are mapped to the reviewed Apache-2.0 terminal-module exception.
+Droide-owned source code and original project material are licensed under the MIT License. Third-party software and assets remain under their respective licenses. See the repository `LICENSE`, `LICENSE_SCOPE.md` and packaged `legal/DROIDE_LICENSE.md`.
 
-## Bundled Linux/native runtime
+## Application dependency closure
 
-`legal/runtime_legal_inventory.json` is deterministically generated from the packaged runtime artifacts and records hashes plus package/source metadata for:
+`legal/open_source_licenses.json` maps every directly declared runtime dependency exactly once. `legal/resolved_runtime_licenses.json` maps every module in the locked Gradle `releaseRuntimeClasspath`; the current closure contains 134 resolved modules and unknown coordinates fail the release gate.
 
-- PRoot/OpenMinis native runtime and loaders, with matching source preserved under `third_party/native-engines/proot/`.
-- talloc 2.4.2, with matching source preserved beside the PRoot source.
-- QEMU 11.0.3, with matching upstream source preserved under `third_party/native-engines/qemu/`.
-- Alpine Linux 3.24.2 minirootfs: 16 installed packages with exact package-declared licenses and aports source commits.
-- Alpine QEMU offline pack: 52 exact APK packages with SHA-256, repository, package-declared license and aports source commit.
-- Ubuntu Base 24.04.5 arm64: 91 installed binary packages mapped to exact Ubuntu source package/version locators.
+The catalog packages the required license families, including Apache-2.0, MIT, BSD-3-Clause, EPL-2.0, LGPL-2.1-or-later, 0BSD and component-specific Bouncy Castle/JGit terms. XZ for Java 1.12 is mapped as 0BSD and the actual Java-only Termux emulator AAR plus terminal-view AAR are mapped under the upstream Apache-2.0 Terminal Emulator exception.
 
-`tools/verify_runtime_licenses.py` regenerates this inventory from the shipped bytes and fails if it changes, if required license/source-offer assets disappear, or if required corresponding-source archives are missing.
+## Copyleft and aggregate runtime
 
-## Copyleft source availability
+`legal/runtime_legal_inventory.json` is generated from the exact bundled runtime bytes. It records PRoot/OpenMinis, talloc, QEMU, 16 Alpine minirootfs packages, 52 Alpine QEMU packages and 91 Ubuntu Base packages, including hashes and source identities/locators.
 
-The complete source-offer terms are packaged in `legal/COPYLEFT_SOURCE_OFFER.md`. PRoot/OpenMinis, talloc and QEMU corresponding source archives are already included in the public tree. Exact package source locators are recorded for Alpine and Ubuntu aggregate packages. BayStudio's written offer covers any distributed copyleft component whose corresponding source is not already present in the same release and remains valid for at least three years after the last distribution of that binary version.
+Matching PRoot/OpenMinis, talloc and QEMU source archives are present under `third_party/native-engines/`. `legal/COPYLEFT_SOURCE_OFFER.md` covers corresponding source not already mirrored in the source release and remains valid for at least three years after the last BayStudio distribution of the relevant binary version.
 
-Sora Editor 0.24.6 remains LGPL-2.1-or-later. Its exact version and license are pinned in the catalog. Droide-owned source uses the MIT License, which does not remove recipients' LGPL rights or the library's relinking requirements.
+Sora Editor 0.24.6 remains LGPL-2.1-or-later. Droide's public source, pinned dependency declarations and replaceable build path preserve recipients' ability to rebuild against a compatible modified Sora library; the LGPL license and notice remain packaged.
 
-## Termux terminal scope
+Eclipse JDT annotations in the resolved graph are EPL-2.0 and the full EPL-2.0 text is packaged. Their upstream source locator is recorded in the resolved-runtime inventory.
 
-The Termux `terminal-emulator` and `terminal-view` 0.118.0 artifacts are scoped to the Apache-2.0 Terminal Emulator exception identified by upstream. `third_party/termux/UPSTREAM_PROVENANCE.json` pins the reviewed source/class/native scope, and `tools/verify_termux_provenance.py` verifies it offline.
+## Provider and tool marks
 
-## Remaining release-build gate
+Provider/tool marks are used only for identification; trademark rights remain with their owners. Pinned models.dev/LobeHub source assets retain commit/path/hash provenance. The vLLM media-kit mark is intentionally not redistributed because its media-kit currently lacks an explicit logo license; vLLM uses Droide's neutral generic provider glyph instead.
 
-The source tree cannot generate the resolved Gradle transitive graph in an offline environment. Before publishing an APK/AAB, the trusted online release build must run `tools/generate_dependency_trust.sh`, commit/review dependency locks and `gradle/verification-metadata.xml`, and rerun all release gates. This is a build-environment closure step, not an unmapped bundled-runtime license issue.
+See `legal/BRAND_ASSET_TERMS.md` and `legal/THIRD_PARTY_NOTICES.md`.
 
-## Droide-owned source license
+## Supply-chain controls
 
-Droide-owned source code and original project material are licensed under the MIT License. Third-party software and assets remain under their respective licenses; see `legal/DROIDE_LICENSE.md`, `legal/THIRD_PARTY_NOTICES.md`, and the repository `LICENSE_SCOPE.md`.
+The source pins the Gradle distribution checksum, immutable GitHub Action SHAs, dependency locks, verification metadata and vendored artifact hashes. `tools/verify_dependency_policy.py`, `tools/verify_resolved_runtime_licenses.py`, `tools/verify_runtime_licenses.py`, `tools/verify_third_party_integrity.py` and `tools/verify_termux_provenance.py` are mandatory release gates.
 
-## Release rule
+A dependency, lockfile, bundled runtime or pinned-logo provenance change must fail until its license/provenance inventory is intentionally updated.
 
-Preserve `THIRD_PARTY_NOTICES.md`, `COPYLEFT_SOURCE_OFFER.md`, `runtime_legal_inventory.json`, `open_source_licenses.json`, all packaged license texts, and all third-party provenance/source records in public distributions.
+## Non-license release blockers
+
+Third-party licensing is not the remaining release blocker. Public APK/AAB publication still requires the normal technical/product release checks documented by the project, including strict build/test/lint, signing, privacy/terms/store declarations, physical-device certification and the independent SPAKE2 interoperability/cryptographic review.

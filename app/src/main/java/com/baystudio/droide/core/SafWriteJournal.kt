@@ -36,17 +36,14 @@ internal class SafWriteJournal(
         require(local.isFile) { "Local source is not a file: $path" }
         val (parent, leaf) = ensureParent(path)
         var target = parent.findFile(leaf)
-        if (target?.isDirectory == true) {
-            if (!target.delete()) throw IllegalStateException("Cannot replace SAF directory: $path")
-            target = null
-        }
+        check(target?.isDirectory != true) { "SAF sync conflict: refusing to replace a directory with a file: $path" }
         // Both the old provider bytes and the intended new bytes are durable before "wt" can truncate the provider document.
 
         val entry = File(recoveryRoot, UUID.randomUUID().toString())
         check(entry.mkdirs()) { "Cannot create SAF recovery journal" }
         try {
-            val oldHash = if (target?.isFile == true) copySafToPrivate(target, File(entry, "previous"), path) else null
-            val newHash = copyPrivateFile(local, File(entry, "intended"))
+            val oldHash = if (target?.isFile == true) copySafToPrivate(target, File(entry, "previous"), path, checkCancelled) else null
+            val newHash = copyPrivateFile(local, File(entry, "intended"), checkCancelled)
             val record = PendingSafWrite(path, oldHash, newHash)
             val metadata = File(entry, "pending.json")
             val tmp = File(entry, "pending.tmp")
@@ -66,6 +63,7 @@ internal class SafWriteJournal(
                     error("SAF original changed while preparing its backup: $path")
                 }
                 if (target == null) {
+                    check(find(path) == null) { "SAF destination appeared while preparing its write: $path" }
                     val mime = URLConnection.guessContentTypeFromName(leaf) ?: "application/octet-stream"
                     target = parent.createFile(mime, leaf) ?: throw IllegalStateException("Cannot create SAF file: $path")
                 }
@@ -73,9 +71,19 @@ internal class SafWriteJournal(
                 check(fingerprintExternal(target, path) == newHash) { "SAF provider did not retain the complete write: $path" }
                 return newHash
             } catch (failure: Throwable) {
-                // An immediate rollback is best-effort; a failed rollback retains both payloads.
-                val rolledBack = runCatching { restorePrevious(entry, record); true }.getOrDefault(false)
+                // Unknown partial or concurrent contents must remain available for reconciliation.
+                val rolledBack = runCatching {
+                    val current = find(path)
+                    check(current == null || current.isFile) { "SAF destination changed type" }
+                    val actual = current?.let { fingerprintExternal(it, path) }
+                    when (SafWriteRecoveryPolicy.decide(actual, record.previous, record.intended, committed = false)) {
+                        SafWriteRecoveryPolicy.Decision.ORIGINAL_UNCHANGED -> true
+                        SafWriteRecoveryPolicy.Decision.RESTORE_ORIGINAL -> { restorePrevious(entry, record); true }
+                        else -> false
+                    }
+                }.getOrDefault(false)
                 if (rolledBack) PathSecurity.deleteTreeNoFollow(entry)
+                if (!rolledBack && failure is kotlinx.coroutines.CancellationException) throw failure
                 if (!rolledBack) throw IllegalStateException(
                     "SAF write failed for $path; original and intended bytes remain in the recovery journal. Sync is blocked pending reconciliation.", failure
                 )
@@ -100,33 +108,35 @@ internal class SafWriteJournal(
         return "f:${digest.digest().toHex()}"
     }
 
-    private fun copyPrivateFile(source: File, destination: File): String {
+    private fun copyPrivateFile(source: File, destination: File, checkCancelled: () -> Unit): String {
         require(source.isFile && !PathSecurity.isSymbolicLink(source)) { "Invalid SAF write payload" }
         require(recoveryRoot.usableSpace > source.length() + MIN_JOURNAL_FREE_BYTES) { "Insufficient space for SAF recovery payload" }
         val digest = MessageDigest.getInstance("SHA-256")
         FileOutputStream(destination).use { output ->
-            source.inputStream().use { input -> copyHashed(input, output, digest) }
+            source.inputStream().use { input -> copyHashed(input, output, digest, checkCancelled) }
             output.fd.sync()
         }
         return "f:${digest.digest().toHex()}"
     }
 
-    private fun copySafToPrivate(source: DocumentFile, destination: File, path: String): String {
+    private fun copySafToPrivate(source: DocumentFile, destination: File, path: String, checkCancelled: () -> Unit): String {
         val size = source.length().coerceAtLeast(0)
         require(recoveryRoot.usableSpace > size + MIN_JOURNAL_FREE_BYTES) { "Insufficient space for SAF original backup: $path" }
-        val input = context.contentResolver.openInputStream(source.uri)
-            ?: throw IllegalStateException("Cannot back up SAF original before writing: $path")
         val digest = MessageDigest.getInstance("SHA-256")
-        FileOutputStream(destination).use { output ->
-            input.use { copyHashed(it, output, digest) }
-            output.fd.sync()
+        (context.contentResolver.openInputStream(source.uri)
+            ?: throw IllegalStateException("Cannot back up SAF original before writing: $path")).use { input ->
+            FileOutputStream(destination).use { output ->
+                copyHashed(input, output, digest, checkCancelled)
+                output.fd.sync()
+            }
         }
         return "f:${digest.digest().toHex()}"
     }
 
-    private fun copyHashed(input: java.io.InputStream, output: java.io.OutputStream, digest: MessageDigest) {
+    private fun copyHashed(input: java.io.InputStream, output: java.io.OutputStream, digest: MessageDigest, checkCancelled: () -> Unit) {
         val buffer = ByteArray(COPY_BUFFER_BYTES)
         while (true) {
+            checkCancelled()
             val n = input.read(buffer)
             if (n < 0) break
             if (n == 0) continue
@@ -136,10 +146,9 @@ internal class SafWriteJournal(
     }
 
     private fun writeSafFromPrivate(target: DocumentFile, payload: File, path: String, checkCancelled: () -> Unit = {}) {
-        val output = context.contentResolver.openOutputStream(target.uri, "wt")
-            ?: throw IllegalStateException("Cannot open SAF document for writing: $path")
         payload.inputStream().buffered(COPY_BUFFER_BYTES).use { input ->
-            output.use { out ->
+            (context.contentResolver.openOutputStream(target.uri, "wt")
+                ?: throw IllegalStateException("Cannot open SAF document for writing: $path")).use { out ->
                 val buffer = ByteArray(COPY_BUFFER_BYTES)
                 while (true) {
                     checkCancelled()
@@ -174,19 +183,21 @@ internal class SafWriteJournal(
             val metadata = File(entry, "pending.json")
             
             if (!metadata.isFile) { PathSecurity.deleteTreeNoFollow(entry); continue }
+            require(metadata.length() in 1..16_384) { "Invalid SAF recovery metadata size" }
             val record = json.decodeFromString(PendingSafWrite.serializer(), metadata.readText())
             require(record.path.isNotBlank() && !record.path.startsWith('/') &&
                 record.path.split('/').none { it == "." || it == ".." }) { "Invalid SAF recovery path" }
-            val current = find(record.path)?.takeIf { it.isFile }
+            val current = find(record.path)
+            check(current == null || current.isFile) { "SAF recovery conflict: destination changed type: ${record.path}" }
             val actual = current?.let { fingerprintExternal(it, record.path) }
-            when {
-                actual == record.previous -> PathSecurity.deleteTreeNoFollow(entry)
-                actual == record.intended && known[record.path] == record.intended -> PathSecurity.deleteTreeNoFollow(entry)
-                actual == record.intended -> {
+            when (SafWriteRecoveryPolicy.decide(actual, record.previous, record.intended, known[record.path] == record.intended)) {
+                SafWriteRecoveryPolicy.Decision.ORIGINAL_UNCHANGED,
+                SafWriteRecoveryPolicy.Decision.INTENDED_COMMITTED -> PathSecurity.deleteTreeNoFollow(entry)
+                SafWriteRecoveryPolicy.Decision.RESTORE_ORIGINAL -> {
                     restorePrevious(entry, record)
                     PathSecurity.deleteTreeNoFollow(entry)
                 }
-                else -> error("SAF write recovery pending for ${record.path}: external content differs from both saved versions. Original and intended bytes were retained; resolve the external change before syncing.")
+                SafWriteRecoveryPolicy.Decision.CONFLICT -> error("SAF write recovery pending for ${record.path}: external content differs from both saved versions. Original and intended bytes were retained; resolve the external change before syncing.")
             }
         }
     }

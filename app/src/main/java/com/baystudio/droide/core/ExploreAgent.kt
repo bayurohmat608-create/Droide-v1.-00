@@ -12,14 +12,6 @@ import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.ensureActive
 
 
-
-
-
-
-
-
-
-
 class ExploreAgent(
     private val files: FileRepository,
     private val git: GitManager,

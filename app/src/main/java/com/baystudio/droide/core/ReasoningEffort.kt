@@ -7,13 +7,6 @@ import kotlinx.serialization.json.put
 // Runtime Models.dev reasoningoptions metadata is authoritative when present.
 
 
-
-
-
-
-
-
-
 @Serializable
 enum class ReasoningEffort(val label: String, val wireValue: String) {
     LOW("Low", "low"),
@@ -31,12 +24,7 @@ sealed interface ReasoningWire {
     data class GoogleNative(val value: String) : ReasoningWire
 }
 
-// This deliberately avoids provider-name allowlists as the primary source of truth so newly discovered reasoning models work without an APK update when.
-
-
-
-
-
+// Persisted state remains the source of truth.
 
 
 object ReasoningSupport {
@@ -128,10 +116,6 @@ object ReasoningSupport {
         }
     }
 
-    
-
-
-
 
     private fun anthropicWire(model: String, effort: ReasoningEffort, catalogAdvertised: Boolean): ReasoningWire? {
         return when (anthropicThinkingMode(model)) {
@@ -194,10 +178,6 @@ object ReasoningSupport {
         return if ("gemini-" in m) setOf("low", "high") else emptySet()
     }
 
-    
-
-
-
 
     private fun openAiCompatibleFallbackEfforts(
         providerId: String,
@@ -218,11 +198,8 @@ object ReasoningSupport {
         if (id == "groq" && groqReasoningModel(m)) return setOf("low", "high")
         if (id == "fireworks" && fireworksReasoningModel(m)) return setOf("low", "high")
 
-        
 
         if (id == "openrouter" && capability?.reasoning != false) return setOf("low", "high")
-
-        
 
 
         if (capability?.reasoning == true && provider?.catalogDiscovered == true &&

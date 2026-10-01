@@ -47,6 +47,8 @@ interface UnifiedPackageAuthority {
     suspend fun activate(familyId: String, version: String, workspaceId: String? = null): UnifiedPackageTransactionResult
     suspend fun health(familyId: String): UnifiedPackageHealthStatus
     suspend fun repair(familyId: String): UnifiedPackageTransactionResult
+    suspend fun repairVersion(familyId: String, version: String): UnifiedPackageTransactionResult =
+        UnifiedPackageTransactionResult(false, "This provider does not support exact-version repair")
     suspend fun uninstall(familyId: String, version: String): UnifiedPackageTransactionResult
     suspend fun list(): List<UnifiedPackageInfo>
     

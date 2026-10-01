@@ -90,10 +90,6 @@ data class WorkspaceAgentTurnResult(
 )
 
 
-
-
-
-
 class WorkspaceAgentPluginHost(
     private val projectRoot: File,
     private val cacheDir: File,
@@ -118,6 +114,9 @@ class WorkspaceAgentPluginHost(
     private val scope = CoroutineScope(parentScope.coroutineContext + SupervisorJob())
     private val sessions = ConcurrentHashMap<String, LiveSession>()
     private val sessionLifecycle = Mutex()
+    private val workspaceTurns = Mutex()
+    private val workspaceIo: AgentWorkspaceIo = (processHost as? LocalAgentWorkspaceProcessHost)?.workspaceIo
+        ?: BridgeAgentWorkspaceIo(bridge) { androidDevelopment.prepareInteractiveShell(syncProject = true); Unit }
 
     suspend fun availability(): List<WorkspaceAgentAvailability> =
         WorkspaceAgentPluginCatalog.entries.map { spec ->
@@ -132,9 +131,11 @@ class WorkspaceAgentPluginHost(
         onEvent: (WorkspaceAgentEvent) -> Unit = {},
     ): WorkspaceAgentTurnResult {
         require(prompt.isNotBlank() && prompt.length <= 200_000) { "Agent prompt is empty or too large" }
-        val session = ensureSession(agentId, resumeSessionId, onEvent)
-        onEvent(WorkspaceAgentEvent.SessionBound(session.sessionId))
-        return session.mutex.withLock {
+        return workspaceTurns.withLock {
+            workspaceIo.refresh()
+            val session = ensureSession(agentId, resumeSessionId, onEvent)
+            onEvent(WorkspaceAgentEvent.SessionBound(session.sessionId))
+            session.mutex.withLock {
             session.rpc.beginTurn(mode)
             try {
                 val before = readRemoteSyncManifest(session.mapper.remoteRoot)
@@ -190,12 +191,13 @@ class WorkspaceAgentPluginHost(
             } catch (failure: Throwable) {
                 session.rpc.drainDirectWrites()
                 withContext(kotlinx.coroutines.NonCancellable + Dispatchers.IO) {
-                    runCatching { androidDevelopment.prepareInteractiveShell(syncProject = true) }
+                    runCatching { kotlinx.coroutines.withTimeout(15_000) { workspaceIo.refresh() } }
                 }
                 throw failure
             } finally {
                 session.rpc.endTurn()
             }
+        }
         }
     }
 
@@ -244,7 +246,7 @@ class WorkspaceAgentPluginHost(
         val spec = WorkspaceAgentPluginCatalog.entries.firstOrNull { it.id == agentId }
             ?: error("Unknown workspace agent: $agentId")
         val boot = WorkspaceAgentSessionBootstrap.start(
-            spec, projectRoot, files, processHost, bridge, approvals, permissions, scope, resumeSessionId, onEvent,
+            spec, projectRoot, files, processHost, bridge, approvals, permissions, scope, resumeSessionId, onEvent, workspaceIo,
         )
         return LiveSession(
             spec, boot.process, boot.rpc, boot.sessionId, boot.approvalSessionId, boot.mapper, boot.modes,
@@ -272,13 +274,10 @@ class WorkspaceAgentPluginHost(
         val relativePath: String,
         val expectedRemoteHash: String?,
         val operation: ReconcileOperation,
+        val expectedLocalHash: String?,
     )
 
-    // Treat the Device Workstation as an agent sandbox, never as the source of truth.
-
-
-
-
+    // The editor workspace remains authoritative; inspect and approve mirror changes first.
     private suspend fun reconcileRemoteWorkspace(
         mapper: WorkspacePathMapper,
         before: Map<String, String>,
@@ -288,14 +287,15 @@ class WorkspaceAgentPluginHost(
         provenanceSessionId: String,
     ): Pair<List<String>, List<String>> = withContext(Dispatchers.IO) {
         val remote = mapper.remoteRoot
-        val scan = bridge.shellBounded(
+        val scan = workspaceIo.shellBounded(
             "set -eu; cd ${DeviceBridgeManager.shellQuote(remote)}; " +
-                "find . -type f ! -path './.git/*' ! -path './.gradle/*' ! -path './build/*' ! -path './.droide/*' ! -path './node_modules/*' " +
-                "! -name '.droide-sync-manifest.tsv' ! -name 'local.properties' | sort | while IFS= read -r f; do " +
-                "case \"${'$'}f\" in *'\\t'*|*'\\r'*) continue;; esac; toybox sha256sum \"${'$'}f\"; done",
+                "find . \\( -type d \\( -name .git -o -name .gradle -o -name build -o -name .droide -o -name node_modules \\) \\) -prune -o -type f " +
+                "! -name '.droide-sync-manifest.tsv' ! -name 'local.properties' -print | sort | while IFS= read -r f; do " +
+                "case \"${'$'}f\" in *'\\t'*|*'\\r'*) continue;; esac; ${workspaceIo.checksumCommand} \"${'$'}f\"; done",
             maxOutputBytes = 2_000_000,
         )
         check(scan.exitCode == 0) { "Could not inspect agent workspace changes: ${scan.combined.takeLast(4_000)}" }
+        require(!scan.truncated) { "Agent workspace hash listing exceeds the supported output limit; source is preserved" }
         val current = parseHashListing(scan.stdout, manifestFormat = false)
         require(current.size <= 20_000) { "Agent workspace produced too many files" }
 
@@ -311,7 +311,7 @@ class WorkspaceAgentPluginHost(
             if (rel in authorizedWrites && now != null && localHash == now) continue
             if (now == null) {
                 if (base != null && localHash == base) {
-                    candidates += ReconcileCandidate(rel, null, ReconcileOperation.DELETE)
+                    candidates += ReconcileCandidate(rel, null, ReconcileOperation.DELETE, localHash)
                 } else if (base != null) {
                     conflicts += rel
                 }
@@ -325,13 +325,13 @@ class WorkspaceAgentPluginHost(
                 conflicts += rel
                 continue
             }
-            candidates += ReconcileCandidate(rel, now, ReconcileOperation.IMPORT_TEXT)
+            candidates += ReconcileCandidate(rel, now, ReconcileOperation.IMPORT_TEXT, localHash)
         }
 
         if (candidates.isNotEmpty() && !allowWorkspaceMutation) {
             
 
-            androidDevelopment.prepareInteractiveShell(syncProject = true)
+            workspaceIo.refresh()
             return@withContext emptyList<String>() to (conflicts + candidates.map { it.relativePath }).distinct()
         }
 
@@ -360,7 +360,7 @@ class WorkspaceAgentPluginHost(
             )
             if (!approved) {
                 // Discard sandbox-only mutations and restore the authoritative editor workspace.
-                androidDevelopment.prepareInteractiveShell(syncProject = true)
+                workspaceIo.refresh()
                 return@withContext emptyList<String>() to (conflicts + candidates.map { it.relativePath }).distinct()
             }
         }
@@ -370,7 +370,11 @@ class WorkspaceAgentPluginHost(
             val rel = candidate.relativePath
             val local = mapper.remoteToLocal("$remote/$rel") ?: continue
             val remotePath = "$remote/$rel"
-            DeviceBridgeManager.requireSafeRemotePath(remotePath)
+            workspaceIo.requirePath(remotePath)
+            if (local.takeIf(File::isFile)?.let(::sha256) != candidate.expectedLocalHash) {
+                conflicts += rel
+                continue
+            }
             when (candidate.operation) {
                 ReconcileOperation.DELETE -> {
                     if (files.delete(rel)) changed += rel
@@ -379,9 +383,13 @@ class WorkspaceAgentPluginHost(
                     val temp = File(cacheDir, "agent-reconcile/${sha256String(remotePath)}.tmp")
                     temp.parentFile?.mkdirs()
                     try {
-                        bridge.pull(remotePath, temp)
+                        workspaceIo.pull(remotePath, temp)
                         val expected = candidate.expectedRemoteHash
                         if (expected == null || sha256(temp) != expected || temp.length() > 2_000_000L || !isUtf8Text(temp)) {
+                            conflicts += rel
+                            continue
+                        }
+                        if (local.takeIf(File::isFile)?.let(::sha256) != candidate.expectedLocalHash) {
                             conflicts += rel
                             continue
                         }
@@ -395,53 +403,29 @@ class WorkspaceAgentPluginHost(
         }
         // Always rebuild the mirror from the authoritative local workspace.
 
-        androidDevelopment.prepareInteractiveShell(syncProject = true)
+        workspaceIo.refresh()
         changed.distinct() to conflicts.distinct()
     }
 
     private suspend fun readRemoteSyncManifest(remoteRoot: String): Map<String, String> {
-        DeviceBridgeManager.requireSafeRemotePath(remoteRoot)
+        workspaceIo.requirePath(remoteRoot)
         val path = "$remoteRoot/.droide-sync-manifest.tsv"
-        val result = bridge.shellBounded(
+        val result = workspaceIo.shellBounded(
             "test -f ${DeviceBridgeManager.shellQuote(path)} && cat ${DeviceBridgeManager.shellQuote(path)}",
             maxOutputBytes = 2_000_000,
         )
         if (result.exitCode != 0) return emptyMap()
+        require(!result.truncated) { "Agent workspace sync manifest exceeds the supported output limit" }
         val parsed = parseHashListing(result.stdout, manifestFormat = true)
         require(parsed.size <= 20_000) { "Agent workspace sync manifest contains too many files" }
         return parsed
     }
 
     private fun parseHashListing(text: String, manifestFormat: Boolean): Map<String, String> {
-        val out = linkedMapOf<String, String>()
-        text.lineSequence().take(20_001).forEach { raw ->
-            val line = raw.trimEnd()
-            val hash: String
-            val relRaw: String
-            if (manifestFormat) {
-                val tab = line.indexOf('\t')
-                if (tab != 64) return@forEach
-                hash = line.substring(0, 64)
-                relRaw = line.substring(tab + 1)
-            } else {
-                if (line.length < 68 || !line.substring(0, 64).matches(Regex("[0-9a-f]{64}"))) return@forEach
-                hash = line.substring(0, 64)
-                relRaw = line.substring(64).trim().removePrefix("*").removePrefix("./")
-            }
-            if (!hash.matches(Regex("[0-9a-f]{64}"))) return@forEach
-            if (!isSafeAgentRelativePath(relRaw)) return@forEach
-            out[relRaw] = hash
-        }
-        return out
+        return if (manifestFormat) AgentWorkspacePathPolicy.manifest(text) else AgentWorkspacePathPolicy.hashListing(text)
     }
 
-    private fun isSafeAgentRelativePath(path: String): Boolean {
-        if (path.isBlank() || path.length > 500 || path.startsWith('/') || '\u0000' in path || '\n' in path || '\r' in path || '\t' in path) return false
-        val parts = path.replace('\\', '/').split('/')
-        if (parts.any { it.isBlank() || it == "." || it == ".." }) return false
-        if (parts.first() in setOf(".git", ".gradle", "build", ".droide", "node_modules")) return false
-        return !SensitivePathPolicy.isSensitive(path)
-    }
+    private fun isSafeAgentRelativePath(path: String): Boolean = AgentWorkspacePathPolicy.visible(path)
 
     private fun extractContentText(element: JsonElement?): String? = when (element) {
         is JsonPrimitive -> element.contentOrNull
@@ -497,6 +481,7 @@ internal class AcpNdjsonConnection(
     private val approvals: ApprovalManager,
     private val permissions: PermissionEngine,
     private val scope: CoroutineScope,
+    private val workspaceIo: AgentWorkspaceIo = BridgeAgentWorkspaceIo(bridge),
 ) : Closeable {
     private data class InboundCall(val method: String, val job: Job)
 
@@ -738,7 +723,7 @@ internal class AcpNdjsonConnection(
         if (approved) {
             requestedGrant?.let { permissionLedger.grant(it.kind, toolCallId, it.operationFingerprint) }
         }
-        // ACP always receives allowonce so the external agent cannot persist a broader allowalways rule outside Droide's session lifecycle.
+        
 
         return permissionOutcome(options, approved)
     }
@@ -791,7 +776,8 @@ internal class AcpNdjsonConnection(
         return runCatching { mapper.localRelativeToRemote(value) }.getOrNull()
     }
 
-    private fun parsePermissionEnvironment(value: JsonElement?): Map<String, String>? = when (value) {
+    private fun parsePermissionEnvironment(value: JsonElement?): Map<String, String>? {
+        return when (value) {
         null, JsonNull -> emptyMap()
         is JsonObject -> {
             if (value.size > 64) return null
@@ -812,6 +798,7 @@ internal class AcpNdjsonConnection(
             result
         }
         else -> null
+        }
     }
 
     private fun firstString(obj: JsonObject, vararg keys: String): String? =
@@ -860,10 +847,7 @@ internal class AcpNdjsonConnection(
         require(approved) { "ACP file write denied" }
         files.writeText(rel, content)
         val remote = mapper.localRelativeToRemote(rel)
-        val parent = remote.substringBeforeLast('/', mapper.remoteRoot)
-        val mk = bridge.shell("mkdir -p ${DeviceBridgeManager.shellQuote(parent)}")
-        check(mk.exitCode == 0) { mk.combined }
-        bridge.push(local, remote, mode = if (local.canExecute()) 493 else 420)
+        workspaceIo.push(local, remote)
         directWrites += rel
         return JsonObject(emptyMap())
     }
